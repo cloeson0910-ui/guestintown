@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Nostre Destinazioni | Guest in Town</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #141312; 
+            --bg-card: #1C1A18;
+            --color-gold: #E5D0B3; 
+            --color-subtitle: #9E958A;
+            --font-serif: 'Cormorant Garamond', Georgia, serif;
+            --font-sans: 'Montserrat', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: var(--font-sans);
+            padding: 80px 5%;
+        }
+
+        .page-header { text-align: center; margin-bottom: 80px; }
+        .page-header h2 { font-family: var(--font-serif); font-size: 3.5rem; color: var(--color-gold); font-weight: 300; letter-spacing: 3px; margin-bottom: 20px; }
+        .page-header p { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 5px; color: var(--color-subtitle); }
+        .destinations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 50px; max-width: 1400px; margin: 0 auto; }
+        .city-card { background-color: var(--bg-card); border: 1px solid rgba(229, 208, 179, 0.08); overflow: hidden; transition: transform 0.5s ease, border-color 0.5s ease; }
+        .city-card:hover { transform: translateY(-8px); border-color: rgba(229, 208, 179, 0.3); }
+        .image-container { width: 100%; height: 450px; overflow: hidden; position: relative; background-color: #222; }
+        .image-container img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(15%) brightness(85%); transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .city-card:hover .image-container img { transform: scale(1.04); filter: grayscale(0%) brightness(95%); }
+        .city-info { padding: 35px 25px; text-align: center; }
+        .city-info h3 { font-family: var(--font-serif); font-size: 2rem; font-weight: 400; color: #fff; letter-spacing: 1px; margin-bottom: 18px; }
+        .btn-discover { display: inline-block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-gold); text-decoration: none; border-bottom: 1px solid rgba(229, 208, 179, 0.2); padding-bottom: 5px; transition: all 0.3s ease; }
+        .btn-discover:hover { color: #fff; border-bottom-color: #fff; letter-spacing: 2.5px; }
+        .back-home { display: block; text-align: center; margin-top: 80px; color: var(--color-subtitle); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; transition: color 0.3s; }
+        .back-home:hover { color: var(--color-gold); }
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <h2>Le Destinazioni</h2>
+        <p>Una selezione delle località più esclusive della Puglia</p>
+    </header>
+
+    <main class="destinations-grid">
+
+        <!-- 1. OSTUNI -->
+        <div class="city-card">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1732966713411-1bcf1273eaa6?ixid=M3w3Nzk0OTl8MHwxfHNlYXJjaHwxfHxvc3R1bml8ZW58MXx8fHwxNzgwNzg1MTMzfDA&amp;ixlib=rb-4.1.0&amp;w=1080&amp;q=80&amp;fit=max&amp;fm=jpg&amp;cs=tinysrgb" alt="Ostuni">
+            </div>
+            <div class="city-info">
+                <h3>Ostuni</h3>
+                <a href="citta.html?id=ostuni" class="btn-discover">scopri le soluzioni di Ostuni</a>
+            </div>
+        </div>
+
+        <!-- 2. LECCE -->
+        <div class="city-card">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1629115911442-70b02bb50b38?auto=format&fit=crop&w=800&q=80" alt="Lecce">
+            </div>
+            <div class="city-info">
+                <h3>Lecce</h3>
+                <a href="citta.html?id=lecce" class="btn-discover">scopri le soluzioni di Lecce</a>
+            </div>
+        </div>
+
+        <!-- 3. GALLIPOLI -->
+        <div class="city-card">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1614713719213-91f7a0fe252c?auto=format&fit=crop&w=800&q=80" alt="Gallipoli">
+            </div>
+            <div class="city-info">
+                <h3>Gallipoli</h3>
+                <a href="citta.html?id=gallipoli" class="btn-discover">scopri le soluzioni di Gallipoli</a>
+            </div>
+        </div>
+
+        <!-- 4. CEGLIE MESSAPICA -->
+        <div class="city-card">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80" alt="Ceglie Messapica">
+            </div>
+            <div class="city-info">
+                <h3>Ceglie Messapica</h3>
+                <a href="citta.html?id=ceglie" class="btn-discover">scopri le soluzioni di Ceglie Messapica</a>
+            </div>
+        </div>
+
+        <!-- 5. MONOPOLI -->
+        <div class="city-card">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1623910813959-19ec5961ea15?auto=format&fit=crop&w=800&q=80" alt="Monopoli">
+            </div>
+            <div class="city-info">
+                <h3>Monopoli</h3>
+                <a href="citta.html?id=monopoli" class="btn-discover">scopri le soluzioni di Monopoli</a>
+            </div>
+        </div>
+
+        <!-- 6. BARI -->
+        <div class="city-card">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1605538032432-a9f0c8d9baac?auto=format&fit=crop&w=800&q=80" alt="Bari">
+            </div>
+            <div class="city-info">
+                <h3>Bari</h3>
+                <a href="citta.html?id=bari" class="btn-discover">scopri le soluzioni di Bari</a>
+            </div>
+        </div>
+
+        <!-- 7. OTRANTO -->
+        <div class="city-card">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1601918774946-25832a4be0d6?auto=format&fit=crop&w=800&q=80" alt="Otranto">
+            </div>
+            <div class="city-info">
+                <h3>Otranto</h3>
+                <a href="citta.html?id=otranto" class="btn-discover">scopri le soluzioni di Otranto</a>
+            </div>
+        </div>
+
+    </main>
+
+    <a href="index.html" class="back-home">← Torna alla Landing Page</a>
+
+</body>
+</html>

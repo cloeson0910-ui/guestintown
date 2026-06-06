@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest in Town | Vacanze di Lusso in Puglia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #141312; 
+            --bg-glow: #24211E;
+            --color-gold: #E5D0B3; 
+            --color-subtitle: #9E958A;
+            --font-serif: 'Cormorant Garamond', Georgia, serif;
+            --font-sans: 'Montserrat', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            background: radial-gradient(circle at center, var(--bg-glow) 0%, var(--bg-dark) 100%);
+            color: #fff;
+            font-family: var(--font-sans);
+            overflow: hidden; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .brand-container {
+            text-align: center;
+            padding: 20px;
+            max-width: 90%;
+            animation: fadeIn 2.5s ease-out forwards;
+        }
+
+        .brand-title {
+            font-family: var(--font-serif);
+            font-size: 5rem; 
+            font-weight: 300;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--color-gold);
+            line-height: 1.1;
+            margin-bottom: 25px;
+        }
+
+        .brand-title span.italic-connector {
+            font-family: var(--font-serif);
+            font-style: italic;
+            text-transform: lowercase;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            margin-right: 0.08em;
+            color: #fff; 
+        }
+
+        .divider {
+            width: 40px;
+            height: 1px;
+            background-color: var(--color-gold);
+            margin: 0 auto 30px auto;
+            opacity: 0.5;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.45em; 
+            color: var(--color-subtitle);
+            line-height: 1.8;
+            padding-left: 0.45em; 
+            margin-bottom: 50px;
+        }
+
+        /* --- PULSANTE CORRETTO E PERFETTAMENTE CENTRATO --- */
+        .btn-enter {
+            display: inline-block;
+            padding: 16px 50px;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            
+            /* Gestione millimetrica della spaziatura per centrare il testo */
+            letter-spacing: 0.5em; 
+            text-indent: 0.5em; /* Spinge la prima lettera a destra per compensare lo spazio vuoto dell'ultima */
+            
+            color: var(--color-gold);
+            text-decoration: none;
+            border: 1px solid rgba(229, 208, 179, 0.4); 
+            background: transparent;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
+            cursor: pointer;
+        }
+
+        .btn-enter:hover {
+            color: var(--bg-dark);
+            background-color: var(--color-gold);
+            border-color: var(--color-gold);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .brand-title { font-size: 2.8rem; letter-spacing: 0.12em; margin-bottom: 15px; }
+            .brand-subtitle { font-size: 0.65rem; letter-spacing: 0.35em; padding-left: 0.35em; margin-bottom: 40px; }
+            .btn-enter { padding: 14px 40px; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="brand-container">
+        <h1 class="brand-title">GUEST <span class="italic-connector">in</span> TOWN</h1>
+        <div class="divider"></div>
+        <p class="brand-subtitle">le vostre vacanze di lusso in puglia</p>
+        <a href="esplora.html" class="btn-enter">Entra</a>
+    </div>
+
+</body>
+</html>
