@@ -84,12 +84,11 @@ async function login(){
         });
 
     if(error){
-        alert(error.message);
-        return;
-    }
+    alert(error.message);
+    return;
+}
 
-    alert("Login effettuato con successo!");
-
+window.location.href = "dashboard.html";
 }
 
 </script>
