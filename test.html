@@ -1,37 +1,29 @@
-<!DOCTYPE html>
-<html>
-<body>
-    <button id="btn">TEST SCRITTURA</button>
-    <p id="stato">Stato: In attesa...</p>
+// ... dentro la funzione del tuo form ...
+const btn = document.getElementById('btn-submit');
+btn.innerText = "Scrivendo...";
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+const timeout = setTimeout(() => {
+    alert("ERRORE: Tempo scaduto. Firebase non risponde. Controlla la tua connessione internet.");
+    btn.innerText = "Pubblica Villa";
+}, 5000); // Dopo 5 secondi di silenzio, ti avvisa
 
-        // COPIA QUI ESATTAMENTE LA CONFIGURAZIONE DAL TUO FIREBASE (Impostazioni progetto -> Generali -> Configurazione SDK)
-        const firebaseConfig = {
-            // Assicurati che questi dati corrispondano al progetto "guest-f7fcd"
-            apiKey: "...", 
-            authDomain: "guest-f7fcd.firebaseapp.com",
-            projectId: "guest-f7fcd",
-            storageBucket: "guest-f7fcd.firebasestorage.app",
-            messagingSenderId: "...",
-            appId: "..."
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        document.getElementById('btn').onclick = async () => {
-            document.getElementById('stato').innerText = "Scrivendo...";
-            try {
-                await addDoc(collection(db, "test"), { messaggio: "CIAO" });
-                document.getElementById('stato').innerText = "✅ FATTO! Controlla Firebase.";
-            } catch (e) {
-                document.getElementById('stato').innerText = "❌ ERRORE: " + e.message;
-                console.error(e);
-            }
-        };
-    </script>
-</body>
-</html>
+try {
+    console.log("Tentativo di invio...");
+    await addDoc(collection(db, "ville"), {
+        nome: document.getElementById('nome').value,
+        localita: document.getElementById('localita').value,
+        prezzo: 1, // Mettiamo un numero fisso per test
+        immagine: "test",
+        descrizione: "test"
+    });
+    
+    clearTimeout(timeout); // Se arriva qui, annulla il timer
+    btn.innerText = "Pubblica Villa";
+    alert("DATO SALVATO!");
+    
+} catch (error) {
+    clearTimeout(timeout);
+    btn.innerText = "Pubblica Villa";
+    console.error("ERRORE DI FIREBASE:", error);
+    alert("ERRORE: " + error.message);
+}
