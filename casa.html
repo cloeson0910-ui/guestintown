@@ -50,4 +50,355 @@
         .price-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-subtitle); text-align: center; margin-bottom: 25px; }
         
         .calendar-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; text-align: center; }
-        .calendar-grid { display: grid; grid-
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-size: 0.8rem; margin-bottom: 20px; }
+        .day-name { font-size: 0.65rem; color: var(--color-subtitle); padding-bottom: 4px; font-weight: 500; }
+        .day { padding: 8px 0; background-color: rgba(255,255,255,0.02); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .day:hover:not(.occupied) { border-color: var(--color-gold); color: var(--color-gold); }
+        .day.occupied { background-color: rgba(255, 75, 75, 0.12); color: rgba(255, 255, 255, 0.15); text-decoration: line-through; cursor: not-allowed; }
+        .day.selected { background-color: var(--color-gold); color: var(--bg-dark); font-weight: 600; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-subtitle); margin-bottom: 6px; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; background: var(--bg-dark); border: 1px solid rgba(229, 208, 179, 0.2); color: #fff; font-family: var(--font-sans); font-size: 0.85rem; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--color-gold); outline: none; }
+
+        .totals-box { border-top: 1px solid rgba(229, 208, 179, 0.1); padding-top: 15px; margin-bottom: 20px; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; color: var(--color-subtitle); }
+        .total-row.final { font-size: 1.1rem; color: #fff; border-top: 1px dashed rgba(229, 208, 179, 0.2); padding-top: 12px; }
+
+        .btn-confirm { display: block; width: 100%; padding: 14px; background-color: var(--color-gold); color: var(--bg-dark); text-align: center; text-decoration: none; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px; font-weight: 600; border: none; cursor: pointer; transition: background 0.3s; }
+        .btn-confirm:hover { background-color: #fff; }
+
+        .bottom-nav { width: 100%; text-align: center; padding: 40px 0; border-top: 1px solid rgba(229, 208, 179, 0.05); margin-top: 40px; }
+        .bottom-nav a { color: var(--color-gold); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 15px; transition: opacity 0.3s; }
+        .bottom-nav a:hover { color: #fff; }
+
+        /* Area Trasparente con Lucchetto Dorato nel Dettaglio */
+        .dash-lock-casa { color: var(--color-gold); text-decoration: none; font-size: 1.1rem; opacity: 0.3; transition: all 0.3s; display: inline-block; background: transparent; border: none; vertical-align: middle; }
+        .dash-lock-casa:hover { opacity: 1; transform: scale(1.15); text-shadow: 0 0 10px rgba(229, 208, 179, 0.4); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .luxury-modal { background-color: var(--bg-card); border: 1px solid var(--color-gold); padding: 40px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.4s ease; }
+        .modal-overlay.active .luxury-modal { transform: scale(1); }
+        .modal-icon { font-size: 2.5rem; color: var(--color-gold); margin-bottom: 15px; display: block; }
+        .modal-title { font-family: var(--font-serif); font-size: 1.8rem; color: var(--color-gold); font-weight: 300; margin-bottom: 12px; }
+        .modal-text { color: var(--color-subtitle); font-size: 0.9rem; line-height: 1.6; margin-bottom: 25px; }
+        .modal-text strong { color: #fff; }
+        .btn-modal-close { display: inline-block; padding: 12px 35px; background-color: transparent; border: 1px solid rgba(229, 208, 179, 0.4); color: var(--color-gold); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px; text-decoration: none; cursor: pointer; transition: all 0.3s; }
+        .btn-modal-close:hover { background-color: var(--color-gold); color: var(--bg-dark); }
+
+        #pdf-wrapper { position: fixed; top: 0; left: 0; width: 650px; height: auto; opacity: 0; pointer-events: none; z-index: -100; }
+        .pdf-page { background: #ffffff; color: #141312; font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; position: relative; }
+        
+        .pdf-header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e5d0b3; padding-bottom: 15px; margin-bottom: 20px; }
+        .pdf-header-text { width: 75%; }
+        .pdf-header-text h1 { font-size: 22px; color: #141312; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; margin-bottom: 4px; }
+        .pdf-header-text p { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .pdf-qrcode-box { width: 85px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .pdf-qrcode-box #qrcode-element img { width: 70px; height: 70px; margin-bottom: 4px; }
+        .pdf-qrcode-box span { font-size: 6px; text-transform: uppercase; color: #777; letter-spacing: 0.5px; font-weight: bold; line-height: 1.1; }
+
+        .pdf-section-title { font-size: 11px; text-transform: uppercase; color: #b39973; letter-spacing: 1px; margin-top: 20px; margin-bottom: 8px; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .pdf-table td { padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 11px; color: #333; }
+        .pdf-table td.label { color: #777; font-weight: 300; width: 45%; }
+        .pdf-table td.value { font-weight: 500; text-align: right; }
+        .pdf-total-box { margin-top: 25px; background-color: #faf8f5; padding: 15px; border-left: 4px solid #e5d0b3; display: flex; justify-content: space-between; align-items: center; }
+        .pdf-total-label { font-size: 10px; text-transform: uppercase; color: #777; letter-spacing: 1px; }
+        .pdf-total-price { font-size: 18px; color: #141312; font-weight: 600; }
+        .pdf-footer { margin-top: 35px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 12px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <div class="slideshow-container">
+        <div class="mySlides"><img id="slide-1" src="" alt="Vetrina 1"></div>
+        <div class="mySlides"><img id="slide-2" src="" alt="Vetrina 2"></div>
+        <div class="mySlides"><img id="slide-3" src="" alt="Vetrina 3"></div>
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+    </div>
+
+    <main class="main-container">
+        <div class="info-column">
+            <h1 id="villa-name" class="home-title">Caricamento...</h1>
+            <p id="villa-location" class="home-location">Località</p>
+            
+            <h2 class="section-sub">La Residenza</h2>
+            <p id="villa-desc" class="home-description">Descrizione...</p>
+            
+            <h2 class="section-sub">I Servizi Esclusivi</h2>
+            <div class="amenities-grid">
+                <div class="amenity-item"><span class="amenity-icon">🛏️</span><span class="amenity-text">Camere</span><p id="am-beds" class="amenity-sub">--</p></div>
+                <div class="amenity-item"><span class="amenity-icon">🚿</span><span class="amenity-text">Bagni</span><p id="am-baths" class="amenity-sub">--</p></div>
+                <div class="amenity-item"><span class="amenity-icon">🏊‍♂️</span><span class="amenity-text">Piscina</span><p id="am-pool" class="amenity-sub">Privata</p></div>
+                <div class="amenity-item"><span class="amenity-icon">❄️</span><span class="amenity-text">Clima</span><p class="amenity-sub">Domotizzato</p></div>
+                <div class="amenity-item"><span class="amenity-icon">🌳</span><span class="amenity-text">Giardino</span><p class="amenity-sub">Parco Privato</p></div>
+                <div class="amenity-item"><span class="amenity-icon">🚘</span><span class="amenity-text">Parcheggio</span><p class="amenity-sub">Custodito</p></div>
+            </div>
+        </div>
+
+        <div class="booking-column">
+            <div class="booking-box">
+                <div id="night-price" class="price-tag">€ 0</div>
+                <div class="price-label">a notte</div>
+
+                <h3 class="calendar-title">Seleziona le date</h3>
+                <div class="calendar-grid" id="calendar">
+                    <div class="day-name">Lu</div><div class="day-name">Ma</div><div class="day-name">Me</div><div class="day-name">Gi</div><div class="day-name">Ve</div><div class="day-name">Sa</div><div class="day-name">Do</div>
+                </div>
+
+                <div class="input-group">
+                    <label>Numero Ospiti</label>
+                    <select id="client-guests">
+                        <option value="1">1 Ospite</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="client-name" placeholder="Es. Giacomo Mattei" required>
+                </div>
+                <div class="input-group">
+                    <label>Indirizzo Email</label>
+                    <input type="email" id="client-email" placeholder="Es. giacomo@esempio.com" required>
+                </div>
+
+                <div class="totals-box">
+                    <div class="total-row"><span>Notti selezionate:</span><span id="total-nights">0</span></div>
+                    <div class="total-row"><span>Costi pulizia finale:</span><span id="cleaning-fee">€ 0</span></div>
+                    <div class="total-row final"><span>Prezzo Totale:</span><span id="final-total-price">€ 0</span></div>
+                </div>
+
+                <button class="btn-confirm" onclick="processDirectBooking()">Conferma Prenotazione</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bottom-nav">
+        <a href="index.html">← Torna alla Home</a>
+        <a href="index.html#case">Esplora altre Dimore</a>
+        <a href="dashboard.html" class="dash-lock-casa" title="Area Riservata Gestore">🔒</a>
+    </footer>
+
+    <div class="modal-overlay" id="custom-modal">
+        <div class="luxury-modal">
+            <span class="modal-icon">✨</span>
+            <h2 class="modal-title">Prenotazione Diretta Confermata</h2>
+            <p class="modal-text">
+                Gentile ospite, la sua richiesta per <strong id="modal-villa-name">-</strong> è bloccata.<br><br>
+                Il sistema ha scaricato il suo **Voucher PDF** (incluso di QR Code per i Servizi Locali) ed ha inoltrato la notifica a: <br><strong id="modal-villa-email">-</strong>.<br><br>
+                Le date sul calendario sono ora riservate.
+            </p>
+            <button class="btn-modal-close" onclick="closeLuxuryModal()">Eccellente</button>
+        </div>
+    </div>
+
+    <div id="pdf-wrapper">
+        <div class="pdf-page" id="pdf-content">
+            
+            <div class="pdf-header-container">
+                <div class="pdf-header-text">
+                    <h1>Guest in Town</h1>
+                    <p>Luxury Rentals & Concierge Puglia — Voucher di Prenotazione</p>
+                </div>
+                <div class="pdf-qrcode-box">
+                    <div id="qrcode-element"></div>
+                    <span>Scansiona per<br>Servizi Locali</span>
+                </div>
+            </div>
+            
+            <div class="pdf-section-title">Anagrafica & Alloggio</div>
+            <table class="pdf-table">
+                <tr><td class="label">Dimora Esclusiva</td><td class="value" id="pdf-villa">--</td></tr>
+                <tr><td class="label">Località</td><td class="value" id="pdf-location">--</td></tr>
+                <tr><td class="label">Capacità Massima Struttura</td><td class="value" id="pdf-max-capacity">--</td></tr>
+                <tr><td class="label">Intestatario Prenotazione</td><td class="value" id="pdf-guest">--</td></tr>
+                <tr><td class="label">Numero Ospiti Registrati</td><td class="value" id="pdf-registered-guests">--</td></tr>
+            </table>
+
+            <div class="pdf-section-title">Dettagli Soggiorno (Calendario Logistico)</div>
+            <table class="pdf-table">
+                <tr><td class="label">Data di Arrivo (Check-in)</td><td class="value" id="pdf-checkin" style="font-weight: 600;">--</td></tr>
+                <tr><td class="label">Orario Check-in consentito</td><td class="value">Dalle ore 15:00 alle ore 20:00</td></tr>
+                <tr><td class="label">Data di Partenza (Check-out)</td><td class="value" id="pdf-checkout" style="font-weight: 600;">--</td></tr>
+                <tr><td class="label">Orario Check-out tassativo</td><td class="value">Entro le ore 10:30 del mattino</td></tr>
+                <tr><td class="label">Notti di Soggiorno Totali</td><td class="value" id="pdf-nights">0 Notti</td></tr>
+            </table>
+
+            <div class="pdf-section-title">Riepilogo Economico Dettagliato</div>
+            <table class="pdf-table">
+                <tr><td class="label">Tariffa base della Dimora</td><td class="value" id="pdf-base-rate">€ 0 / notte</td></tr>
+                <tr><td class="label">Calcolo Canone Locazione (<span id="pdf-calc-nights">0</span> notti)</td><td class="value" id="pdf-calc-subtotal">€ 0</td></tr>
+                <tr><td class="label">Spese di igienizzazione e sanificazione finale</td><td class="value" id="pdf-clean">€ 0</td></tr>
+            </table>
+
+            <div class="pdf-total-box">
+                <span class="pdf-total-label">Corrispettivo Totale dovuto</span>
+                <span class="pdf-total-price" id="pdf-total">€ 0</span>
+            </div>
+
+            <div class="pdf-footer">
+                La prenotazione è valida e bloccata sul portale diretto. Il saldo e il contratto di locazione turistica verranno gestiti dal Suo Personal Concierge, che la contatterà telefonicamente entro 12 ore.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const villasData = {
+            "masseria_bianca": { name: "Masseria Bianca Luxury Estate", location: "Ostuni, Valle d'Itria", price: 750, cleaning: 150, beds: "5 Camere", baths: "6 Bagni", pool: "Sfioro Riscaldata", max: "10 Ospiti", slides: ["https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80"], desc: "Sontuosa masseria fortificata risalente al XVIII secolo, sapientemente restaurata per unire il fascino grezzo della pietra pugliese al design minimale contemporaneo." },
+            "trullo_sovereign": { name: "Trullo Sovereign Collection", location: "Ostuni, Valle d'Itria", price: 600, cleaning: 120, beds: "3 Camere", baths: "4 Bagni", pool: "Scavata nella roccia", max: "6 Ospiti", slides: ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"], desc: "Un complesso magico di coni autentici perfettamente abitabili, dove l'ingegneria rurale storica incontra il lusso d'interni a cinque stelle." },
+            "palazzo_barocco": { name: "Palazzo Barocco Grande Suite", location: "Lecce, Centro Storico", price: 900, cleaning: 200, beds: "4 Suite", baths: "5 Bagni", pool: "Idromassaggio Interna", max: "8 Ospiti", slides: ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1549517045-bc93de075e53?auto=format&fit=crop&w=1200&q=80"], desc: "Dimora nobiliare indipendente situata nel cuore pulsante di Lecce. Caratterizzata da maestose volte a stella e pavimenti in cementine d'epoca." }
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const villaScelta = params.get('id') || 'masseria_bianca';
+        const currentVilla = villasData[villaScelta];
+
+        const currentUrl = window.location.href;
+        new QRCode(document.getElementById("qrcode-element"), {
+            text: currentUrl,
+            width: 70,
+            height: 70,
+            colorDark : "#141312",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        document.getElementById('villa-name').innerText = currentVilla.name;
+        document.getElementById('villa-location').innerText = currentVilla.location;
+        document.getElementById('villa-desc').innerText = currentVilla.desc;
+        document.getElementById('night-price').innerText = `€ ${currentVilla.price}`;
+        document.getElementById('cleaning-fee').innerText = `€ ${currentVilla.cleaning}`;
+        document.getElementById('am-beds').innerText = currentVilla.beds;
+        document.getElementById('am-baths').innerText = currentVilla.baths;
+        document.getElementById('am-pool').innerText = currentVilla.pool;
+        document.getElementById('slide-1').src = currentVilla.slides[0];
+        document.getElementById('slide-2').src = currentVilla.slides[1];
+        document.getElementById('slide-3').src = currentVilla.slides[2];
+
+        const guestSelect = document.getElementById('client-guests');
+        guestSelect.innerHTML = "";
+        let maxNumber = parseInt(currentVilla.max);
+        for(let g = 1; g <= maxNumber; g++) {
+            let opt = document.createElement('option');
+            opt.value = g;
+            opt.innerText = g + (g === 1 ? " Ospite" : " Ospiti");
+            guestSelect.appendChild(opt);
+        }
+
+        const calendarGrid = document.getElementById('calendar');
+        let blockedDates = JSON.parse(localStorage.getItem(`blocked_${villaScelta}`)) || [4, 5, 20];
+        let selectedDays = [];
+
+        for(let i=1; i<=31; i++) {
+            let dayDiv = document.createElement('div');
+            dayDiv.innerText = i;
+            dayDiv.classList.add('day');
+            if(blockedDates.includes(i)) {
+                dayDiv.classList.add('occupied');
+            } else {
+                dayDiv.onclick = function() { toggleDate(dayDiv, i); };
+            }
+            calendarGrid.appendChild(dayDiv);
+        }
+
+        function toggleDate(dayDiv, day) {
+            if(dayDiv.classList.contains('selected')) {
+                dayDiv.classList.remove('selected');
+                selectedDays = selectedDays.filter(d => d !== day);
+            } else {
+                dayDiv.classList.add('selected');
+                selectedDays.push(day);
+            }
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let nights = selectedDays.length;
+            document.getElementById('total-nights').innerText = nights;
+            let total = nights > 0 ? (nights * currentVilla.price) + currentVilla.cleaning : 0;
+            document.getElementById('final-total-price').innerText = `€ ${total}`;
+        }
+
+        function processDirectBooking() {
+            const guestName = document.getElementById('client-name').value;
+            const guestEmail = document.getElementById('client-email').value;
+            const guestCount = document.getElementById('client-guests').value;
+
+            if(!guestName || !guestEmail) {
+                alert("Completa i campi Nome ed Email.");
+                return;
+            }
+            if(selectedDays.length === 0) {
+                alert("Seleziona almeno una notte sul calendario.");
+                return;
+            }
+
+            selectedDays.sort((a, b) => a - b);
+            let checkInDay = selectedDays[0];
+            let checkOutDay = selectedDays[selectedDays.length - 1] + 1;
+
+            let nights = selectedDays.length;
+            let subtotal = nights * currentVilla.price;
+            let totalCost = subtotal + currentVilla.cleaning;
+
+            document.getElementById('pdf-villa').innerText = currentVilla.name;
+            document.getElementById('pdf-location').innerText = currentVilla.location;
+            document.getElementById('pdf-max-capacity').innerText = currentVilla.max;
+            document.getElementById('pdf-guest').innerText = guestName;
+            document.getElementById('pdf-registered-guests').innerText = guestCount + (parseInt(guestCount) === 1 ? " Ospite" : " Ospiti");
+            
+            document.getElementById('pdf-checkin').innerText = checkInDay + " Giugno 2026";
+            document.getElementById('pdf-checkout').innerText = checkOutDay + " Giugno 2026";
+            document.getElementById('pdf-nights').innerText = nights + (nights === 1 ? " Notte" : " Notti");
+
+            document.getElementById('pdf-base-rate').innerText = `€ ${currentVilla.price} / notte`;
+            document.getElementById('pdf-calc-nights').innerText = nights;
+            document.getElementById('pdf-calc-subtotal').innerText = `€ ${subtotal}`;
+            document.getElementById('pdf-clean').innerText = `€ ${currentVilla.cleaning}`;
+            document.getElementById('pdf-total').innerText = `€ ${totalCost}`;
+
+            const pdfTarget = document.getElementById('pdf-content');
+            const opzioniStampa = {
+                margin:       [0.3, 0.3, 0.3, 0.3],
+                filename:     `Voucher_Direct_Booking_${guestName.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opzioniStampa).from(pdfTarget).save();
+
+            let updatedDates = [...blockedDates, ...selectedDays];
+            localStorage.setItem(`blocked_${villaScelta}`, JSON.stringify(updatedDates));
+
+            let currentDetails = JSON.parse(localStorage.getItem(`details_${villaScelta}`)) || [];
+            currentDetails.push({ name: guestName, email: guestEmail, guests: guestCount, days: [...selectedDays] });
+            localStorage.setItem(`details_${villaScelta}`, JSON.stringify(currentDetails));
+
+            document.getElementById('modal-villa-name').innerText = currentVilla.name;
+            document.getElementById('modal-villa-email').innerText = guestEmail;
+            document.getElementById('custom-modal').classList.add('active');
+        }
+
+        function closeLuxuryModal() {
+            document.getElementById('custom-modal').classList.remove('active');
+            window.location.reload();
+        }
+
+        let slideIndex = 1;
+        showSlides(slideIndex);
+        function plusSlides(n) { showSlides(slideIndex += n); }
+        function showSlides(n) {
+            let slides = document.getElementsByClassName("mySlides");
+            if (n > slides.length) {slideIndex = 1}    
+            if (n < 1) {slides.length}
+            for (let i = 0; i < slides.length; i++) { slides[i].style.display = "none"; }
+            slides[slideIndex-1].style.display = "block";  
+        }
+        setInterval(() => { plusSlides(1); }, 5000);
+    </script>
+</body>
+</html>
