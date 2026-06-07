@@ -29,31 +29,24 @@
 
 <script type="module">
     // Importa il database dal file che abbiamo creato
-    import { db } from './firebase-init.js';
-    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
-    const form = document.getElementById('villaForm');
-    const btn = document.getElementById('btn-submit');
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        btn.innerText = "Caricamento...";
+    <script type="module">
+    console.log("Lo script sta partendo...");
+    try {
+        const module = await import('./firebase-init.js');
+        console.log("firebase-init.js caricato correttamente");
+        const db = module.db;
+        console.log("Database inizializzato");
         
-        try {
-            await addDoc(collection(db, "ville"), {
-                nome: document.getElementById('nome').value,
-                localita: document.getElementById('localita').value,
-                prezzo: parseInt(document.getElementById('prezzo').value),
-                immagine: document.getElementById('imgUrl').value,
-                descrizione: document.getElementById('descrizione').value,
-                dataCreazione: new Date()
-            });
-            alert("Villa pubblicata con successo!");
-            form.reset();
-        } catch (error) {
-            alert("Errore: " + error.message);
-        }
-        btn.innerText = "Pubblica Villa";
+        // Se arriviamo qui, il problema è il form
+        document.getElementById('villaForm').addEventListener('submit', (e) => {
+            console.log("Form inviato");
+            // ... resto del tuo codice
+        });
+    } catch (err) {
+        console.error("ERRORE CRITICO:", err);
+        alert("ERRORE: " + err.message);
+    }
+</script>;
     });
 </script>
 
