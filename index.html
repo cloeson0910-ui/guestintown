@@ -92,26 +92,20 @@
             margin-bottom: 50px;
         }
 
-        /* --- PULSANTE ENTRA (CENTRATURA FLUIDA E PERFETTA) --- */
+        /* --- PULSANTE ENTRA (CENTRATURA PERFETTA) --- */
         .btn-enter {
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            
-            /* Larghezza fissa per garantire simmetria visiva totale */
             width: 200px;
             height: 52px;
-            
             font-family: var(--font-sans);
             font-size: 0.75rem;
             font-weight: 300;
             text-transform: uppercase;
             text-decoration: none;
-            
-            /* Il text-indent sposta geometricamente l'intero blocco di testo a destra per bilanciare la spaziatura dell'ultima lettera */
             letter-spacing: 0.5em; 
             text-indent: 0.5em; 
-            
             color: var(--color-gold);
             border: 1px solid rgba(229, 208, 179, 0.4); 
             background: transparent;
@@ -125,7 +119,6 @@
             background-color: var(--color-gold);
             border-color: var(--color-gold);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            
             letter-spacing: 0.55em; 
             text-indent: 0.55em;
         }
@@ -156,49 +149,17 @@
 
         /* --- ANIMAZIONE D'INGRESSO --- */
         @keyframes fadeIn {
-            0% {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- OTTIMIZZAZIONE DISPOSITIVI MOBILI --- */
+        /* --- MOBILI --- */
         @media (max-width: 768px) {
-            .brand-title {
-                font-size: 2.8rem;
-                letter-spacing: 0.12em;
-                margin-bottom: 15px;
-            }
-            
-            .brand-subtitle {
-                font-size: 0.65rem;
-                letter-spacing: 0.35em;
-                padding-left: 0.35em;
-                margin-bottom: 40px;
-            }
-
-            .btn-enter {
-                width: 170px;
-                height: 46px;
-                font-size: 0.7rem;
-                letter-spacing: 0.4em;
-                text-indent: 0.4em;
-            }
-            
-            .btn-enter:hover {
-                letter-spacing: 0.45em;
-                text-indent: 0.45em;
-            }
-
-            .btn-lock {
-                padding: 10px 30px;
-                font-size: 1rem;
-                margin-top: 20px;
-            }
+            .brand-title { font-size: 2.8rem; letter-spacing: 0.12em; margin-bottom: 15px; }
+            .brand-subtitle { font-size: 0.65rem; letter-spacing: 0.35em; padding-left: 0.35em; margin-bottom: 40px; }
+            .btn-enter { width: 170px; height: 46px; font-size: 0.7rem; letter-spacing: 0.4em; text-indent: 0.4em; }
+            .btn-enter:hover { letter-spacing: 0.45em; text-indent: 0.45em; }
+            .btn-lock { padding: 10px 30px; font-size: 1rem; margin-top: 20px; }
         }
     </style>
 </head>
@@ -215,13 +176,33 @@
         <!-- Slogan -->
         <p class="brand-subtitle">le vostre vacanze di lusso in puglia</p>
         
-        <!-- Pulsante d'ingresso principale perfettamente centrato -->
+        <!-- Pulsante d'ingresso principale -->
         <a href="esplora.html" class="btn-enter">Entra</a>
         
-        <!-- Pulsante-lucchetto trasparente -->
-        <a href="dashboard.html" class="btn-lock" title="Area Riservata Dashboard">🔒</a>
+        <!-- Pulsante-lucchetto che attiva il controllo password istantaneo -->
+        <a href="#" class="btn-lock" title="Area Riservata Dashboard" onclick="controlloAccesso(event)">🔒</a>
         
     </div>
+
+    <!-- SCRIPT DI ACCESSO FACILE -->
+    <script>
+        function controlloAccesso(event) {
+            // Evita che la pagina si ricarichi a vuoto
+            event.preventDefault(); 
+            
+            // 1. Chiedi la password all'utente
+            var password = prompt("Inserisci la chiave di accesso alla Dashboard:");
+            
+            // 2. CONTROLLO (Puoi cambiare '1234' con la password che preferisci)
+            if (password === "1234") {
+                // Se è giusta, ti manda alla dashboard
+                window.location.href = "dashboard.html";
+            } else if (password !== null) {
+                // Se è sbagliata (e non ha premuto Annulla), mostra l'errore
+                alert("Chiave di accesso non valida.");
+            }
+        }
+    </script>
 
 </body>
 </html>
