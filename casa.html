@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Librerie per il PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
@@ -64,8 +63,8 @@
         /* CAMPI CLIENTE */
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-subtitle); margin-bottom: 8px; }
-        .input-group input, .input-group select { width: 100%; padding: 12px; background: var(--bg-dark); border: 1px solid rgba(229, 208, 179, 0.2); color: #fff; font-family: var(--font-sans); }
-        .input-group input:focus, .input-group select:focus { border-color: var(--color-gold); outline: none; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; background: var(--bg-dark); border: 1px solid rgba(229, 208, 179, 0.2); color: #fff; font-family: var(--font-sans); border-radius: 0; outline: none; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--color-gold); }
 
         .totals-box { border-top: 1px solid rgba(229, 208, 179, 0.1); padding-top: 20px; margin-bottom: 30px; }
         .total-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; color: var(--color-subtitle); }
@@ -74,19 +73,57 @@
         .btn-confirm { display: block; width: 100%; padding: 16px; background-color: var(--color-gold); color: var(--bg-dark); text-align: center; text-decoration: none; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 3px; font-weight: 600; border: none; cursor: pointer; transition: background 0.3s; }
         .btn-confirm:hover { background-color: #fff; }
 
-        /* POP-UP MODAL DI LUSSO */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+        /* --- FINESTRA POP-UP DI LUSSO (MODAL CUSTOM) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .luxury-modal { background-color: var(--bg-card); border: 1px solid var(--color-gold); padding: 50px; max-width: 650px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.4s ease; }
+
+        .luxury-modal {
+            background-color: var(--bg-card);
+            border: 1px solid var(--color-gold);
+            padding: 50px; max-width: 650px; width: 90%;
+            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.9); transition: transform 0.4s ease;
+        }
         .modal-overlay.active .luxury-modal { transform: scale(1); }
+
         .modal-icon { font-size: 3.5rem; color: var(--color-gold); margin-bottom: 20px; display: block; }
         .modal-title { font-family: var(--font-serif); font-size: 2.2rem; color: var(--color-gold); font-weight: 300; margin-bottom: 15px; letter-spacing: 1px; }
         .modal-text { color: var(--color-subtitle); font-size: 1rem; line-height: 1.7; margin-bottom: 30px; font-weight: 300; }
         .modal-text strong { color: #fff; }
-        .btn-modal-close { display: inline-block; padding: 14px 40px; background-color: transparent; border: 1px solid rgba(229, 208, 179, 0.4); color: var(--color-gold); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px; text-decoration: none; cursor: pointer; transition: all 0.3s; }
+        
+        .btn-modal-close {
+            display: inline-block; padding: 14px 40px; background-color: transparent;
+            border: 1px solid rgba(229, 208, 179, 0.4); color: var(--color-gold);
+            text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px;
+            text-decoration: none; cursor: pointer; transition: all 0.3s;
+        }
         .btn-modal-close:hover { background-color: var(--color-gold); color: var(--bg-dark); }
 
-        /* --- STILE DEL VOUCHER PDF INTEGRO E VISIBILE SOLO AL MOTORE DI STAMPA --- */
+        /* --- NAVIGAZIONE MINIMALE IN BASSO --- */
+        .navigation-links {
+            text-align: center;
+            padding: 40px 0 80px;
+            border-top: 1px solid rgba(229, 208, 179, 0.1);
+            margin-top: 40px;
+        }
+        .navigation-links a {
+            color: var(--color-subtitle);
+            text-decoration: none;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0 15px;
+            transition: color 0.3s;
+        }
+        .navigation-links a:hover { color: var(--color-gold); }
+
+        /* --- STRUTTURA DEL PDF AD ALTA DEFINIZIONE (Sfondo Bianco) --- */
         #pdf-wrapper { 
             position: fixed; 
             top: 0; left: 0; 
@@ -96,21 +133,23 @@
             pointer-events: none; 
             z-index: -100;
         }
-        .pdf-page { background: #ffffff; color: #141312; font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; }
-        .pdf-header { border-bottom: 2px solid #e5d0b3; padding-bottom: 12px; margin-bottom: 20px; text-align: center; }
-        .pdf-header h1 { font-size: 22px; color: #141312; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; margin-bottom: 4px; }
-        .pdf-header p { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .pdf-page { width: 595px; padding: 50px; background: #ffffff; color: #141312; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        .pdf-header { border-bottom: 2px solid #e5d0b3; padding-bottom: 15px; margin-bottom: 25px; text-align: center; }
+        .pdf-header h1 { font-size: 20px; color: #141312; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; margin-bottom: 5px; }
+        .pdf-header p { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         
-        .pdf-section-title { font-size: 11px; text-transform: uppercase; color: #b39973; letter-spacing: 1px; margin-top: 20px; margin-bottom: 8px; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .pdf-section-title { font-size: 11px; text-transform: uppercase; color: #9e958a; letter-spacing: 1px; margin-top: 25px; margin-bottom: 10px; font-weight: 600; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .pdf-table td { padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 11px; color: #333; }
-        .pdf-table td.label { color: #777; font-weight: 300; width: 45%; }
+        .pdf-table td { padding: 8px 0; border-bottom: 1px solid #fafafa; font-size: 11px; color: #333; }
+        .pdf-table td.label { color: #888; font-weight: 300; width: 45%; }
         .pdf-table td.value { font-weight: 500; text-align: right; }
         
-        .pdf-total-box { margin-top: 25px; background-color: #faf8f5; padding: 15px; border-left: 4px solid #e5d0b3; display: flex; justify-content: space-between; align-items: center; }
-        .pdf-total-label { font-size: 10px; text-transform: uppercase; color: #777; letter-spacing: 1px; }
+        .pdf-total-box { margin-top: 25px; background-color: #faf8f5; padding: 15px; border-left: 3px solid #e5d0b3; display: flex; justify-content: space-between; align-items: center; }
+        .pdf-total-label { font-size: 11px; text-transform: uppercase; color: #888; letter-spacing: 1px; }
         .pdf-total-price { font-size: 18px; color: #141312; font-weight: 600; }
-        .pdf-footer { margin-top: 35px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 12px; line-height: 1.4; }
+        .pdf-footer { margin-top: 45px; text-align: center; font-size: 10px; color: #aaa; border-top: 1px solid #f0f0f0; padding-top: 15px; }
+
+        @media (max-width: 992px) { .main-container { grid-template-columns: 1fr; } .booking-box { position: relative; } }
     </style>
 </head>
 <body>
@@ -124,7 +163,7 @@
         <a class="next" onclick="plusSlides(1)">&#10095;</a>
     </div>
 
-    <!-- MAIN CONTAINER -->
+    <!-- MAIN -->
     <main class="main-container">
         <div class="info-column">
             <h1 id="villa-name" class="home-title">Caricamento...</h1>
@@ -143,7 +182,6 @@
             </div>
         </div>
 
-        <!-- BOX PRENOTAZIONE -->
         <div class="booking-column">
             <div class="booking-box">
                 <div id="night-price" class="price-tag">€ 0</div>
@@ -155,23 +193,18 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Numero Ospiti</label>
-                    <select id="client-guests">
-                        <option value="1">1 Ospite</option>
-                        <option value="2">2 Ospiti</option>
-                        <option value="3">3 Ospiti</option>
-                        <option value="4">4 Ospiti</option>
-                        <option value="5">5 Ospiti</option>
-                        <option value="6">6 Ospiti</option>
-                    </select>
-                </div>
-                <div class="input-group">
                     <label>Nome Completo</label>
                     <input type="text" id="client-name" placeholder="Es. Mario Rossi" required>
                 </div>
                 <div class="input-group">
                     <label>Indirizzo Email</label>
                     <input type="email" id="client-email" placeholder="Es. mario@esempio.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Numero di Ospiti</label>
+                    <select id="client-guests">
+                        <!-- Popolato dinamicamente da JS -->
+                    </select>
                 </div>
 
                 <div class="totals-box">
@@ -185,79 +218,84 @@
         </div>
     </main>
 
-    <!-- POP-UP DI SUCCESSO SUL SITO -->
+    <!-- FINALE DEL SITO (NAVIGAZIONE SOTTILE) -->
+    <div class="navigation-links">
+        <a href="index.html">Home</a>
+        <a href="esplora.html">Tutte le Dimore</a>
+        <a href="javascript:history.back()">Indietro</a>
+    </div>
+
+    <!-- POP-UP CUSTOM -->
     <div class="modal-overlay" id="custom-modal">
         <div class="luxury-modal">
             <span class="modal-icon">✨</span>
             <h2 class="modal-title">Prenotazione Confermata</h2>
             <p class="modal-text">
                 Gentile ospite, la sua richiesta di prenotazione diretta per <strong id="modal-villa-name">-</strong> è stata registrata con successo.<br><br>
-                Il sistema ha scaricato il suo **Voucher Ufficiale PDF** completo di date e dettagli finanziari ed ha inviato una copia a: <br><strong id="modal-villa-email">-</strong>.<br><br>
-                Le date selezionate sono state bloccate nel sistema.
+                Il sistema ha avviato il download del suo **Voucher di Conferma PDF** ed ha inoltrato una copia digitale all'indirizzo: <br><strong id="modal-villa-email">-</strong>.<br><br>
+                Le date selezionate sono state ufficialmente bloccate.
             </p>
             <button class="btn-modal-close" onclick="closeLuxuryModal()">Eccellente</button>
         </div>
     </div>
 
-    <!-- AREA DI COMPILAZIONE DEL VOUCHER PDF REALE (Proporzioni fisse salvate dal CSS) -->
+    <!-- STRUTTURA DEL PDF AD ELEVATO IMPATTO (VISIBILE SOLO AL COMPILATORE) -->
     <div id="pdf-wrapper">
         <div class="pdf-page" id="pdf-content">
             <div class="pdf-header">
                 <h1>Guest in Town</h1>
-                <p>Luxury Rentals & Concierge Puglia — Voucher di Prenotazione</p>
+                <p>Luxury Rentals & Concierge Puglia</p>
             </div>
             
             <div class="pdf-section-title">Anagrafica & Alloggio</div>
             <table class="pdf-table">
                 <tr><td class="label">Dimora Esclusiva</td><td class="value" id="pdf-villa">--</td></tr>
                 <tr><td class="label">Località</td><td class="value" id="pdf-location">--</td></tr>
-                <tr><td class="label">Capacità Massima Struttura</td><td class="value" id="pdf-max-capacity">--</td></tr>
-                <tr><td class="label">Intestatario Prenotazione</td><td class="value" id="pdf-guest">--</td></tr>
-                <tr><td class="label">Numero Ospiti Registrati</td><td class="value" id="pdf-registered-guests">--</td></tr>
+                <tr><td class="label">Ospite Registrato</td><td class="value" id="pdf-guest">--</td></tr>
+                <tr><td class="label">Ospiti Presenti</td><td class="value" id="pdf-guests-count">--</td></tr>
+                <tr><td class="label">Capienza Massima Dimora</td><td class="value" id="pdf-max-guests">--</td></tr>
             </table>
 
-            <div class="pdf-section-title">Dettagli Soggiorno (Calendario Logistico)</div>
+            <div class="pdf-section-title">Date del Soggiorno</div>
             <table class="pdf-table">
-                <tr><td class="label">Data di Arrivo (Check-in)</td><td class="value" id="pdf-checkin" style="font-weight: 600;">--</td></tr>
-                <tr><td class="label">Orario Check-in consentito</td><td class="value">Dalle ore 15:00 alle ore 20:00</td></tr>
-                <tr><td class="label">Data di Partenza (Check-out)</td><td class="value" id="pdf-checkout" style="font-weight: 600;">--</td></tr>
-                <tr><td class="label">Orario Check-out tassativo</td><td class="value">Entro le ore 10:30 del mattino</td></tr>
-                <tr><td class="label">Notti di Soggiorno Totali</td><td class="value" id="pdf-nights">0 Notti</td></tr>
+                <tr><td class="label">Arrivo (Check-in)</td><td class="value" id="pdf-checkin">--</td></tr>
+                <tr><td class="label">Partenza (Check-out)</td><td class="value" id="pdf-checkout">--</td></tr>
+                <tr><td class="label">Orario Accoglienza</td><td class="value">Check-in: 15:00 - 20:00 | Check-out: entro le 10:30</td></tr>
             </table>
 
-            <div class="pdf-section-title">Riepilogo Economico Dettagliato</div>
+            <div class="pdf-section-title">Dettaglio Competenze & Prezzi</div>
             <table class="pdf-table">
-                <tr><td class="label">Tariffa base della Dimora</td><td class="value" id="pdf-base-rate">€ 0 / notte</td></tr>
-                <tr><td class="label">Calcolo Canone Locazione (<span id="pdf-calc-nights">0</span> notti)</td><td class="value" id="pdf-calc-subtotal">€ 0</td></tr>
-                <tr><td class="label">Spese di igienizzazione e sanificazione finale</td><td class="value" id="pdf-clean">€ 0</td></tr>
+                <tr><td class="label">Tariffa di locazione giornaliera</td><td class="value" id="pdf-rate">€ 0 / notte</td></tr>
+                <tr><td class="label">Notti Totali Soggiorno</td><td class="value" id="pdf-nights">0 Notti</td></tr>
+                <tr><td class="label">Calcolo Canone Locazione</td><td class="value" id="pdf-nights-breakdown">0 notti x € 0 = € 0</td></tr>
+                <tr><td class="label">Oneri di sanificazione finali</td><td class="value" id="pdf-clean">€ 0</td></tr>
             </table>
 
             <div class="pdf-total-box">
-                <span class="pdf-total-label">Corrispettivo Totale dovuto</span>
+                <span class="pdf-total-label">Prezzo Totale Soggiorno (IVA Inc.)</span>
                 <span class="pdf-total-price" id="pdf-total">€ 0</span>
             </div>
 
             <div class="pdf-footer">
-                La prenotazione è valida e bloccata sul portale diretto. Il saldo e il contratto di locazione turistica verranno gestiti dal Suo Personal Concierge, che la contatterà telefonicamente entro 12 ore.
+                Documento emesso in modalità elettronica da Guest in Town. Il Suo Account Concierge La contatterà nelle prossime 12 ore per concordare i dettagli del check-in.
             </div>
         </div>
     </div>
 
     <script>
         const villasData = {
-            "masseria_bianca": { name: "Masseria Bianca Luxury Estate", location: "Ostuni, Valle d'Itria", price: 750, cleaning: 150, beds: "5 Camere", baths: "6 Bagni", pool: "Sfioro Riscaldata", max: "10 Ospiti", desc: "Sontuosa masseria fortificata risalente al XVIII secolo, sapientemente restaurata per unire il fascino grezzo della pietra pugliese al design minimale contemporaneo.", slides: ["https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80"] },
-            "trullo_sovereign": { name: "Trullo Sovereign Collection", location: "Ostuni, Valle d'Itria", price: 600, cleaning: 120, beds: "3 Camere", baths: "4 Bagni", pool: "Scavata nella roccia", max: "6 Ospiti", desc: "Un complesso magico di coni autentici perfettamente abitabili, dove l'ingegneria rurale storica incontra il lusso d'interni a cinque stelle.", slides: ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"] },
-            "palazzo_barocco": { name: "Palazzo Barocco Grande Suite", location: "Lecce, Centro Storico", price: 900, cleaning: 200, beds: "4 Suite", baths: "5 Bagni", pool: "Idromassaggio Interna", max: "8 Ospiti", desc: "Dimora nobiliare indipendente situata nel cuore pulsante di Lecce. Caratterizzata da maestose volte a stella e pavimenti in cementine d'epoca.", slides: ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1549517045-bc93de075e53?auto=format&fit=crop&w=1200&q=80"] }
+            "masseria_bianca": { name: "Masseria Bianca Luxury Estate", location: "Ostuni, Valle d'Itria", price: 750, cleaning: 150, beds: "5 Camere", baths: "6 Bagni", pool: "Sfioro Riscaldata", maxGuests: 10, slides: ["https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80"] },
+            "trullo_sovereign": { name: "Trullo Sovereign Collection", location: "Ostuni, Valle d'Itria", price: 600, cleaning: 120, beds: "3 Camere", baths: "4 Bagni", pool: "Scavata nella roccia", maxGuests: 6, slides: ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"] },
+            "palazzo_barocco": { name: "Palazzo Barocco Grande Suite", location: "Lecce, Centro Storico", price: 900, cleaning: 200, beds: "4 Suite", baths: "5 Bagni", pool: "Idromassaggio Interna", maxGuests: 8, slides: ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1549517045-bc93de075e53?auto=format&fit=crop&w=1200&q=80"] }
         };
 
         const params = new URLSearchParams(window.location.search);
         const villaScelta = params.get('id') || 'masseria_bianca';
         const currentVilla = villasData[villaScelta];
 
-        // Caricamento Dati
+        // Montaggio Dati Struttura
         document.getElementById('villa-name').innerText = currentVilla.name;
         document.getElementById('villa-location').innerText = currentVilla.location;
-        document.getElementById('villa-desc').innerText = currentVilla.desc;
         document.getElementById('night-price').innerText = `€ ${currentVilla.price}`;
         document.getElementById('cleaning-fee').innerText = `€ ${currentVilla.cleaning}`;
         document.getElementById('am-beds').innerText = currentVilla.beds;
@@ -267,20 +305,19 @@
         document.getElementById('slide-2').src = currentVilla.slides[1];
         document.getElementById('slide-3').src = currentVilla.slides[2];
 
-        // Configurazione Menu Ospiti
-        const guestSelect = document.getElementById('client-guests');
-        guestSelect.innerHTML = "";
-        let maxNumber = parseInt(currentVilla.max);
-        for(let g = 1; g <= maxNumber; g++) {
-            let opt = document.createElement('option');
-            opt.value = g;
-            opt.innerText = g + (g === 1 ? " Ospite" : " Ospiti");
-            guestSelect.appendChild(opt);
+        // Popolamento menu a tendina Ospiti
+        const selectGuests = document.getElementById('client-guests');
+        selectGuests.innerHTML = '';
+        for (let i = 1; i <= currentVilla.maxGuests; i++) {
+            let option = document.createElement('option');
+            option.value = i;
+            option.innerText = `${i} ${i === 1 ? 'Ospite' : 'Ospiti'}`;
+            selectGuests.appendChild(option);
         }
 
-        // Sistema Calendario
+        // Calendario LocalStorage
         const calendarGrid = document.getElementById('calendar');
-        let blockedDates = JSON.parse(localStorage.getItem(`blocked_${villaScelta}`)) || [4, 5, 20];
+        let blockedDates = JSON.parse(localStorage.getItem(`blocked_${villaScelta}`)) || [2, 3, 15, 16];
         let selectedDays = [];
 
         for(let i=1; i<=31; i++) {
@@ -295,12 +332,12 @@
             calendarGrid.appendChild(dayDiv);
         }
 
-        function toggleDate(dayDiv, day) {
-            if(dayDiv.classList.contains('selected')) {
-                dayDiv.classList.remove('selected');
+        function toggleDate(element, day) {
+            if(element.classList.contains('selected')) {
+                element.classList.remove('selected');
                 selectedDays = selectedDays.filter(d => d !== day);
             } else {
-                dayDiv.classList.add('selected');
+                element.classList.add('selected');
                 selectedDays.push(day);
             }
             calculateTotals();
@@ -313,76 +350,83 @@
             document.getElementById('final-total-price').innerText = `€ ${total}`;
         }
 
-        // FUNZIONE DI CONFERMA E GENERAZIONE REALE COMPLETA
         function processDirectBooking() {
             const guestName = document.getElementById('client-name').value;
             const guestEmail = document.getElementById('client-email').value;
-            const guestCount = document.getElementById('client-guests').value;
+            const numGuests = document.getElementById('client-guests').value;
 
             if(!guestName || !guestEmail) {
-                alert("Per favore, immetti Nome ed Email.");
+                alert("Completa i campi Nome ed Email prima di procedere.");
                 return;
             }
             if(selectedDays.length === 0) {
-                alert("Seleziona i giorni desiderati sul calendario.");
+                alert("Seleziona i tuoi giorni di soggiorno sul calendario.");
                 return;
             }
 
-            // Calcolo Matematico Logistico delle Date
-            selectedDays.sort((a, b) => a - b);
-            let checkInDay = selectedDays[0];
-            let checkOutDay = selectedDays[selectedDays.length - 1] + 1;
-
             let nights = selectedDays.length;
-            let subtotal = nights * currentVilla.price;
-            let totalCost = subtotal + currentVilla.cleaning;
+            let baseLocazione = nights * currentVilla.price;
+            let totalCost = baseLocazione + currentVilla.cleaning;
+            
+            // Ordina i giorni selezionati per trovare Check-in e Check-out reali
+            selectedDays.sort((a, b) => a - b);
+            let firstDay = selectedDays[0];
+            let lastDay = selectedDays[selectedDays.length - 1];
+            
+            // Generazione data check-in e check-out (Calcoliamo il check-out al mattino successivo all'ultimo giorno booked)
+            let checkInStr = `${firstDay} Giugno 2026`;
+            let checkOutStr = `${lastDay + 1} Giugno 2026`;
 
-            // Iniezione dati stringenti e totali nel blocco del PDF
+            // Scrittura dei dati nella scheda del PDF (Sfondo Bianco)
             document.getElementById('pdf-villa').innerText = currentVilla.name;
             document.getElementById('pdf-location').innerText = currentVilla.location;
-            document.getElementById('pdf-max-capacity').innerText = currentVilla.max;
             document.getElementById('pdf-guest').innerText = guestName;
-            document.getElementById('pdf-registered-guests').innerText = guestCount + (parseInt(guestCount) === 1 ? " Ospite" : " Ospiti");
+            document.getElementById('pdf-guests-count').innerText = `${numGuests} ${numGuests == 1 ? 'Persona' : 'Persone'}`;
+            document.getElementById('pdf-max-guests').innerText = `${currentVilla.maxGuests} Ospiti Max`;
             
-            document.getElementById('pdf-checkin').innerText = checkInDay + " Giugno 2026";
-            document.getElementById('pdf-checkout').innerText = checkOutDay + " Giugno 2026";
-            document.getElementById('pdf-nights').innerText = nights + (nights === 1 ? " Notte" : " Notti");
+            // Date
+            document.getElementById('pdf-checkin').innerText = checkInStr;
+            document.getElementById('pdf-checkout').innerText = checkOutStr;
 
-            document.getElementById('pdf-base-rate').innerText = `€ ${currentVilla.price} / notte`;
-            document.getElementById('pdf-calc-nights').innerText = nights;
-            document.getElementById('pdf-calc-subtotal').innerText = `€ ${subtotal}`;
+            // Dettagli Prezzo
+            document.getElementById('pdf-rate').innerText = `€ ${currentVilla.price} / notte`;
+            document.getElementById('pdf-nights').innerText = `${nights} Notti`;
+            document.getElementById('pdf-nights-breakdown').innerText = `${nights} notti x € ${currentVilla.price} = € ${baseLocazione}`;
             document.getElementById('pdf-clean').innerText = `€ ${currentVilla.cleaning}`;
             document.getElementById('pdf-total').innerText = `€ ${totalCost}`;
 
-            // Configurazione html2pdf per forzare il rendering ad altezza intera
+            // Esecuzione Download PDF Forzato (Lettura ad Elemento Diretto)
             const pdfTarget = document.getElementById('pdf-content');
             const opzioniStampa = {
-                margin:       [0.3, 0.3, 0.3, 0.3],
+                margin:       0.3,
                 filename:     `Voucher_Prenotazione_${guestName.replace(/\s+/g, '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 1.0 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                html2canvas:  { scale: 3, logging: false, useCORS: true },
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
             
-            // Avvia la compilazione scaricando l'intero foglio A4
+            // Avvia la compilazione e scarica
             html2pdf().set(opzioniStampa).from(pdfTarget).save();
 
-            // Sincronizzazione calendario locale
+            // Salva il blocco delle date sul PC locale
             let updatedDates = [...blockedDates, ...selectedDays];
             localStorage.setItem(`blocked_${villaScelta}`, JSON.stringify(updatedDates));
 
-            // Scrittura testi Pop-up e attivazione interfaccia
+            // Scrittura testi nel Pop-up Custom di Lusso
             document.getElementById('modal-villa-name').innerText = currentVilla.name;
             document.getElementById('modal-villa-email').innerText = guestEmail;
+
+            // Mostra il grande pop-up di lusso
             document.getElementById('custom-modal').classList.add('active');
         }
 
         function closeLuxuryModal() {
             document.getElementById('custom-modal').classList.remove('active');
+            // Ricarica la pagina per colorare le date confermate in rosso
             window.location.reload();
         }
 
-        /* --- CAROSELLO FOTO --- */
+        /* --- SLIDESHOW AUTOMATICO --- */
         let slideIndex = 1;
         showSlides(slideIndex);
         function plusSlides(n) { showSlides(slideIndex += n); }
