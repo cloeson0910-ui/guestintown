@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <button id="btn">TEST SCRITTURA</button>
+    <p id="stato">Stato: In attesa...</p>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // COPIA QUI ESATTAMENTE LA CONFIGURAZIONE DAL TUO FIREBASE (Impostazioni progetto -> Generali -> Configurazione SDK)
+        const firebaseConfig = {
+            // Assicurati che questi dati corrispondano al progetto "guest-f7fcd"
+            apiKey: "...", 
+            authDomain: "guest-f7fcd.firebaseapp.com",
+            projectId: "guest-f7fcd",
+            storageBucket: "guest-f7fcd.firebasestorage.app",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('btn').onclick = async () => {
+            document.getElementById('stato').innerText = "Scrivendo...";
+            try {
+                await addDoc(collection(db, "test"), { messaggio: "CIAO" });
+                document.getElementById('stato').innerText = "✅ FATTO! Controlla Firebase.";
+            } catch (e) {
+                document.getElementById('stato').innerText = "❌ ERRORE: " + e.message;
+                console.error(e);
+            }
+        };
+    </script>
+</body>
+</html>
