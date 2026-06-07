@@ -1,8 +1,134 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Title</title>
-    </head>
-    <body></body>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Guest In Town Admin</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, sans-serif;
+}
+
+body{
+display:flex;
+height:100vh;
+background:#111;
+color:white;
+}
+
+.sidebar{
+width:250px;
+background:#1a1a1a;
+padding:20px;
+}
+
+.sidebar h2{
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:block;
+padding:12px;
+margin-bottom:10px;
+text-decoration:none;
+color:white;
+background:#222;
+border-radius:8px;
+}
+
+.sidebar a:hover{
+background:#333;
+}
+
+.main{
+flex:1;
+padding:30px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+margin-top:20px;
+}
+
+.card{
+background:#1e1e1e;
+padding:20px;
+border-radius:12px;
+}
+
+.card h3{
+margin-bottom:10px;
+}
+
+.logout{
+margin-top:30px;
+background:#c0392b !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>Guest In Town</h2>
+
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="destinations.html">Destinazioni</a>
+
+<a href="#" onclick="logout()" class="logout">
+Logout
+</a>
+
+</div>
+
+<div class="main">
+
+<h1>Pannello Amministrazione</h1>
+
+<div class="cards">
+
+<div class="card">
+<h3>Ville</h3>
+<p id="villaCount">0</p>
+</div>
+
+<div class="card">
+<h3>Destinazioni</h3>
+<p id="destinationCount">0</p>
+</div>
+
+<div class="card">
+<h3>Staff</h3>
+<p id="staffCount">0</p>
+</div>
+
+<div class="card">
+<h3>Pulizie</h3>
+<p id="taskCount">0</p>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function logout(){
+window.location.href="login.html";
+}
+
+</script>
+
+</body>
 </html>
