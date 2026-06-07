@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Guest in Town</title>
+    <style>
+        :root { --bg-dark: #141312; --bg-card: #1C1A18; --color-gold: #E5D0B3; --font-sans: 'Montserrat', sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; font-family: var(--font-sans); display: flex; justify-content: center; padding: 50px; }
+        .admin-box { background-color: var(--bg-card); padding: 40px; width: 100%; max-width: 500px; border: 1px solid rgba(229, 208, 179, 0.2); }
+        h1 { color: var(--color-gold); font-size: 1.5rem; margin-bottom: 20px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg-dark); border: 1px solid #333; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background-color: var(--color-gold); color: var(--bg-dark); border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        button:hover { background-color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="admin-box">
+    <h1>Nuovo Immobile</h1>
+    <form id="villaForm">
+        <input type="text" id="nome" placeholder="Nome Villa" required>
+        <input type="text" id="localita" placeholder="Città" required>
+        <input type="number" id="prezzo" placeholder="Prezzo a notte" required>
+        <input type="text" id="imgUrl" placeholder="Link Immagine (es. unsplash...)" required>
+        <textarea id="descrizione" placeholder="Descrizione" rows="4"></textarea>
+        <button type="submit" id="btn-submit">Pubblica Villa</button>
+    </form>
+</div>
+
+<script type="module">
+    // Importa il database dal file che abbiamo creato
+    import { db } from './firebase-init.js';
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const form = document.getElementById('villaForm');
+    const btn = document.getElementById('btn-submit');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.innerText = "Caricamento...";
+        
+        try {
+            await addDoc(collection(db, "ville"), {
+                nome: document.getElementById('nome').value,
+                localita: document.getElementById('localita').value,
+                prezzo: parseInt(document.getElementById('prezzo').value),
+                immagine: document.getElementById('imgUrl').value,
+                descrizione: document.getElementById('descrizione').value,
+                dataCreazione: new Date()
+            });
+            alert("Villa pubblicata con successo!");
+            form.reset();
+        } catch (error) {
+            alert("Errore: " + error.message);
+        }
+        btn.innerText = "Pubblica Villa";
+    });
+</script>
+
+</body>
+</html>

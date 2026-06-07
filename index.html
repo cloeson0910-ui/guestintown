@@ -4,110 +4,201 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guest in Town | Vacanze di Lusso in Puglia</title>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
     
     <style>
+        /* --- TEMA CROMATICO ULTRA-LUXURY --- */
         :root {
             --bg-dark: #141312; 
             --bg-glow: #24211E;
             --color-gold: #E5D0B3; 
             --color-subtitle: #9E958A;
+            
             --font-serif: 'Cormorant Garamond', Georgia, serif;
             --font-sans: 'Montserrat', sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        html, body {
-            width: 100%; height: 100%;
-            background-color: var(--bg-dark);
-            background: radial-gradient(circle at center, var(--bg-glow) 0%, var(--bg-dark) 100%);
-            color: #fff; font-family: var(--font-sans);
-            overflow: hidden; display: flex; justify-content: center; align-items: center;
+        /* --- STILI DI BASE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .brand-container { text-align: center; padding: 20px; max-width: 90%; animation: fadeIn 2.5s ease-out forwards; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            background: radial-gradient(circle at center, var(--bg-glow) 0%, var(--bg-dark) 100%);
+            color: #fff;
+            font-family: var(--font-sans);
+            overflow: hidden; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
+        /* --- CONTENITORE CENTRALE --- */
+        .brand-container {
+            text-align: center;
+            padding: 20px;
+            max-width: 90%;
+            animation: fadeIn 2.5s ease-out forwards;
+        }
+
+        /* --- TITOLO PRINCIPALE --- */
         .brand-title {
-            font-family: var(--font-serif); font-size: 5rem; font-weight: 300;
-            letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-gold);
-            line-height: 1.1; margin-bottom: 25px;
+            font-family: var(--font-serif);
+            font-size: 5rem; 
+            font-weight: 300;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--color-gold);
+            line-height: 1.1;
+            margin-bottom: 25px;
         }
 
         .brand-title span.italic-connector {
-            font-family: var(--font-serif); font-style: italic; text-transform: lowercase;
-            font-weight: 300; letter-spacing: 0.05em; margin-right: 0.08em; color: #fff; 
+            font-family: var(--font-serif);
+            font-style: italic;
+            text-transform: lowercase;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            margin-right: 0.08em;
+            color: #fff; 
         }
 
-        .divider { width: 40px; height: 1px; background-color: var(--color-gold); margin: 0 auto 30px auto; opacity: 0.5; }
+        /* --- LINEA DECORATIVA --- */
+        .divider {
+            width: 40px;
+            height: 1px;
+            background-color: var(--color-gold);
+            margin: 0 auto 30px auto;
+            opacity: 0.5;
+        }
 
+        /* --- SOTTOTITOLO --- */
         .brand-subtitle {
-            font-size: 0.85rem; font-weight: 300; text-transform: uppercase;
-            letter-spacing: 0.45em; color: var(--color-subtitle); line-height: 1.8;
-            padding-left: 0.45em; margin-bottom: 50px;
+            font-size: 0.85rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.45em; 
+            color: var(--color-subtitle);
+            line-height: 1.8;
+            padding-left: 0.45em; 
+            margin-bottom: 50px;
         }
 
+        /* --- PULSANTE ENTRA (CENTRATURA PERFETTA) --- */
         .btn-enter {
-            display: inline-flex; justify-content: center; align-items: center;
-            width: 200px; height: 52px; font-family: var(--font-sans); font-size: 0.75rem;
-            font-weight: 300; text-transform: uppercase; text-decoration: none;
-            letter-spacing: 0.5em; text-indent: 0.5em; color: var(--color-gold);
-            border: 1px solid rgba(229, 208, 179, 0.4); background: transparent;
-            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); cursor: pointer; margin: 0 auto;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 200px;
+            height: 52px;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            text-decoration: none;
+            letter-spacing: 0.5em; 
+            text-indent: 0.5em; 
+            color: var(--color-gold);
+            border: 1px solid rgba(229, 208, 179, 0.4); 
+            background: transparent;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
+            cursor: pointer;
+            margin: 0 auto;
         }
 
         .btn-enter:hover {
-            color: var(--bg-dark); background-color: var(--color-gold); border-color: var(--color-gold);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); letter-spacing: 0.55em; text-indent: 0.55em;
+            color: var(--bg-dark);
+            background-color: var(--color-gold);
+            border-color: var(--color-gold);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.55em; 
+            text-indent: 0.55em;
         }
 
-        /* STILE DEL LUCCHETTO NELLA INDEX - Reso più visibile di base */
+        /* --- PULSANTE A FORMA DI LUCCHETTO --- */
         .btn-lock {
-            display: block; width: fit-content; margin: 25px auto 0 auto; padding: 12px 35px;
-            color: var(--color-gold); text-decoration: none; font-size: 1.2rem;
-            border: 1px solid rgba(229, 208, 179, 0.3); background: transparent;
-            opacity: 0.6; /* Aumentato dal 0.4 per essere ben visibile */
-            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); cursor: pointer;
+            display: block; 
+            width: fit-content;
+            margin: 25px auto 0 auto; 
+            padding: 12px 35px;
+            color: var(--color-gold);
+            text-decoration: none;
+            font-size: 1.1rem;
+            border: 1px solid rgba(229, 208, 179, 0.2); 
+            background: transparent;
+            opacity: 0.4; 
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: pointer;
         }
 
         .btn-lock:hover {
-            opacity: 1; border-color: var(--color-gold);
-            background-color: rgba(229, 208, 179, 0.08); 
-            box-shadow: 0 5px 20px rgba(229, 208, 179, 0.2); transform: translateY(-2px);
+            opacity: 1;
+            border-color: var(--color-gold);
+            background-color: rgba(229, 208, 179, 0.05); 
+            box-shadow: 0 5px 20px rgba(229, 208, 179, 0.2);
+            transform: translateY(-2px);
         }
 
-        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+        /* --- ANIMAZIONE D'INGRESSO --- */
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
 
+        /* --- MOBILI --- */
         @media (max-width: 768px) {
             .brand-title { font-size: 2.8rem; letter-spacing: 0.12em; margin-bottom: 15px; }
             .brand-subtitle { font-size: 0.65rem; letter-spacing: 0.35em; padding-left: 0.35em; margin-bottom: 40px; }
             .btn-enter { width: 170px; height: 46px; font-size: 0.7rem; letter-spacing: 0.4em; text-indent: 0.4em; }
             .btn-enter:hover { letter-spacing: 0.45em; text-indent: 0.45em; }
-            .btn-lock { padding: 10px 30px; font-size: 1.1rem; margin-top: 20px; }
+            .btn-lock { padding: 10px 30px; font-size: 1rem; margin-top: 20px; }
         }
     </style>
 </head>
 <body>
 
     <div class="brand-container">
+        
+        <!-- Nome del Brand -->
         <h1 class="brand-title">GUEST <span class="italic-connector">in</span> TOWN</h1>
+        
+        <!-- Dettaglio geometrico -->
         <div class="divider"></div>
+        
+        <!-- Slogan -->
         <p class="brand-subtitle">le vostre vacanze di lusso in puglia</p>
         
+        <!-- Pulsante d'ingresso principale -->
         <a href="esplora.html" class="btn-enter">Entra</a>
         
+        <!-- Pulsante-lucchetto che attiva il controllo password istantaneo -->
         <a href="#" class="btn-lock" title="Area Riservata Dashboard" onclick="controlloAccesso(event)">🔒</a>
+        
     </div>
 
+    <!-- SCRIPT DI ACCESSO FACILE -->
     <script>
         function controlloAccesso(event) {
+            // Evita che la pagina si ricarichi a vuoto
             event.preventDefault(); 
+            
+            // 1. Chiedi la password all'utente
             var password = prompt("Inserisci la chiave di accesso alla Dashboard:");
+            
+            // 2. CONTROLLO (Puoi cambiare '1234' con la password che preferisci)
             if (password === "1234") {
+                // Se è giusta, ti manda alla dashboard
                 window.location.href = "dashboard.html";
             } else if (password !== null) {
+                // Se è sbagliata (e non ha premuto Annulla), mostra l'errore
                 alert("Chiave di accesso non valida.");
             }
         }
