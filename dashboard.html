@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accesso Riservato | Guest in Town</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #141312; 
+            --bg-card: #1C1A18;
+            --color-gold: #E5D0B3; 
+            --color-subtitle: #9E958A;
+            --font-serif: 'Cormorant Garamond', Georgia, serif;
+            --font-sans: 'Montserrat', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg-dark); color: #fff; font-family: var(--font-sans); padding: 40px 5%; }
+
+        /* SCHERMATA LOGIN */
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; align-items: center; justify-content: center; z-index: 99999; transition: opacity 0.4s ease; }
+        .login-box { background-color: var(--bg-card); border: 1px solid var(--color-gold); padding: 40px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .login-logo { font-family: var(--font-serif); font-size: 2.2rem; color: var(--color-gold); font-weight: 300; margin-bottom: 5px; }
+        .login-box p { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-subtitle); margin-bottom: 30px; }
+        .login-input { width: 100%; padding: 12px; background: var(--bg-dark); border: 1px solid rgba(229, 208, 179, 0.2); color: #fff; text-align: center; font-size: 1rem; letter-spacing: 3px; margin-bottom: 20px; font-family: var(--font-sans); }
+        .login-input:focus { border-color: var(--color-gold); outline: none; }
+        .btn-login { display: block; width: 100%; padding: 14px; background-color: var(--color-gold); color: var(--bg-dark); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px; font-weight: 600; border: none; cursor: pointer; transition: background 0.3s; }
+        .btn-login:hover { background-color: #fff; }
+        .login-error { color: #ff5c5c; font-size: 0.8rem; margin-top: 15px; display: none; }
+
+        /* CONTENUTO DASHBOARD (Nascosto di default) */
+        .dashboard-content { display: none; }
+        
+        /* HEADER */
+        .dashboard-header { border-bottom: 1px solid rgba(229, 208, 179, 0.15); padding-bottom: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
+        .dash-title { font-family: var(--font-serif); font-size: 2.5rem; color: var(--color-gold); font-weight: 300; }
+        .dash-subtitle { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-subtitle); margin-top: 5px; }
+
+        .btn-back { color: var(--color-gold); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(229, 208, 179, 0.3); padding: 10px 20px; transition: all 0.3s; cursor: pointer; background: transparent; }
+        .btn-back:hover { background-color: var(--color-gold); color: var(--bg-dark); }
+
+        /* CONTENITORI CASE */
+        .villa-section { background-color: var(--bg-card); border: 1px solid rgba(229, 208, 179, 0.08); padding: 30px; margin-bottom: 40px; }
+        .villa-title { font-family: var(--font-serif); font-size: 1.8rem; color: var(--color-gold); margin-bottom: 20px; border-bottom: 1px dashed rgba(229, 208, 179, 0.2); padding-bottom: 10px; }
+
+        /* TABELLA PRENOTAZIONI */
+        .table-responsive { overflow-x: auto; }
+        .booking-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        .booking-table th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--color-subtitle); padding: 12px; border-bottom: 1px solid rgba(229, 208, 179, 0.2); }
+        .booking-table td { padding: 14px 12px; border-bottom: 1px solid rgba(229, 208, 179, 0.05); color: #e0e0e0; }
+        .booking-table tr:hover td { background-color: rgba(255,255,255,0.01); }
+
+        /* BADGES ED ELEMENTI */
+        .no-bookings { color: var(--color-subtitle); font-style: italic; padding: 15px 12px; font-size: 0.9rem; }
+        .badge-date { background-color: rgba(229, 208, 179, 0.1); color: var(--color-gold); padding: 4px 8px; font-weight: 500; font-size: 0.8rem; border-radius: 2px; }
+        .client-info strong { color: #fff; display: block; margin-bottom: 2px; }
+        .client-info span { color: var(--color-subtitle); font-size: 0.75rem; }
+
+        .btn-clear { background: transparent; border: none; color: #ff5c5c; cursor: pointer; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
+        .btn-clear:hover { opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+    <!-- SCHERMATA DI LOGIN BLOCCANTE -->
+    <div class="login-overlay" id="loginScreen">
+        <div class="login-box">
+            <h1 class="login-logo">Guest in Town</h1>
+            <p>Area Amministrativa Riservata</p>
+            <input type="password" id="passwordField" class="login-input" placeholder="••••••••" onkeypress="handleKeyPress(event)">
+            <button class="btn-login" onclick="checkCredentials()">Accedi</button>
+            <div class="login-error" id="loginError">Chiave di accesso non valida.</div>
+        </div>
+    </div>
+
+    <!-- CONTENUTO PROTETTO DELLA DASHBOARD -->
+    <div class="dashboard-content" id="dashboardContent">
+        <header class="dashboard-header">
+            <div>
+                <h1 class="dash-title">Guest in Town</h1>
+                <p class="dash-subtitle">Pannello di Controllo & Logistica Prenotazioni</p>
+            </div>
+            <div>
+                <button onclick="logout()" class="btn-back" style="margin-right: 10px;">Esci</button>
+                <a href="index.html" class="btn-back">Sito Pubblico</a>
+            </div>
+        </header>
+
+        <!-- SEZIONE MASSERIA BIANCA -->
+        <section class="villa-section">
+            <h2 class="villa-title">Masseria Bianca Luxury Estate</h2>
+            <div class="table-responsive">
+                <table class="booking-table">
+                    <thead>
+                        <tr>
+                            <th>Dati Prenotante</th>
+                            <th>Ospiti</th>
+                            <th>Giorni Prenotati (Giugno 2026)</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-masseria_bianca"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SEZIONE TRULLO SOVEREIGN -->
+        <section class="villa-section">
+            <h2 class="villa-title">Trullo Sovereign Collection</h2>
+            <div class="table-responsive">
+                <table class="booking-table">
+                    <thead>
+                        <tr>
+                            <th>Dati Prenotante</th>
+                            <th>Ospiti</th>
+                            <th>Giorni Prenotati (Giugno 2026)</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-trullo_sovereign"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SEZIONE PALAZZO BAROCCO -->
+        <section class="villa-section">
+            <h2 class="villa-title">Palazzo Barocco Grande Suite</h2>
+            <div class="table-responsive">
+                <table class="booking-table">
+                    <thead>
+                        <tr>
+                            <th>Dati Prenotante</th>
+                            <th>Ospiti</th>
+                            <th>Giorni Prenotati (Giugno 2026)</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-palazzo_barocco"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // La password predefinita impostata è: GuestPuglia2026
+        // Viene memorizzata come Hash SHA-256 così nessuno può leggerla dal codice sorgente su GitHub.
+        const TARGET_HASH = "b90eb13fdb98a584067cf09ee3641a9db71239bf094a9bf28f01b0bf485a3c9b";
+
+        // Funzione per calcolare l'hash della password inserita
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);                    
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function checkCredentials() {
+            const passwordInput = document.getElementById("passwordField").value;
+            const inputHash = await sha256(passwordInput);
+
+            if (inputHash === TARGET_HASH) {
+                // Password corretta: salviamo la sessione temporanea (si cancella quando chiudi il browser)
+                sessionStorage.setItem("dash_auth", "true");
+                showDashboard();
+            } else {
+                document.getElementById("loginError").style.display = "block";
+                document.getElementById("passwordField").value = "";
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === "Enter") { checkCredentials(); }
+        }
+
+        function showDashboard() {
+            document.getElementById("loginScreen").style.display = "none";
+            document.getElementById("dashboardContent").style.display = "block";
+            loadDashboardData();
+        }
+
+        function logout() {
+            sessionStorage.removeItem("dash_auth");
+            window.location.reload();
+        }
+
+        // --- GESTIONE DEI DATI DELLE PRENOTAZIONI ---
+        const villas = ["masseria_bianca", "trullo_sovereign", "palazzo_barocco"];
+
+        function loadDashboardData() {
+            villas.forEach(id => {
+                const tbody = document.getElementById(`list-${id}`);
+                if(!tbody) return;
+                tbody.innerHTML = "";
+
+                let detailsLog = JSON.parse(localStorage.getItem(`details_${id}`)) || [];
+
+                if (detailsLog.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="no-bookings">Nessuna prenotazione attiva per questa dimora.</td></tr>`;
+                    return;
+                }
+
+                detailsLog.sort((a,b) => a.days[0] - b.days[0]);
+
+                detailsLog.forEach((booking, index) => {
+                    let tr = document.createElement('tr');
+                    let giorniFormattati = booking.days.map(d => `${d} Giu`).join(', ');
+
+                    tr.innerHTML = `
+                        <td class="client-info">
+                            <strong>${booking.name}</strong>
+                            <span>${booking.email}</span>
+                        </td>
+                        <td>${booking.guests} ${parseInt(booking.guests) === 1 ? 'Ospite' : 'Ospiti'}</td>
+                        <td><span class="badge-date">${giorniFormattati}</span></td>
+                        <td>
+                            <button class="btn-clear" onclick="deleteSingleBooking('${id}', ${index})">Cancella</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function deleteSingleBooking(villaId, index) {
+            if(confirm("Sei sicuro di voler cancellare questa prenotazione e liberare i giorni sul calendario?")) {
+                let detailsLog = JSON.parse(localStorage.getItem(`details_${villaId}`)) || [];
+                let blockedDays = JSON.parse(localStorage.getItem(`blocked_${villaId}`)) || [];
+                let daysToRemove = detailsLog[index].days;
+
+                blockedDays = blockedDays.filter(day => !daysToRemove.includes(day));
+                detailsLog.splice(index, 1);
+
+                localStorage.setItem(`blocked_${villaId}`, JSON.stringify(blockedDays));
+                localStorage.setItem(`details_${villaId}`, JSON.stringify(detailsLog));
+
+                loadDashboardData();
+            }
+        }
+
+        // Controllo della sessione all'avvio della pagina
+        window.onload = function() {
+            if (sessionStorage.getItem("dash_auth") === "true") {
+                showDashboard();
+            }
+        };
+    </script>
+</body>
+</html>
