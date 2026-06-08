@@ -62,9 +62,20 @@ Salva Villa
 
 async function saveVilla(){
 
-alert("FUNZIONE PARTITA");
+const villa = {
 
-}
+title: document.getElementById('title').value,
+
+cin: document.getElementById('cin').value,
+
+city: document.getElementById('city').value,
+
+owner_name: document.getElementById('owner_name').value,
+
+owner_phone: document.getElementById('owner_phone').value,
+
+owner_email: document.getElementById('owner_email').value,
+
 status:'standby'
 
 };
@@ -77,7 +88,6 @@ await supabaseClient
 if(error){
 
 console.error(error);
-
 alert(JSON.stringify(error,null,2));
 
 return;
@@ -86,8 +96,8 @@ return;
 
 alert('Villa salvata');
 
-window.location.href =
-'villas.html';
+window.location.href='villas.html';
+
 
 }
 
