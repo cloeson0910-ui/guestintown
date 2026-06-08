@@ -100,16 +100,24 @@ ${destination.name}
 }
 async function saveVilla(){
 
+const destinationId =
+parseInt(document.getElementById('destination_id').value);
+
+if(!destinationId){
+
+alert('Seleziona una destinazione');
+
+return;
+
+}
+
 const villa = {
 
 title: document.getElementById('title').value,
 
 cin: document.getElementById('cin').value,
 
-destination_id:
-parseInt(
-document.getElementById('destination_id').value
-),
+destination_id: destinationId,
 
 owner_name: document.getElementById('owner_name').value,
 
@@ -121,10 +129,13 @@ status:'standby'
 
 };
 
-const { error } =
+console.log(villa);
+
+const { data, error } =
 await supabaseClient
 .from('villas')
-.insert([villa]);
+.insert([villa])
+.select();
 
 if(error){
 
@@ -135,10 +146,11 @@ return;
 
 }
 
+console.log(data);
+
 alert('Villa salvata');
 
 window.location.href='villas.html';
-
 
 }
 
