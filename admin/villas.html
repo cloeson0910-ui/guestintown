@@ -1,8 +1,155 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Title</title>
-    </head>
-    <body></body>
+<html lang="it">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Ville - Guest In Town</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+
+body{
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+padding:30px;
+}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+button{
+padding:10px 20px;
+cursor:pointer;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #333;
+text-align:left;
+}
+
+.status{
+padding:5px 10px;
+border-radius:6px;
+font-size:12px;
+}
+
+.draft{
+background:#666;
+}
+
+.review{
+background:orange;
+}
+
+.approved{
+background:green;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+<h1>Ville</h1>
+
+<button onclick="openForm()">
++ Nuova Villa
+</button>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+<th>Villa</th>
+<th>CIN</th>
+<th>Città</th>
+<th>Stato</th>
+</tr>
+
+</thead>
+
+<tbody id="villaTable">
+
+</tbody>
+
+</table>
+
+<script>
+
+loadVillas();
+
+async function loadVillas(){
+
+const { data , error } =
+await supabaseClient
+.from('villas')
+.select('*')
+.order('id',{ascending:false});
+
+if(error){
+
+console.error(error);
+
+return;
+
+}
+
+const table =
+document.getElementById('villaTable');
+
+table.innerHTML='';
+
+data.forEach(villa=>{
+
+table.innerHTML += `
+<tr>
+
+<td>${villa.title || ''}</td>
+
+<td>${villa.cin || ''}</td>
+
+<td>${villa.city || ''}</td>
+
+<td>${villa.status || 'draft'}</td>
+
+</tr>
+`;
+
+});
+
+}
+
+function openForm(){
+
+window.location.href =
+'villa-form.html';
+
+}
+
+</script>
+
+</body>
+
 </html>
