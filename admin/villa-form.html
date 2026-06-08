@@ -66,7 +66,38 @@ Salva Villa
 </button>
 
 <script>
+loadDestinations();
 
+async function loadDestinations(){
+
+const { data , error } =
+await supabaseClient
+.from('destinations')
+.select('id,name')
+.order('name');
+
+if(error){
+
+console.error(error);
+
+return;
+
+}
+
+const select =
+document.getElementById('destination_id');
+
+data.forEach(destination=>{
+
+select.innerHTML += `
+<option value="${destination.id}">
+${destination.name}
+</option>
+`;
+
+});
+
+}
 async function saveVilla(){
 
 const villa = {
