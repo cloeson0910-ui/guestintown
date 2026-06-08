@@ -115,6 +115,10 @@ const villa = {
 
 title: document.getElementById('title').value,
 
+slug: document.getElementById('title').value
+.toLowerCase()
+.replaceAll(' ','-'),
+
 cin: document.getElementById('cin').value,
 
 destination_id: destinationId,
