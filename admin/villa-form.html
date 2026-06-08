@@ -93,7 +93,9 @@ await supabaseClient
 
 if(error){
 
-alert(error.message);
+console.error(error);
+
+alert(JSON.stringify(error,null,2));
 
 return;
 
