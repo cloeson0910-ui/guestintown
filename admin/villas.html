@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Ville - Guest In Town</title>
+<title>Ville</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
@@ -18,23 +18,34 @@ font-family:Arial,sans-serif;
 background:#111;
 color:white;
 padding:30px;
+max-width:1200px;
+margin:auto;
+}
+
+h1{
+margin-bottom:20px;
 }
 
 .topbar{
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:30px;
+margin-bottom:20px;
 }
 
-button{
-padding:10px 20px;
-cursor:pointer;
+a.button{
+background:#c9a96e;
+color:black;
+padding:12px 20px;
+text-decoration:none;
+font-weight:bold;
+border-radius:6px;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
+background:#1b1b1b;
 }
 
 th,td{
@@ -43,22 +54,32 @@ border-bottom:1px solid #333;
 text-align:left;
 }
 
+th{
+background:#222;
+}
+
 .status{
-padding:5px 10px;
-border-radius:6px;
+padding:6px 10px;
+border-radius:20px;
 font-size:12px;
 }
 
-.draft{
-background:#666;
-}
-
-.review{
+.standby{
 background:orange;
+color:black;
 }
 
 .approved{
 background:green;
+}
+
+.rejected{
+background:red;
+}
+
+button{
+padding:8px 12px;
+cursor:pointer;
 }
 
 </style>
@@ -71,9 +92,9 @@ background:green;
 
 <h1>Ville</h1>
 
-<button onclick="openForm()">
+<a href="villa-form.html" class="button">
 + Nuova Villa
-</button>
+</a>
 
 </div>
 
@@ -83,14 +104,15 @@ background:green;
 
 <tr>
 <th>Villa</th>
-<th>CIN</th>
-<th>Città</th>
+<th>Destinazione</th>
+<th>Proprietario</th>
 <th>Stato</th>
+<th>Azioni</th>
 </tr>
 
 </thead>
 
-<tbody id="villaTable">
+<tbody id="villasTable">
 
 </tbody>
 
@@ -105,46 +127,83 @@ async function loadVillas(){
 const { data , error } =
 await supabaseClient
 .from('villas')
-.select('*')
-.order('id',{ascending:false});
+.select(`
+id,
+title,
+status,
+owner_name,
+destinations(name)
+`)
+.order('created_at',{ascending:false});
 
 if(error){
 
 console.error(error);
+alert(error.message);
 
 return;
 
 }
 
 const table =
-document.getElementById('villaTable');
+document.getElementById('villasTable');
 
 table.innerHTML='';
 
 data.forEach(villa=>{
 
 table.innerHTML += `
+
 <tr>
 
 <td>${villa.title || ''}</td>
 
-<td>${villa.cin || ''}</td>
+<td>${villa.destinations?.name || ''}</td>
 
-<td>${villa.city || ''}</td>
+<td>${villa.owner_name || ''}</td>
 
-<td>${villa.status || 'draft'}</td>
+<td>
+<span class="status ${villa.status}">
+${villa.status}
+</span>
+</td>
+
+<td>
+
+<button onclick="deleteVilla(${villa.id})">
+Elimina
+</button>
+
+</td>
 
 </tr>
+
 `;
 
 });
 
 }
 
-function openForm(){
+async function deleteVilla(id){
 
-window.location.href =
-'villa-form.html';
+if(!confirm('Eliminare questa villa?')){
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('villas')
+.delete()
+.eq('id',id);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+loadVillas();
 
 }
 
