@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Guest In Town</title>
+<title>Guest in Town - Vacanze di lusso in Salento</title>
 
 <style>
 body{
@@ -17,47 +17,139 @@ color:white;
 .hero{
 min-height:100vh;
 background:
-linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.65)),
-url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=80");
+linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.75)),
+url("https://images.unsplash.com/photo-1622550428746-8f1f20f4f5f9?auto=format&fit=crop&w=1800&q=80");
 background-size:cover;
 background-position:center;
+padding:30px;
 display:flex;
 align-items:center;
 justify-content:center;
-padding:30px;
 }
 
-.box{
-max-width:900px;
-text-align:center;
+.container{
+max-width:1100px;
+width:100%;
+}
+
+.logo{
+font-size:22px;
+letter-spacing:2px;
+text-transform:uppercase;
+margin-bottom:80px;
 }
 
 h1{
-font-size:58px;
+font-size:62px;
+line-height:1.05;
 margin-bottom:20px;
 }
 
-p{
-font-size:22px;
-color:#eee;
+.subtitle{
+font-size:26px;
+color:#f2eee7;
 margin-bottom:35px;
 }
 
-.search{
-background:white;
+.panel{
+background:rgba(255,255,255,.96);
 color:#111;
+border-radius:22px;
 padding:25px;
-border-radius:18px;
+box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+
+.calendar-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+gap:15px;
+}
+
+.calendar-header button{
+background:#111;
+color:white;
+border:0;
+border-radius:8px;
+padding:12px 16px;
+cursor:pointer;
+}
+
+.calendar-wrap{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:25px;
+}
+
+.month h3{
+text-align:center;
+margin-bottom:15px;
+}
+
+.calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+}
+
+.day-name{
+text-align:center;
+font-weight:bold;
+color:#777;
+font-size:13px;
+}
+
+.day{
+background:#f2eee7;
+min-height:46px;
+border-radius:8px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+}
+
+.day.empty-day{
+background:transparent;
+cursor:default;
+}
+
+.day.selected{
+background:#111;
+color:white;
+}
+
+.day.in-range{
+background:#c9a96e;
+color:#111;
+}
+
+.search-bottom{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
 gap:15px;
-text-align:left;
+margin-top:25px;
+align-items:end;
 }
 
-label{
-font-size:13px;
+.field{
+background:#f7f4ef;
+padding:14px;
+border-radius:10px;
+}
+
+.field label{
+display:block;
+font-size:12px;
 font-weight:bold;
 color:#555;
+margin-bottom:6px;
+}
+
+.field div{
+font-size:18px;
+font-weight:bold;
 }
 
 input{
@@ -65,33 +157,52 @@ width:100%;
 padding:13px;
 border:1px solid #ddd;
 border-radius:8px;
-margin-top:6px;
 box-sizing:border-box;
 }
 
-button,
-a.button{
+button.search{
 background:#c9a96e;
 color:#111;
 border:0;
-padding:15px 22px;
-border-radius:8px;
+padding:16px 22px;
+border-radius:10px;
 font-weight:bold;
 cursor:pointer;
-text-decoration:none;
-display:inline-block;
+height:100%;
 }
 
 .actions{
 margin-top:25px;
 display:flex;
 gap:15px;
-justify-content:center;
 flex-wrap:wrap;
 }
 
-.secondary{
-background:white !important;
+.actions a{
+background:white;
+color:#111;
+padding:14px 22px;
+border-radius:10px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.actions a.gold{
+background:#c9a96e;
+}
+
+@media(max-width:700px){
+h1{
+font-size:42px;
+}
+
+.subtitle{
+font-size:20px;
+}
+
+.logo{
+margin-bottom:40px;
+}
 }
 </style>
 </head>
@@ -100,38 +211,53 @@ background:white !important;
 
 <div class="hero">
 
-<div class="box">
+<div class="container">
 
-<h1>Guest In Town</h1>
+<div class="logo">Guest in Town</div>
 
-<p>Ville esclusive, soggiorni privati e ospitalità su misura.</p>
+<h1>Le sue vacanze di lusso in Salento</h1>
 
-<div class="search">
+<div class="subtitle">
+Ville esclusive, soggiorni privati e ospitalità su misura in Puglia.
+</div>
 
-<div>
+<div class="panel">
+
+<div class="calendar-header">
+<button onclick="changeMonth(-1)">← Mese precedente</button>
+<button onclick="changeMonth(1)">Mese successivo →</button>
+</div>
+
+<div class="calendar-wrap" id="calendarWrap"></div>
+
+<div class="search-bottom">
+
+<div class="field">
 <label>Check-in</label>
-<input id="check_in" type="date">
+<div id="checkInLabel">Seleziona</div>
 </div>
 
-<div>
+<div class="field">
 <label>Check-out</label>
-<input id="check_out" type="date">
+<div id="checkOutLabel">Seleziona</div>
 </div>
 
 <div>
-<label>Ospiti</label>
-<input id="guests" type="number" min="1" placeholder="Es. 4">
+<input id="guests" type="number" min="1" placeholder="Numero ospiti">
 </div>
 
-<div style="display:flex;align-items:end;">
-<button onclick="searchVillas()">Cerca ville disponibili</button>
+<button class="search" onclick="searchVillas()">
+Cerca ville disponibili
+</button>
+
 </div>
 
 </div>
 
 <div class="actions">
-<a class="button secondary" href="public/villas.html">Esplora tutte le ville</a>
-<a class="button secondary" href="public/villas.html">Scopri le destinazioni</a>
+<a class="gold" href="public/villas.html">Esplora tutte le ville</a>
+<a href="public/villas.html">Scopri le destinazioni</a>
+<a href="./">Home</a>
 </div>
 
 </div>
@@ -140,35 +266,209 @@ background:white !important;
 
 <script>
 
+let selectedCheckIn = null;
+let selectedCheckOut = null;
+let calendarBaseDate = new Date();
+
+renderCalendars();
+
+function formatDateIT(dateString){
+
+if(!dateString){
+return 'Seleziona';
+}
+
+const parts =
+dateString.split('-');
+
+return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+}
+
+function toISODate(date){
+
+const y =
+date.getFullYear();
+
+const m =
+String(date.getMonth()+1).padStart(2,'0');
+
+const d =
+String(date.getDate()).padStart(2,'0');
+
+return `${y}-${m}-${d}`;
+
+}
+
+function makeDate(y,m,d){
+
+return new Date(y,m,d);
+
+}
+
+function changeMonth(direction){
+
+calendarBaseDate =
+new Date(
+calendarBaseDate.getFullYear(),
+calendarBaseDate.getMonth() + direction,
+1
+);
+
+renderCalendars();
+
+}
+
+function renderCalendars(){
+
+const wrap =
+document.getElementById('calendarWrap');
+
+wrap.innerHTML = '';
+
+renderMonth(
+calendarBaseDate.getFullYear(),
+calendarBaseDate.getMonth(),
+wrap
+);
+
+const nextMonth =
+new Date(
+calendarBaseDate.getFullYear(),
+calendarBaseDate.getMonth()+1,
+1
+);
+
+renderMonth(
+nextMonth.getFullYear(),
+nextMonth.getMonth(),
+wrap
+);
+
+}
+
+function renderMonth(year,month,container){
+
+const monthNames = [
+'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'
+];
+
+const firstDay =
+makeDate(year,month,1);
+
+const lastDay =
+makeDate(year,month+1,0);
+
+let html = `
+<div class="month">
+<h3>${monthNames[month]} ${year}</h3>
+<div class="calendar">
+<div class="day-name">L</div>
+<div class="day-name">M</div>
+<div class="day-name">M</div>
+<div class="day-name">G</div>
+<div class="day-name">V</div>
+<div class="day-name">S</div>
+<div class="day-name">D</div>
+`;
+
+let startOffset =
+firstDay.getDay();
+
+startOffset =
+startOffset === 0 ? 6 : startOffset - 1;
+
+for(let i=0;i<startOffset;i++){
+html += `<div class="day empty-day"></div>`;
+}
+
+for(let d=1; d<=lastDay.getDate(); d++){
+
+const date =
+makeDate(year,month,d);
+
+const iso =
+toISODate(date);
+
+let classes =
+'day';
+
+if(selectedCheckIn === iso || selectedCheckOut === iso){
+classes += ' selected';
+}
+
+if(
+selectedCheckIn &&
+selectedCheckOut &&
+iso > selectedCheckIn &&
+iso < selectedCheckOut
+){
+classes += ' in-range';
+}
+
+html += `
+<div class="${classes}" onclick="selectDate('${iso}')">
+${d}
+</div>
+`;
+
+}
+
+html += `
+</div>
+</div>
+`;
+
+container.innerHTML += html;
+
+}
+
+function selectDate(iso){
+
+if(!selectedCheckIn || selectedCheckOut){
+selectedCheckIn = iso;
+selectedCheckOut = null;
+}
+
+else if(iso <= selectedCheckIn){
+selectedCheckIn = iso;
+selectedCheckOut = null;
+}
+
+else{
+selectedCheckOut = iso;
+}
+
+document.getElementById('checkInLabel').innerText =
+formatDateIT(selectedCheckIn);
+
+document.getElementById('checkOutLabel').innerText =
+formatDateIT(selectedCheckOut);
+
+renderCalendars();
+
+}
+
 function searchVillas(){
-
-const checkIn =
-document.getElementById('check_in').value;
-
-const checkOut =
-document.getElementById('check_out').value;
 
 const guests =
 document.getElementById('guests').value;
 
-if(!checkIn || !checkOut){
+if(!selectedCheckIn || !selectedCheckOut){
 alert('Seleziona check-in e check-out.');
 return;
 }
 
-if(checkOut <= checkIn){
-alert('Il check-out deve essere successivo al check-in.');
-return;
-}
-
 let url =
-`public/villas.html?check_in=${checkIn}&check_out=${checkOut}`;
+`public/villas.html?check_in=${selectedCheckIn}&check_out=${selectedCheckOut}`;
 
 if(guests){
 url += `&guests=${guests}`;
 }
 
-window.location.href = url;
+window.location.href =
+url;
 
 }
 
