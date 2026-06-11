@@ -321,9 +321,9 @@ ${villa.nightly_price ? `Prezzo base per notte: <strong>${formatEuro(villa.night
 
 <div class="form-grid">
 <input id="guests" type="number" placeholder="Numero ospiti">
-<input id="guest_name" placeholder="Nome e cognome">
-<input id="guest_email" type="email" placeholder="Email">
-<input id="guest_phone" placeholder="Telefono">
+<input id="guest_name" required placeholder="Nome e cognome *">
+<input id="guest_email" required type="email" placeholder="Email *">
+<input id="guest_phone" required placeholder="Telefono *">
 </div>
 
 <textarea id="notes" placeholder="Note o richieste speciali"></textarea>
@@ -539,9 +539,9 @@ const totalPrice = calculation.total > 0 ? calculation.total : null;
 
 const booking = {
 villa_id:villaId,
-guest_name:document.getElementById('guest_name').value,
-guest_email:document.getElementById('guest_email').value,
-guest_phone:document.getElementById('guest_phone').value,
+guest_name:document.getElementById('guest_name').value.trim(),
+guest_email:document.getElementById('guest_email').value.trim(),
+guest_phone:document.getElementById('guest_phone').value.trim(),
 check_in:selectedCheckIn,
 check_out:selectedCheckOut,
 guests:document.getElementById('guests').value || null,
@@ -551,8 +551,8 @@ source:'direct',
 total_price:totalPrice
 };
 
-if(!booking.guest_name || !booking.guest_email){
-alert('Compila nome ed email.');
+if(!booking.guest_name || !booking.guest_email || !booking.guest_phone){
+alert('Compila nome, email e telefono.');
 return;
 }
 
