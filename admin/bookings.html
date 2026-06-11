@@ -288,6 +288,32 @@ currency:'EUR'
 
 }
 
+function calculateNights(checkIn, checkOut){
+
+if(!checkIn || !checkOut){
+return '-';
+}
+
+const start =
+new Date(checkIn + 'T00:00:00');
+
+const end =
+new Date(checkOut + 'T00:00:00');
+
+const diff =
+end - start;
+
+const nights =
+Math.round(diff / (1000 * 60 * 60 * 24));
+
+if(nights <= 0){
+return '-';
+}
+
+return nights;
+
+}
+
 async function loadBookings(){
 
 let query =
@@ -384,6 +410,7 @@ container.innerHTML = `
 <th>Villa</th>
 <th>Cliente</th>
 <th>Date</th>
+<th>Notti</th>
 <th>Ospiti</th>
 <th>Totale</th>
 <th>Stato</th>
@@ -404,6 +431,10 @@ ${booking.guest_phone || ''}
 <td>
 Check-in: ${formatDateIT(booking.check_in)}<br>
 Check-out: ${formatDateIT(booking.check_out)}
+</td>
+
+<td>
+<strong>${calculateNights(booking.check_in, booking.check_out)}</strong>
 </td>
 
 <td>${booking.guests || '-'}</td>
