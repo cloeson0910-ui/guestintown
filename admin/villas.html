@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -12,7 +10,6 @@
 <script src="../js/supabase.js"></script>
 
 <style>
-
 body{
 font-family:Arial,sans-serif;
 background:#111;
@@ -22,8 +19,32 @@ max-width:1200px;
 margin:auto;
 }
 
-h1{
-margin-bottom:20px;
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.menu a:hover,
+.menu button:hover{
+background:#333;
+}
+
+.menu .logout{
+margin-left:auto;
+background:#c0392b;
 }
 
 .topbar{
@@ -81,27 +102,26 @@ button{
 padding:8px 12px;
 cursor:pointer;
 }
-
 </style>
-
 </head>
 
 <body>
 
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
+<a href="destinations.html">Destinazioni</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
 <div class="topbar">
-
 <h1>Ville</h1>
-
-<a href="villa-form.html" class="button">
-+ Nuova Villa
-</a>
-
+<a href="villa-form.html" class="button">+ Nuova Villa</a>
 </div>
 
 <table>
-
 <thead>
-
 <tr>
 <th>Villa</th>
 <th>Destinazione</th>
@@ -109,18 +129,28 @@ cursor:pointer;
 <th>Stato</th>
 <th>Azioni</th>
 </tr>
-
 </thead>
 
-<tbody id="villasTable">
-
-</tbody>
-
+<tbody id="villasTable"></tbody>
 </table>
 
 <script>
 
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+
 loadVillas();
+
+}
 
 async function loadVillas(){
 
@@ -137,12 +167,9 @@ destinations(name)
 .order('created_at',{ascending:false});
 
 if(error){
-
 console.error(error);
 alert(error.message);
-
 return;
-
 }
 
 const table =
@@ -153,31 +180,25 @@ table.innerHTML='';
 data.forEach(villa=>{
 
 table.innerHTML += `
-
 <tr>
-
 <td>${villa.title || ''}</td>
-
 <td>${villa.destinations?.name || ''}</td>
-
 <td>${villa.owner_name || ''}</td>
-
 <td>
 <span class="status ${villa.status}">
-${villa.status}
+${villa.status || ''}
 </span>
 </td>
-
 <td>
+<button onclick="window.location.href='villa-edit.html?id=${villa.id}'">
+Modifica
+</button>
 
 <button onclick="deleteVilla(${villa.id})">
 Elimina
 </button>
-
 </td>
-
 </tr>
-
 `;
 
 });
@@ -197,18 +218,23 @@ await supabaseClient
 .eq('id',id);
 
 if(error){
-
 alert(error.message);
 return;
-
 }
 
 loadVillas();
 
 }
 
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
+
+}
+
 </script>
 
 </body>
-
 </html>
