@@ -12,7 +12,6 @@
 <script src="../js/supabase.js"></script>
 
 <style>
-
 body{
 font-family:Arial,sans-serif;
 background:#111;
@@ -54,6 +53,18 @@ h1{
 margin-bottom:20px;
 }
 
+.section{
+background:#1b1b1b;
+padding:20px;
+border-radius:10px;
+margin-bottom:25px;
+}
+
+.section h2{
+font-size:20px;
+margin-bottom:15px;
+}
+
 input,
 select{
 width:100%;
@@ -61,6 +72,32 @@ padding:12px;
 margin-bottom:15px;
 border:none;
 border-radius:6px;
+}
+
+.photo-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;
+margin-top:15px;
+}
+
+.photo-placeholder{
+height:130px;
+border:2px dashed #555;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+color:#aaa;
+background:#151515;
+text-align:center;
+font-size:14px;
+}
+
+.note{
+color:#aaa;
+font-size:14px;
+line-height:1.5;
 }
 
 button.save{
@@ -73,6 +110,15 @@ border-radius:6px;
 cursor:pointer;
 }
 
+button.cancel{
+background:#333;
+color:white;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin-left:10px;
+}
 </style>
 
 </head>
@@ -89,12 +135,14 @@ cursor:pointer;
 
 <h1>Nuova Villa</h1>
 
+<div class="section">
+<h2>Dati principali</h2>
+
 <input id="title" placeholder="Nome Villa">
 
 <input id="cin" placeholder="CIN">
 
 <label>Destinazione</label>
-
 <select id="destination_id">
 <option value="">Seleziona destinazione</option>
 </select>
@@ -104,9 +152,32 @@ cursor:pointer;
 <input id="owner_phone" placeholder="Telefono Proprietario">
 
 <input id="owner_email" placeholder="Email Proprietario">
+</div>
+
+<div class="section">
+<h2>Foto provvisorie</h2>
+
+<p class="note">
+Qui in seguito caricheremo le foto provvisorie inserite dal recruiter.
+Per ora sono segnaposto: l'upload reale verrà collegato a Supabase Storage.
+</p>
+
+<div class="photo-grid">
+<div class="photo-placeholder">Foto principale</div>
+<div class="photo-placeholder">Foto esterno</div>
+<div class="photo-placeholder">Foto soggiorno</div>
+<div class="photo-placeholder">Foto camere</div>
+<div class="photo-placeholder">Foto bagni</div>
+<div class="photo-placeholder">Foto piscina / giardino</div>
+</div>
+</div>
 
 <button class="save" onclick="saveVilla()">
 Salva Villa
+</button>
+
+<button class="cancel" onclick="window.location.href='villas.html'">
+Annulla
 </button>
 
 <script>
@@ -160,25 +231,39 @@ ${destination.name}
 
 }
 
+function createSlug(text){
+
+return text
+.toLowerCase()
+.trim()
+.replaceAll(' ','-')
+.replace(/[^a-z0-9-]/g,'');
+
+}
+
 async function saveVilla(){
+
+const title =
+document.getElementById('title').value;
 
 const destinationId =
 parseInt(document.getElementById('destination_id').value);
 
-if(!destinationId){
+if(!title){
+alert('Inserisci il nome della villa');
+return;
+}
 
+if(!destinationId){
 alert('Seleziona una destinazione');
 return;
-
 }
 
 const villa = {
 
-title: document.getElementById('title').value,
+title:title,
 
-slug: document.getElementById('title').value
-.toLowerCase()
-.replaceAll(' ','-'),
+slug:createSlug(title),
 
 cin: document.getElementById('cin').value,
 
