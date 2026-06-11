@@ -1,8 +1,260 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Title</title>
-    </head>
-    <body></body>
+<html lang="it">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Destinazioni</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+padding:30px;
+max-width:1000px;
+margin:auto;
+}
+
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.menu .logout{
+margin-left:auto;
+background:#c0392b;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+.form{
+background:#1b1b1b;
+padding:20px;
+border-radius:10px;
+margin-bottom:30px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:none;
+border-radius:6px;
+}
+
+button.save{
+background:#c9a96e;
+color:black;
+font-weight:bold;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:#1b1b1b;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #333;
+text-align:left;
+}
+
+th{
+background:#222;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
+<a href="destinations.html">Destinazioni</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Destinazioni</h1>
+
+<div class="form">
+<input id="name" placeholder="Nome destinazione">
+<input id="country" placeholder="Paese">
+<button class="save" onclick="saveDestination()">Salva Destinazione</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Nome</th>
+<th>Slug</th>
+<th>Paese</th>
+<th>Azioni</th>
+</tr>
+</thead>
+
+<tbody id="destinationsTable"></tbody>
+</table>
+
+<script>
+
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+
+loadDestinations();
+
+}
+
+function createSlug(text){
+
+return text
+.toLowerCase()
+.trim()
+.replaceAll(' ','-')
+.replace(/[^a-z0-9-]/g,'');
+
+}
+
+async function saveDestination(){
+
+const name =
+document.getElementById('name').value;
+
+const country =
+document.getElementById('country').value;
+
+if(!name){
+alert('Inserisci il nome della destinazione');
+return;
+}
+
+const destination = {
+name:name,
+slug:createSlug(name),
+country:country,
+active:true
+};
+
+const { error } =
+await supabaseClient
+.from('destinations')
+.insert([destination]);
+
+if(error){
+console.error(error);
+alert(error.message);
+return;
+}
+
+document.getElementById('name').value='';
+document.getElementById('country').value='';
+
+loadDestinations();
+
+}
+
+async function loadDestinations(){
+
+const { data, error } =
+await supabaseClient
+.from('destinations')
+.select('*')
+.order('name');
+
+if(error){
+console.error(error);
+alert(error.message);
+return;
+}
+
+const table =
+document.getElementById('destinationsTable');
+
+table.innerHTML='';
+
+data.forEach(destination=>{
+
+table.innerHTML += `
+<tr>
+<td>${destination.name || ''}</td>
+<td>${destination.slug || ''}</td>
+<td>${destination.country || ''}</td>
+<td>
+<button onclick="deleteDestination(${destination.id})">
+Elimina
+</button>
+</td>
+</tr>
+`;
+
+});
+
+}
+
+async function deleteDestination(id){
+
+if(!confirm('Eliminare questa destinazione?')){
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('destinations')
+.delete()
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+loadDestinations();
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
+
+}
+
+</script>
+
+</body>
 </html>
