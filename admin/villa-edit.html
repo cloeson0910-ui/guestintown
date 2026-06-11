@@ -19,11 +19,11 @@ h1{margin-bottom:20px;}
 .section h2{font-size:20px;margin-bottom:15px;}
 input,select,textarea{width:100%;padding:12px;margin-bottom:15px;border:none;border-radius:6px;}
 textarea{min-height:120px;}
-.gps-actions{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;}
+.gps-actions,.actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
 .gps-actions button{flex:1;min-width:180px;padding:12px;border:none;border-radius:6px;cursor:pointer;}
 .gps-button{background:#c9a96e;color:black;font-weight:bold;}
 .confirm-button{background:#27ae60;color:white;font-weight:bold;}
-.map-button{background:#333;color:white;}
+.map-button,button.cancel{background:#333;color:white;}
 .gps-status{background:#151515;padding:12px;border-radius:8px;margin-bottom:15px;color:#ccc;}
 .gps-good{color:#2ecc71;font-weight:bold;}
 .gps-warning{color:#f1c40f;font-weight:bold;}
@@ -31,21 +31,22 @@ textarea{min-height:120px;}
 .map-preview{width:100%;height:260px;border-radius:10px;overflow:hidden;background:#222;margin-bottom:15px;cursor:pointer;border:1px solid #333;}
 .map-preview iframe{width:100%;height:100%;border:0;pointer-events:none;}
 .map-empty{height:260px;display:flex;align-items:center;justify-content:center;color:#aaa;}
-.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+.services-grid,.photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
 .service-item{background:#151515;padding:12px;border-radius:8px;display:flex;gap:10px;align-items:center;}
 .service-item input{width:auto;margin:0;}
-.photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-top:15px;}
 .photo-box{background:#151515;border:2px dashed #555;border-radius:10px;padding:10px;text-align:center;}
 .photo-box img{width:100%;height:130px;object-fit:cover;border-radius:8px;margin-bottom:10px;display:none;}
 .photo-box label{display:block;font-size:14px;margin-bottom:10px;color:#ccc;}
 .photo-box input{font-size:12px;}
-.actions{display:flex;gap:10px;margin-top:20px;}
 button.save{background:#c9a96e;color:black;font-weight:bold;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;}
-button.cancel{background:#333;color:white;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;}
-button.delete-photo{background:#c0392b;color:white;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;margin-top:5px;}
+button.cancel{padding:12px 20px;border:none;border-radius:6px;cursor:pointer;}
+button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;margin-top:5px;}
 .note{color:#aaa;font-size:14px;line-height:1.5;margin-bottom:15px;}
-.calendar-row{background:#151515;padding:15px;border-radius:10px;margin-bottom:15px;}
+.calendar-row,.rate-row{background:#151515;padding:15px;border-radius:10px;margin-bottom:15px;}
 .calendar-row label{display:block;margin-bottom:8px;color:#ccc;}
+.rate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.rate-list{margin-top:20px;}
+.rate-card{background:#151515;padding:15px;border-radius:10px;margin-bottom:10px;}
 </style>
 </head>
 
@@ -63,7 +64,6 @@ button.delete-photo{background:#c0392b;color:white;border:none;padding:8px 10px;
 
 <div class="section">
 <h2>Dati principali</h2>
-
 <input id="title" placeholder="Nome Villa">
 <input id="cin" placeholder="CIN">
 
@@ -97,9 +97,7 @@ button.delete-photo{background:#c0392b;color:white;border:none;padding:8px 10px;
 <button class="map-button" onclick="openMap()">Apri Google Maps</button>
 </div>
 
-<div class="gps-status" id="gpsStatus">
-Posizione non ancora confermata.
-</div>
+<div class="gps-status" id="gpsStatus">Posizione non ancora confermata.</div>
 
 <input id="latitude" type="number" step="any" placeholder="Latitudine">
 <input id="longitude" type="number" step="any" placeholder="Longitudine">
@@ -112,8 +110,7 @@ Posizione non ancora confermata.
 <input id="bedrooms" type="number" placeholder="Camere">
 <input id="bathrooms" type="number" placeholder="Bagni">
 <input id="max_guests" type="number" placeholder="Ospiti massimi">
-
-<input id="nightly_price" type="number" step="0.01" placeholder="Prezzo per notte (€)">
+<input id="nightly_price" type="number" step="0.01" placeholder="Prezzo base per notte (€)">
 
 <input id="cadastral_sheet" placeholder="Foglio catastale">
 <input id="cadastral_parcel" placeholder="Particella / Mappale">
@@ -125,7 +122,6 @@ Posizione non ancora confermata.
 
 <div class="section">
 <h2>Servizi villa</h2>
-
 <div class="services-grid" id="servicesGrid">
 <label class="service-item"><input type="checkbox" value="Wi-Fi"> Wi-Fi</label>
 <label class="service-item"><input type="checkbox" value="Piscina"> Piscina</label>
@@ -143,11 +139,27 @@ Posizione non ancora confermata.
 </div>
 
 <div class="section">
-<h2>Sincronizzazione Calendari</h2>
+<h2>Tariffe stagionali</h2>
+<p class="note">Inserisci tutte le fasce prezzo necessarie. Il calendario pubblico userà automaticamente il prezzo corretto per ogni notte.</p>
 
-<p class="note">
-Inserisci qui i link iCal esportati da Airbnb e Booking. Serviranno per sincronizzare le disponibilità della villa.
-</p>
+<div class="rate-row">
+<input id="rate_name" placeholder="Nome fascia, es. Agosto / Ferragosto / Bassa stagione">
+
+<div class="rate-grid">
+<input id="rate_from" type="date">
+<input id="rate_to" type="date">
+<input id="rate_price" type="number" step="0.01" placeholder="Prezzo notte (€)">
+</div>
+
+<button class="save" onclick="saveRate()">Salva tariffa</button>
+</div>
+
+<div id="ratesList" class="rate-list"></div>
+</div>
+
+<div class="section">
+<h2>Sincronizzazione Calendari</h2>
+<p class="note">Inserisci qui i link iCal esportati da Airbnb e Booking. Serviranno per sincronizzare le disponibilità della villa.</p>
 
 <div class="calendar-row">
 <label>Airbnb iCal URL</label>
@@ -164,7 +176,6 @@ Inserisci qui i link iCal esportati da Airbnb e Booking. Serviranno per sincroni
 
 <div class="section">
 <h2>Foto villa</h2>
-
 <div class="photo-grid" id="photoGrid"></div>
 </div>
 
@@ -206,26 +217,19 @@ renderPhotoBoxes();
 checkAuth();
 
 function renderPhotoBoxes(){
-
 const grid = document.getElementById('photoGrid');
-
 photoTypes.forEach(photo=>{
-
 grid.innerHTML += `
 <div class="photo-box">
 <label>${photo.label}</label>
 <img id="preview-${photo.type}">
 <input type="file" accept="image/*" onchange="uploadImage(event,'${photo.type}','preview-${photo.type}')">
 <button class="delete-photo" onclick="deleteImage('${photo.type}','preview-${photo.type}')">Elimina</button>
-</div>
-`;
-
+</div>`;
 });
-
 }
 
 async function checkAuth(){
-
 const { data } = await supabaseClient.auth.getUser();
 
 if(!data.user){
@@ -237,12 +241,11 @@ await loadDestinations();
 await loadVilla();
 await loadImages();
 await loadServices();
+await loadRates();
 await loadCalendarLinks();
-
 }
 
 async function loadDestinations(){
-
 const { data, error } =
 await supabaseClient
 .from('destinations')
@@ -259,7 +262,6 @@ const select = document.getElementById('destination_id');
 data.forEach(destination=>{
 select.innerHTML += `<option value="${destination.id}">${destination.name}</option>`;
 });
-
 }
 
 async function loadVilla(){
@@ -312,7 +314,6 @@ updateMapPreview();
 
 document.getElementById('latitude').addEventListener('input', markLocationUnconfirmed);
 document.getElementById('longitude').addEventListener('input', markLocationUnconfirmed);
-
 }
 
 function markLocationUnconfirmed(){
@@ -340,7 +341,6 @@ const selectedServices = data.map(item => item.service_name);
 document.querySelectorAll('#servicesGrid input[type="checkbox"]').forEach(input=>{
 input.checked = selectedServices.includes(input.value);
 });
-
 }
 
 async function saveServices(){
@@ -371,7 +371,108 @@ await supabaseClient
 if(error){
 alert(error.message);
 }
+}
 
+async function loadRates(){
+
+const { data, error } =
+await supabaseClient
+.from('villa_rates')
+.select('*')
+.eq('villa_id', villaId)
+.order('date_from');
+
+if(error){
+console.error(error);
+return;
+}
+
+const list = document.getElementById('ratesList');
+
+if(!data || data.length === 0){
+list.innerHTML = '<p class="note">Nessuna tariffa stagionale inserita.</p>';
+return;
+}
+
+list.innerHTML = '';
+
+data.forEach(rate=>{
+list.innerHTML += `
+<div class="rate-card">
+<strong>${rate.name}</strong><br>
+Dal ${formatDateIT(rate.date_from)} al ${formatDateIT(rate.date_to)}<br>
+Prezzo notte: € ${Number(rate.nightly_price).toLocaleString('it-IT')}
+<br>
+<button class="delete-rate" onclick="deleteRate(${rate.id})">Elimina tariffa</button>
+</div>`;
+});
+}
+
+async function saveRate(){
+
+const name = document.getElementById('rate_name').value.trim();
+const dateFrom = document.getElementById('rate_from').value;
+const dateTo = document.getElementById('rate_to').value;
+const price = document.getElementById('rate_price').value;
+
+if(!name || !dateFrom || !dateTo || !price){
+alert('Compila nome fascia, date e prezzo.');
+return;
+}
+
+if(dateTo < dateFrom){
+alert('La data finale deve essere successiva alla data iniziale.');
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('villa_rates')
+.insert([{
+villa_id:villaId,
+name:name,
+date_from:dateFrom,
+date_to:dateTo,
+nightly_price:price
+}]);
+
+if(error){
+alert(error.message);
+return;
+}
+
+document.getElementById('rate_name').value = '';
+document.getElementById('rate_from').value = '';
+document.getElementById('rate_to').value = '';
+document.getElementById('rate_price').value = '';
+
+loadRates();
+}
+
+async function deleteRate(id){
+
+if(!confirm('Eliminare questa tariffa?')){
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('villa_rates')
+.delete()
+.eq('id', id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+loadRates();
+}
+
+function formatDateIT(dateString){
+if(!dateString)return '-';
+const p = dateString.split('-');
+return `${p[2]}/${p[1]}/${p[0]}`;
 }
 
 async function loadCalendarLinks(){
@@ -388,26 +489,19 @@ return;
 }
 
 data.forEach(link=>{
-
 if(link.platform === 'airbnb'){
 document.getElementById('airbnb_ical').value = link.ical_url || '';
 }
-
 if(link.platform === 'booking'){
 document.getElementById('booking_ical').value = link.ical_url || '';
 }
-
 });
-
 }
 
 async function saveCalendarLinks(){
 
-const airbnbUrl =
-document.getElementById('airbnb_ical').value.trim();
-
-const bookingUrl =
-document.getElementById('booking_ical').value.trim();
+const airbnbUrl = document.getElementById('airbnb_ical').value.trim();
+const bookingUrl = document.getElementById('booking_ical').value.trim();
 
 await supabaseClient
 .from('villa_calendar_links')
@@ -417,21 +511,11 @@ await supabaseClient
 const links = [];
 
 if(airbnbUrl){
-links.push({
-villa_id:villaId,
-platform:'airbnb',
-ical_url:airbnbUrl,
-active:true
-});
+links.push({villa_id:villaId,platform:'airbnb',ical_url:airbnbUrl,active:true});
 }
 
 if(bookingUrl){
-links.push({
-villa_id:villaId,
-platform:'booking',
-ical_url:bookingUrl,
-active:true
-});
+links.push({villa_id:villaId,platform:'booking',ical_url:bookingUrl,active:true});
 }
 
 if(links.length === 0){
@@ -450,7 +534,6 @@ return;
 }
 
 alert('Calendari salvati');
-
 }
 
 async function loadImages(){
@@ -467,16 +550,13 @@ return;
 }
 
 data.forEach(image=>{
-
 const img = document.getElementById(`preview-${image.image_type}`);
 
 if(img){
 img.src = image.image_url;
 img.style.display = 'block';
 }
-
 });
-
 }
 
 function detectLocation(){
@@ -491,7 +571,6 @@ document.getElementById('gpsStatus').innerHTML =
 
 navigator.geolocation.getCurrentPosition(
 position => {
-
 const lat = position.coords.latitude;
 const lng = position.coords.longitude;
 gpsAccuracy = position.coords.accuracy;
@@ -503,19 +582,13 @@ locationConfirmed = false;
 
 updateMapPreview();
 updateAccuracyStatus();
-
 },
 error => {
 document.getElementById('gpsStatus').innerHTML =
 '<span class="gps-bad">Impossibile rilevare la posizione: ' + error.message + '</span>';
 },
-{
-enableHighAccuracy:true,
-timeout:20000,
-maximumAge:0
-}
+{enableHighAccuracy:true,timeout:20000,maximumAge:0}
 );
-
 }
 
 function updateAccuracyStatus(){
@@ -528,26 +601,21 @@ return;
 }
 
 if(gpsAccuracy <= 15){
-status.innerHTML =
-`<span class="gps-good">Precisione GPS ottima: ${Math.round(gpsAccuracy)} metri. Puoi confermare la posizione.</span>`;
+status.innerHTML = `<span class="gps-good">Precisione GPS ottima: ${Math.round(gpsAccuracy)} metri. Puoi confermare la posizione.</span>`;
 return;
 }
 
 if(gpsAccuracy <= 30){
-status.innerHTML =
-`<span class="gps-good">Precisione GPS accettabile: ${Math.round(gpsAccuracy)} metri. Verifica sulla mappa e conferma.</span>`;
+status.innerHTML = `<span class="gps-good">Precisione GPS accettabile: ${Math.round(gpsAccuracy)} metri. Verifica sulla mappa e conferma.</span>`;
 return;
 }
 
 if(gpsAccuracy <= 50){
-status.innerHTML =
-`<span class="gps-warning">Precisione GPS da verificare: ${Math.round(gpsAccuracy)} metri. Controlla bene su Google Maps prima di confermare.</span>`;
+status.innerHTML = `<span class="gps-warning">Precisione GPS da verificare: ${Math.round(gpsAccuracy)} metri. Controlla bene su Google Maps prima di confermare.</span>`;
 return;
 }
 
-status.innerHTML =
-`<span class="gps-bad">Precisione GPS insufficiente: ${Math.round(gpsAccuracy)} metri. Spostati all’esterno e riprova. Non confermare questa posizione.</span>`;
-
+status.innerHTML = `<span class="gps-bad">Precisione GPS insufficiente: ${Math.round(gpsAccuracy)} metri. Spostati all’esterno e riprova. Non confermare questa posizione.</span>`;
 }
 
 function confirmLocation(){
@@ -569,7 +637,6 @@ locationConfirmed = true;
 
 document.getElementById('gpsStatus').innerHTML =
 '<span class="gps-good">Posizione villa confermata. Ora puoi salvare le modifiche.</span>';
-
 }
 
 function updateMapPreview(){
@@ -587,16 +654,13 @@ return;
 }
 
 const delta = 0.005;
-
-const bbox =
-`${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
+const bbox = `${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
 
 mapFrame.src =
 `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
 
 mapFrame.style.display = 'block';
 mapEmpty.style.display = 'none';
-
 }
 
 function openMap(){
@@ -610,17 +674,14 @@ return;
 }
 
 window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank');
-
 }
 
 function createSlug(text){
-
 return text
 .toLowerCase()
 .trim()
 .replaceAll(' ','-')
 .replace(/[^a-z0-9-]/g,'');
-
 }
 
 async function updateVilla(){
@@ -685,7 +746,6 @@ await saveServices();
 alert('Villa aggiornata');
 
 window.location.href='villas.html';
-
 }
 
 async function uploadImage(event, imageType, previewId){
@@ -723,11 +783,7 @@ await supabaseClient
 const { error } =
 await supabaseClient
 .from('villa_images')
-.insert([{
-villa_id:villaId,
-image_url:publicUrl,
-image_type:imageType
-}]);
+.insert([{villa_id:villaId,image_url:publicUrl,image_type:imageType}]);
 
 if(error){
 alert(error.message);
@@ -740,7 +796,6 @@ preview.src = publicUrl;
 preview.style.display = 'block';
 
 alert('Foto caricata');
-
 }
 
 async function deleteImage(imageType, previewId){
@@ -765,23 +820,17 @@ const preview = document.getElementById(previewId);
 
 preview.src = '';
 preview.style.display = 'none';
-
 }
 
 function cancelEdit(){
-
 if(confirm('Annullare le modifiche e tornare alla lista ville?')){
 window.location.href = 'villas.html';
 }
-
 }
 
 async function logout(){
-
 await supabaseClient.auth.signOut();
-
 window.location.href = "login.html";
-
 }
 
 </script>
