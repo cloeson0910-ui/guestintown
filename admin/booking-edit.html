@@ -1,1 +1,482 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Dettaglio Prenotazione</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+padding:30px;
+max-width:1000px;
+margin:auto;
+}
+
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.menu .logout{
+margin-left:auto;
+background:#c0392b;
+}
+
+.section{
+background:#1b1b1b;
+padding:20px;
+border-radius:10px;
+margin-bottom:25px;
+}
+
+.section h2{
+margin-bottom:15px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+}
+
+input,
+select,
+textarea{
+width:100%;
+padding:12px;
+border:none;
+border-radius:6px;
+box-sizing:border-box;
+}
+
+textarea{
+min-height:120px;
+}
+
+.label{
+color:#aaa;
+font-size:13px;
+margin-bottom:6px;
+display:block;
+}
+
+.value{
+background:#151515;
+padding:12px;
+border-radius:6px;
+}
+
+.actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+button.save{
+background:#c9a96e;
+color:black;
+font-weight:bold;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+button.confirm{
+background:#27ae60;
+color:white;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+button.cancel{
+background:#c0392b;
+color:white;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+button.back{
+background:#333;
+color:white;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.status{
+display:inline-block;
+padding:8px 12px;
+border-radius:20px;
+font-size:13px;
+}
+
+.pending{background:orange;color:black;}
+.confirmed{background:green;color:white;}
+.cancelled{background:red;color:white;}
+.completed{background:#555;color:white;}
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="destinations.html">Destinazioni</a>
+<a href="bookings.html">Prenotazioni</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Dettaglio Prenotazione</h1>
+
+<div id="content">
+<div class="section">Caricamento prenotazione...</div>
+</div>
+
+<script>
+
+const params =
+new URLSearchParams(window.location.search);
+
+const bookingId =
+params.get('id');
+
+let currentBooking = null;
+
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+
+await loadBooking();
+
+}
+
+function formatDateIT(dateString){
+
+if(!dateString){
+return '-';
+}
+
+const parts =
+dateString.split('-');
+
+return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+}
+
+function formatEuro(value){
+
+const number =
+Number(value || 0);
+
+return number.toLocaleString('it-IT',{
+style:'currency',
+currency:'EUR'
+});
+
+}
+
+function calculateNights(checkIn, checkOut){
+
+if(!checkIn || !checkOut){
+return '-';
+}
+
+const start =
+new Date(checkIn + 'T00:00:00');
+
+const end =
+new Date(checkOut + 'T00:00:00');
+
+const diff =
+end - start;
+
+const nights =
+Math.round(diff / (1000 * 60 * 60 * 24));
+
+if(nights <= 0){
+return '-';
+}
+
+return nights;
+
+}
+
+async function loadBooking(){
+
+if(!bookingId){
+document.getElementById('content').innerHTML =
+'<div class="section">ID prenotazione mancante.</div>';
+return;
+}
+
+const { data, error } =
+await supabaseClient
+.from('bookings')
+.select(`
+*,
+villas(title,destination_id,destinations(name))
+`)
+.eq('id', bookingId)
+.single();
+
+if(error){
+document.getElementById('content').innerHTML =
+`<div class="section">${error.message}</div>`;
+return;
+}
+
+currentBooking = data;
+
+renderBooking();
+
+}
+
+function renderBooking(){
+
+const booking =
+currentBooking;
+
+const nights =
+calculateNights(booking.check_in, booking.check_out);
+
+document.getElementById('content').innerHTML = `
+
+<div class="section">
+<h2>Riepilogo</h2>
+
+<div class="grid">
+
+<div>
+<span class="label">Villa</span>
+<div class="value">${booking.villas?.title || '-'}</div>
+</div>
+
+<div>
+<span class="label">Destinazione</span>
+<div class="value">${booking.villas?.destinations?.name || '-'}</div>
+</div>
+
+<div>
+<span class="label">Stato</span>
+<div class="value">
+<span class="status ${booking.status}">
+${booking.status}
+</span>
+</div>
+</div>
+
+<div>
+<span class="label">Totale</span>
+<div class="value">${formatEuro(booking.total_price)}</div>
+</div>
+
+</div>
+</div>
+
+<div class="section">
+<h2>Date soggiorno</h2>
+
+<div class="grid">
+
+<div>
+<span class="label">Check-in</span>
+<input id="check_in" type="date" value="${booking.check_in || ''}">
+</div>
+
+<div>
+<span class="label">Check-out</span>
+<input id="check_out" type="date" value="${booking.check_out || ''}">
+</div>
+
+<div>
+<span class="label">Notti</span>
+<div class="value">${nights}</div>
+</div>
+
+<div>
+<span class="label">Ospiti</span>
+<input id="guests" type="number" value="${booking.guests || ''}">
+</div>
+
+</div>
+</div>
+
+<div class="section">
+<h2>Dati cliente</h2>
+
+<div class="grid">
+
+<div>
+<span class="label">Nome</span>
+<input id="guest_name" value="${booking.guest_name || ''}">
+</div>
+
+<div>
+<span class="label">Email</span>
+<input id="guest_email" type="email" value="${booking.guest_email || ''}">
+</div>
+
+<div>
+<span class="label">Telefono</span>
+<input id="guest_phone" value="${booking.guest_phone || ''}">
+</div>
+
+</div>
+</div>
+
+<div class="section">
+<h2>Gestione</h2>
+
+<div class="grid">
+
+<div>
+<span class="label">Stato prenotazione</span>
+<select id="status">
+<option value="pending" ${booking.status === 'pending' ? 'selected' : ''}>Pending</option>
+<option value="confirmed" ${booking.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+<option value="cancelled" ${booking.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+<option value="completed" ${booking.status === 'completed' ? 'selected' : ''}>Completed</option>
+</select>
+</div>
+
+<div>
+<span class="label">Fonte</span>
+<div class="value">${booking.source || 'direct'}</div>
+</div>
+
+</div>
+
+<span class="label" style="margin-top:15px;">Note</span>
+<textarea id="notes">${booking.notes || ''}</textarea>
+</div>
+
+<div class="actions">
+<button class="save" onclick="saveBooking()">Salva modifiche</button>
+<button class="confirm" onclick="quickStatus('confirmed')">Conferma</button>
+<button class="cancel" onclick="quickStatus('cancelled')">Cancella</button>
+<button class="back" onclick="window.location.href='bookings.html'">Torna alle prenotazioni</button>
+</div>
+
+`;
+
+}
+
+async function saveBooking(){
+
+const updatedBooking = {
+guest_name:document.getElementById('guest_name').value,
+guest_email:document.getElementById('guest_email').value,
+guest_phone:document.getElementById('guest_phone').value,
+check_in:document.getElementById('check_in').value,
+check_out:document.getElementById('check_out').value,
+guests:document.getElementById('guests').value || null,
+status:document.getElementById('status').value,
+notes:document.getElementById('notes').value
+};
+
+if(
+!updatedBooking.guest_name ||
+!updatedBooking.guest_email ||
+!updatedBooking.guest_phone
+){
+alert('Nome, email e telefono sono obbligatori.');
+return;
+}
+
+if(!updatedBooking.check_in || !updatedBooking.check_out){
+alert('Check-in e check-out sono obbligatori.');
+return;
+}
+
+if(updatedBooking.check_out <= updatedBooking.check_in){
+alert('Il check-out deve essere successivo al check-in.');
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('bookings')
+.update(updatedBooking)
+.eq('id', bookingId);
+
+if(error){
+alert(error.message);
+return;
+}
+
+alert('Prenotazione aggiornata');
+
+await loadBooking();
+
+}
+
+async function quickStatus(status){
+
+if(!confirm('Aggiornare lo stato della prenotazione?')){
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('bookings')
+.update({
+status:status
+})
+.eq('id', bookingId);
+
+if(error){
+alert(error.message);
+return;
+}
+
+await loadBooking();
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
+
+}
+
+</script>
+
+</body>
+</html>
