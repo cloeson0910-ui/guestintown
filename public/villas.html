@@ -29,7 +29,6 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 margin-bottom:60px;
-gap:20px;
 }
 
 .logo{
@@ -74,15 +73,15 @@ margin:auto;
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
-gap:28px;
+gap:30px;
 }
 
 .card{
 position:relative;
-height:390px;
+height:420px;
 overflow:hidden;
 background:#111;
-border:1px solid rgba(201,169,110,.28);
+border:1px solid rgba(201,169,110,.35);
 text-decoration:none;
 color:white;
 display:block;
@@ -93,30 +92,30 @@ width:100%;
 height:100%;
 object-fit:cover;
 display:block;
-filter:brightness(.72);
-transition:.5s;
+filter:brightness(.62);
+transition:.6s;
 }
 
 .card:hover img{
-transform:scale(1.06);
-filter:brightness(.55);
+transform:scale(1.07);
+filter:brightness(.48);
 }
 
 .card-overlay{
 position:absolute;
 inset:0;
-background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.12));
+background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.08));
 display:flex;
 align-items:flex-end;
-padding:28px;
+padding:34px;
 z-index:2;
 }
 
 .card h2{
-font-size:36px;
+font-size:38px;
 font-weight:400;
 color:#f5efe4;
-margin-bottom:8px;
+margin-bottom:10px;
 }
 
 .card span{
@@ -127,21 +126,13 @@ text-transform:uppercase;
 color:#c9a96e;
 }
 
-.fallback{
-position:absolute;
-inset:0;
-display:flex;
-align-items:center;
-justify-content:center;
+.empty{
+background:#111;
+border:1px solid rgba(201,169,110,.3);
+padding:45px;
 text-align:center;
-background:
-linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,.88)),
-radial-gradient(circle at center,#3a2c16,#050505 70%);
-color:#c9a96e;
-font-size:28px;
-letter-spacing:4px;
-text-transform:uppercase;
-padding:30px;
+color:#bbb;
+font-family:Arial,sans-serif;
 }
 
 .info{
@@ -176,19 +167,10 @@ text-transform:uppercase;
 font-weight:bold;
 }
 
-.empty{
-background:#111;
-border:1px solid rgba(201,169,110,.3);
-padding:45px;
-text-align:center;
-color:#bbb;
-font-family:Arial,sans-serif;
-}
-
 @media(max-width:700px){
-.header{flex-direction:column;align-items:flex-start;}
+.header{flex-direction:column;align-items:flex-start;gap:20px;}
 .hero h1{font-size:40px;}
-.card{height:320px;}
+.card{height:340px;}
 }
 </style>
 </head>
@@ -241,53 +223,51 @@ function getDestinationImage(name){
 
 const n = normalizeName(name);
 
-let query = 'puglia,masseria,ulivi,luxury';
-
 if(n.includes('alberobello')){
-query = 'alberobello,trulli,puglia';
+return 'https://loremflickr.com/1600/1100/alberobello,trulli,puglia?lock=11';
 }
 
-else if(n.includes('bari')){
-query = 'polignano-a-mare,puglia,sea';
+if(n.includes('bari')){
+return 'https://loremflickr.com/1600/1100/polignano,mare,puglia?lock=12';
 }
 
-else if(n.includes('brindisi')){
-query = 'ostuni,puglia,masseria,olive';
+if(n.includes('brindisi')){
+return 'https://loremflickr.com/1600/1100/ostuni,puglia,ulivi?lock=13';
 }
 
-else if(n.includes('fasano')){
-query = 'fasano,puglia,masseria,olive';
+if(n.includes('fasano')){
+return 'https://loremflickr.com/1600/1100/masseria,puglia,ulivi?lock=14';
 }
 
-else if(n.includes('ostuni')){
-query = 'ostuni,puglia,white-town';
+if(n.includes('ostuni')){
+return 'https://loremflickr.com/1600/1100/ostuni,puglia?lock=15';
 }
 
-else if(n.includes('lecce')){
-query = 'lecce,puglia,baroque';
+if(n.includes('lecce')){
+return 'https://loremflickr.com/1600/1100/lecce,puglia,barocco?lock=16';
 }
 
-else if(n.includes('otranto')){
-query = 'otranto,salento,sea';
+if(n.includes('otranto')){
+return 'https://loremflickr.com/1600/1100/otranto,salento,mare?lock=17';
 }
 
-else if(n.includes('gallipoli')){
-query = 'gallipoli,salento,sea';
+if(n.includes('gallipoli')){
+return 'https://loremflickr.com/1600/1100/gallipoli,salento,mare?lock=18';
 }
 
-else if(n.includes('taranto')){
-query = 'ionian-sea,puglia,coast';
+if(n.includes('taranto')){
+return 'https://loremflickr.com/1600/1100/taranto,puglia,mare?lock=19';
 }
 
-else if(n.includes('salento')){
-query = 'salento,puglia,sea,olive';
+if(n.includes('salento')){
+return 'https://loremflickr.com/1600/1100/salento,puglia,mare?lock=20';
 }
 
-else if(n.includes('valle')){
-query = 'valle-itria,puglia,trulli';
+if(n.includes('valle')){
+return 'https://loremflickr.com/1600/1100/valle-itria,puglia,trulli?lock=21';
 }
 
-return `https://source.unsplash.com/1600x1100/?${query}`;
+return 'https://loremflickr.com/1600/1100/puglia,ulivi,masseria?lock=22';
 
 }
 
@@ -332,14 +312,7 @@ const imageUrl = getDestinationImage(destination.name);
 
 content.innerHTML += `
 <a class="card" href="destination.html?id=${destination.id}">
-<div class="fallback">${destination.name}</div>
-
-<img
-src="${imageUrl}"
-alt="${destination.name}"
-loading="lazy"
-onerror="this.style.display='none';"
->
+<img src="${imageUrl}" alt="${destination.name}" loading="lazy">
 
 <div class="card-overlay">
 <div>
@@ -388,7 +361,7 @@ const availableVillas = [];
 
 for(const villa of villas || []){
 
-const { data: overlaps, error: overlapError } =
+const { data: overlaps } =
 await supabaseClient
 .from('bookings')
 .select('id')
@@ -396,10 +369,6 @@ await supabaseClient
 .in('status',['pending','confirmed'])
 .lt('check_in', checkOut)
 .gt('check_out', checkIn);
-
-if(overlapError){
-continue;
-}
 
 if(!overlaps || overlaps.length === 0){
 availableVillas.push(villa);
@@ -432,16 +401,7 @@ images?.find(img => img.image_type === 'main')?.image_url
 
 content.innerHTML += `
 <div class="card">
-<div class="fallback">${villa.title || 'Villa'}</div>
-
-${mainImage ? `
-<img
-src="${mainImage}"
-alt="${villa.title || ''}"
-loading="lazy"
-onerror="this.style.display='none';"
->
-` : ''}
+<img src="${mainImage || getDestinationImage(villa.destinations?.name)}" alt="${villa.title || ''}" loading="lazy">
 
 <div class="card-overlay">
 <div>
