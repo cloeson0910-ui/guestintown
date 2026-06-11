@@ -36,11 +36,12 @@ textarea{min-height:100px;margin-top:15px;}
 .month h3{text-align:center;margin-bottom:15px;}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
 .day-name{text-align:center;font-weight:bold;color:#777;font-size:13px;}
-.day{background:#f2eee7;min-height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.day{background:#f2eee7;min-height:58px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
 .day.empty-day{background:transparent;cursor:default;}
 .day.booked{background:#c0392b;color:white;cursor:not-allowed;}
 .day.selected{background:#111;color:white;}
 .day.in-range{background:#c9a96e;color:#111;}
+.day-price{font-size:11px;margin-top:4px;opacity:.8;}
 .legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:15px;color:#555;font-size:14px;}
 .legend span{display:inline-flex;align-items:center;gap:6px;}
 .dot{width:14px;height:14px;border-radius:4px;background:#f2eee7;display:inline-block;}
@@ -49,6 +50,7 @@ textarea{min-height:100px;margin-top:15px;}
 .selection-box{background:#f2eee7;padding:15px;border-radius:10px;margin-top:20px;line-height:1.7;}
 .price-box{background:#111;color:white;padding:18px;border-radius:12px;margin-top:20px;line-height:1.8;}
 .price-box strong{font-size:24px;}
+.price-detail{font-size:14px;opacity:.9;margin-top:10px;}
 </style>
 </head>
 
@@ -66,6 +68,7 @@ let selectedCheckIn = null;
 let selectedCheckOut = null;
 let currentBookings = [];
 let currentVilla = null;
+let currentRates = [];
 let calendarBaseDate = new Date();
 
 loadVillaPage();
@@ -114,6 +117,59 @@ return start < b.check_out && end > b.check_in;
 });
 }
 
+function getNightPrice(dateString){
+
+const rate =
+currentRates.find(r =>
+dateString >= r.date_from &&
+dateString <= r.date_to
+);
+
+if(rate){
+return Number(rate.nightly_price || 0);
+}
+
+return Number(currentVilla?.nightly_price || 0);
+
+}
+
+function calculateStayTotal(start,end){
+
+let total = 0;
+let details = [];
+
+let current =
+new Date(start + 'T00:00:00');
+
+const endDate =
+new Date(end + 'T00:00:00');
+
+while(current < endDate){
+
+const iso =
+toISODate(current);
+
+const price =
+getNightPrice(iso);
+
+total += price;
+
+details.push({
+date:iso,
+price:price
+});
+
+current.setDate(current.getDate()+1);
+
+}
+
+return {
+total:total,
+details:details
+};
+
+}
+
 async function loadVillaPage(){
 
 if(!villaId){
@@ -155,7 +211,15 @@ await supabaseClient
 .in('status',['pending','confirmed'])
 .order('check_in');
 
+const { data: rates } =
+await supabaseClient
+.from('villa_rates')
+.select('*')
+.eq('villa_id', villaId)
+.order('date_from');
+
 currentBookings = bookings || [];
+currentRates = rates || [];
 
 const mainImage =
 images?.find(img => img.image_type === 'main')?.image_url
@@ -205,7 +269,7 @@ ${mainImage ? `<img src="${mainImage}">` : ''}
 <div class="info-card"><strong>Camere</strong><br>${villa.bedrooms || '-'}</div>
 <div class="info-card"><strong>Bagni</strong><br>${villa.bathrooms || '-'}</div>
 <div class="info-card"><strong>CIN</strong><br>${villa.cin || '-'}</div>
-<div class="info-card"><strong>Prezzo</strong><br>${villa.nightly_price ? formatEuro(villa.nightly_price) + ' / notte' : 'Su richiesta'}</div>
+<div class="info-card"><strong>Prezzo da</strong><br>${villa.nightly_price ? formatEuro(villa.nightly_price) + ' / notte' : 'Su richiesta'}</div>
 </div>
 
 <div class="section">
@@ -228,7 +292,7 @@ ${services.map(service => `<div class="service">${service.service_name}</div>`).
 </div>
 
 <div class="section">
-<h2>Disponibilità</h2>
+<h2>Disponibilità e tariffe</h2>
 
 <div class="calendar-header">
 <button onclick="changeMonth(-1)">← Mese precedente</button>
@@ -252,7 +316,7 @@ Seleziona check-in e check-out dal calendario.
 <h2>Prenota questa villa</h2>
 
 <div class="price-box" id="priceBox">
-${villa.nightly_price ? `Prezzo per notte: <strong>${formatEuro(villa.nightly_price)}</strong>` : 'Prezzo su richiesta'}
+${villa.nightly_price ? `Prezzo base per notte: <strong>${formatEuro(villa.nightly_price)}</strong>` : 'Prezzo su richiesta'}
 </div>
 
 <div class="form-grid">
@@ -335,6 +399,7 @@ for(let d=1; d<=lastDay.getDate(); d++){
 const date = makeDate(year,month,d);
 const iso = toISODate(date);
 const booked = isBooked(iso);
+const price = getNightPrice(iso);
 
 let classes = 'day';
 
@@ -346,7 +411,17 @@ if(selectedCheckIn && selectedCheckOut && iso > selectedCheckIn && iso < selecte
 classes += ' in-range';
 }
 
-html += `<div class="${classes}" onclick="selectDate('${iso}', ${booked})">${d}</div>`;
+const priceHtml =
+price > 0
+? `<div class="day-price">${formatEuro(price).replace(',00','')}</div>`
+: `<div class="day-price">su richiesta</div>`;
+
+html += `
+<div class="${classes}" onclick="selectDate('${iso}', ${booked})">
+<div>${d}</div>
+${booked ? '<div class="day-price">occupata</div>' : priceHtml}
+</div>
+`;
 }
 
 html += `</div></div>`;
@@ -397,8 +472,8 @@ return;
 if(selectedCheckIn && selectedCheckOut){
 
 const nights = dateDiffNights(selectedCheckIn, selectedCheckOut);
-const nightlyPrice = Number(currentVilla?.nightly_price || 0);
-const total = nights * nightlyPrice;
+const calculation = calculateStayTotal(selectedCheckIn, selectedCheckOut);
+const total = calculation.total;
 
 box.innerHTML = `
 Check-in: <strong>${formatDateIT(selectedCheckIn)}</strong><br>
@@ -406,12 +481,18 @@ Check-out: <strong>${formatDateIT(selectedCheckOut)}</strong><br>
 Notti: <strong>${nights}</strong>
 `;
 
+const detailHtml =
+calculation.details.map(item=>{
+return `${formatDateIT(item.date)}: ${item.price > 0 ? formatEuro(item.price) : 'su richiesta'}`;
+}).join('<br>');
+
 if(priceBox){
-priceBox.innerHTML = nightlyPrice > 0
+priceBox.innerHTML = total > 0
 ? `
-Prezzo per notte: <strong>${formatEuro(nightlyPrice)}</strong><br>
-${formatEuro(nightlyPrice)} x ${nights} notti<br>
 Totale soggiorno: <strong>${formatEuro(total)}</strong>
+<div class="price-detail">
+${detailHtml}
+</div>
 `
 : 'Prezzo su richiesta';
 }
@@ -426,8 +507,9 @@ Ora seleziona la data di check-out.
 `;
 
 if(priceBox){
-priceBox.innerHTML = currentVilla?.nightly_price
-? `Prezzo per notte: <strong>${formatEuro(currentVilla.nightly_price)}</strong>`
+const price = getNightPrice(selectedCheckIn);
+priceBox.innerHTML = price > 0
+? `Prezzo notte selezionata: <strong>${formatEuro(price)}</strong>`
 : 'Prezzo su richiesta';
 }
 
@@ -438,7 +520,7 @@ box.innerHTML = 'Seleziona check-in e check-out dal calendario.';
 
 if(priceBox){
 priceBox.innerHTML = currentVilla?.nightly_price
-? `Prezzo per notte: <strong>${formatEuro(currentVilla.nightly_price)}</strong>`
+? `Prezzo base per notte: <strong>${formatEuro(currentVilla.nightly_price)}</strong>`
 : 'Prezzo su richiesta';
 }
 
@@ -452,8 +534,8 @@ return;
 }
 
 const nights = dateDiffNights(selectedCheckIn, selectedCheckOut);
-const nightlyPrice = Number(currentVilla?.nightly_price || 0);
-const totalPrice = nightlyPrice > 0 ? nights * nightlyPrice : null;
+const calculation = calculateStayTotal(selectedCheckIn, selectedCheckOut);
+const totalPrice = calculation.total > 0 ? calculation.total : null;
 
 const booking = {
 villa_id:villaId,
@@ -471,6 +553,11 @@ total_price:totalPrice
 
 if(!booking.guest_name || !booking.guest_email){
 alert('Compila nome ed email.');
+return;
+}
+
+if(nights <= 0){
+alert('Seleziona date valide.');
 return;
 }
 
