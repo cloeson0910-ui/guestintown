@@ -7,201 +7,274 @@
 <title>Guest in Town - Vacanze di lusso in Salento</title>
 
 <style>
-body{
+*{
 margin:0;
-font-family:Arial,sans-serif;
-background:#111;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Georgia, "Times New Roman", serif;
+background:#050505;
 color:white;
 }
 
 .hero{
 min-height:100vh;
 background:
-linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.75)),
-url("https://images.unsplash.com/photo-1622550428746-8f1f20f4f5f9?auto=format&fit=crop&w=1800&q=80");
+linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.82)),
+url("https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2200&q=90");
 background-size:cover;
 background-position:center;
-padding:30px;
 display:flex;
 align-items:center;
 justify-content:center;
+text-align:center;
+padding:30px;
 }
 
-.container{
-max-width:1100px;
-width:100%;
+.brand{
+max-width:1000px;
 }
 
 .logo{
-font-size:22px;
-letter-spacing:2px;
+font-size:86px;
+letter-spacing:10px;
 text-transform:uppercase;
-margin-bottom:80px;
-}
-
-h1{
-font-size:62px;
-line-height:1.05;
-margin-bottom:20px;
+color:#c9a96e;
+font-weight:400;
+margin-bottom:18px;
 }
 
 .subtitle{
-font-size:26px;
-color:#f2eee7;
-margin-bottom:35px;
+font-size:24px;
+letter-spacing:2px;
+font-weight:300;
+color:#f4efe6;
+margin-bottom:55px;
 }
 
-.panel{
-background:rgba(255,255,255,.96);
-color:#111;
-border-radius:22px;
-padding:25px;
-box-shadow:0 20px 60px rgba(0,0,0,.35);
+.actions{
+display:flex;
+justify-content:center;
+gap:18px;
+flex-wrap:wrap;
+}
+
+.button{
+border:1px solid #c9a96e;
+color:#c9a96e;
+background:rgba(0,0,0,.35);
+padding:16px 34px;
+text-decoration:none;
+letter-spacing:2px;
+text-transform:uppercase;
+font-size:13px;
+transition:.3s;
+}
+
+.button:hover{
+background:#c9a96e;
+color:#050505;
+}
+
+.search-section{
+background:#050505;
+padding:90px 30px;
+}
+
+.search-box{
+max-width:1100px;
+margin:auto;
+background:#0f0f0f;
+border:1px solid rgba(201,169,110,.35);
+padding:35px;
+}
+
+.search-title{
+font-size:36px;
+color:#c9a96e;
+text-align:center;
+margin-bottom:12px;
+font-weight:400;
+}
+
+.search-subtitle{
+text-align:center;
+color:#bbb;
+font-family:Arial,sans-serif;
+margin-bottom:35px;
 }
 
 .calendar-header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:20px;
-gap:15px;
+margin-bottom:25px;
 }
 
 .calendar-header button{
-background:#111;
-color:white;
-border:0;
-border-radius:8px;
-padding:12px 16px;
+background:transparent;
+color:#c9a96e;
+border:1px solid #c9a96e;
+padding:12px 18px;
 cursor:pointer;
 }
 
 .calendar-wrap{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-gap:25px;
+gap:30px;
 }
 
 .month h3{
 text-align:center;
-margin-bottom:15px;
+color:#f4efe6;
+font-size:22px;
+font-weight:400;
+margin-bottom:18px;
 }
 
 .calendar{
 display:grid;
 grid-template-columns:repeat(7,1fr);
-gap:6px;
+gap:7px;
+font-family:Arial,sans-serif;
 }
 
 .day-name{
 text-align:center;
-font-weight:bold;
+font-size:12px;
 color:#777;
-font-size:13px;
+font-weight:bold;
 }
 
 .day{
-background:#f2eee7;
-min-height:46px;
-border-radius:8px;
+background:#181818;
+min-height:48px;
 display:flex;
 align-items:center;
 justify-content:center;
 cursor:pointer;
+border:1px solid #222;
+color:#ddd;
+}
+
+.day:hover{
+border-color:#c9a96e;
 }
 
 .day.empty-day{
 background:transparent;
+border:0;
 cursor:default;
 }
 
 .day.selected{
-background:#111;
-color:white;
+background:#c9a96e;
+color:#050505;
 }
 
 .day.in-range{
-background:#c9a96e;
-color:#111;
+background:#5f4b28;
+color:white;
 }
 
 .search-bottom{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:15px;
-margin-top:25px;
-align-items:end;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:18px;
+margin-top:35px;
+font-family:Arial,sans-serif;
 }
 
 .field{
-background:#f7f4ef;
-padding:14px;
-border-radius:10px;
+background:#181818;
+padding:16px;
+border:1px solid #2a2a2a;
 }
 
 .field label{
 display:block;
 font-size:12px;
-font-weight:bold;
-color:#555;
-margin-bottom:6px;
+letter-spacing:1px;
+text-transform:uppercase;
+color:#888;
+margin-bottom:8px;
 }
 
 .field div{
 font-size:18px;
-font-weight:bold;
+color:white;
 }
 
 input{
 width:100%;
-padding:13px;
-border:1px solid #ddd;
-border-radius:8px;
-box-sizing:border-box;
+height:100%;
+background:#181818;
+border:1px solid #2a2a2a;
+color:white;
+padding:16px;
+font-size:16px;
 }
 
 button.search{
 background:#c9a96e;
-color:#111;
+color:#050505;
 border:0;
-padding:16px 22px;
-border-radius:10px;
+padding:16px;
 font-weight:bold;
+letter-spacing:1px;
+text-transform:uppercase;
 cursor:pointer;
-height:100%;
 }
 
-.actions{
-margin-top:25px;
-display:flex;
-gap:15px;
-flex-wrap:wrap;
+.explore{
+padding:90px 30px;
+background:#0b0b0b;
+text-align:center;
 }
 
-.actions a{
-background:white;
-color:#111;
-padding:14px 22px;
-border-radius:10px;
-text-decoration:none;
-font-weight:bold;
+.explore h2{
+font-size:40px;
+color:#c9a96e;
+font-weight:400;
+margin-bottom:18px;
 }
 
-.actions a.gold{
-background:#c9a96e;
+.explore p{
+font-family:Arial,sans-serif;
+color:#bbb;
+max-width:700px;
+margin:0 auto 35px;
+line-height:1.7;
+}
+
+.footer{
+padding:35px;
+text-align:center;
+font-family:Arial,sans-serif;
+color:#777;
+background:#050505;
 }
 
 @media(max-width:700px){
-h1{
-font-size:42px;
+.logo{
+font-size:44px;
+letter-spacing:5px;
 }
 
 .subtitle{
-font-size:20px;
+font-size:18px;
 }
 
-.logo{
-margin-bottom:40px;
+.hero{
+min-height:85vh;
+}
+
+.search-section,
+.explore{
+padding:55px 20px;
 }
 }
 </style>
@@ -209,19 +282,32 @@ margin-bottom:40px;
 
 <body>
 
-<div class="hero">
-
-<div class="container">
+<section class="hero">
+<div class="brand">
 
 <div class="logo">Guest in Town</div>
 
-<h1>Le sue vacanze di lusso in Salento</h1>
-
 <div class="subtitle">
-Ville esclusive, soggiorni privati e ospitalità su misura in Puglia.
+Le sue vacanze di lusso in Salento
 </div>
 
-<div class="panel">
+<div class="actions">
+<a class="button" href="#search">Cerca per date</a>
+<a class="button" href="public/villas.html">Esplora le ville</a>
+</div>
+
+</div>
+</section>
+
+<section class="search-section" id="search">
+
+<div class="search-box">
+
+<h2 class="search-title">Trova la villa perfetta</h2>
+
+<div class="search-subtitle">
+Selezioni le date del soggiorno e scopra le ville disponibili.
+</div>
 
 <div class="calendar-header">
 <button onclick="changeMonth(-1)">← Mese precedente</button>
@@ -254,15 +340,24 @@ Cerca ville disponibili
 
 </div>
 
-<div class="actions">
-<a class="gold" href="public/villas.html">Esplora tutte le ville</a>
-<a href="public/villas.html">Scopri le destinazioni</a>
-<a href="./">Home</a>
-</div>
+</section>
 
-</div>
+<section class="explore">
 
-</div>
+<h2>Una collezione privata nel cuore del Salento</h2>
+
+<p>
+Guest in Town seleziona ville esclusive, dimore private e residenze di charme
+per soggiorni eleganti, riservati e costruiti intorno ai desideri dell’ospite.
+</p>
+
+<a class="button" href="public/villas.html">Scopri la collezione</a>
+
+</section>
+
+<footer class="footer">
+Guest in Town · Luxury Villas Collection · Salento
+</footer>
 
 <script>
 
