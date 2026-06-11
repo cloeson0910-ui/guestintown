@@ -1,1 +1,297 @@
 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Villa - Guest In Town</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#f7f4ef;
+color:#111;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:30px;
+}
+
+.hero{
+height:520px;
+background:#ddd;
+border-radius:18px;
+overflow:hidden;
+margin-bottom:30px;
+}
+
+.hero img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+h1{
+font-size:42px;
+margin-bottom:10px;
+}
+
+.destination{
+font-size:18px;
+color:#777;
+margin-bottom:25px;
+}
+
+.info-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:15px;
+margin:30px 0;
+}
+
+.info-card{
+background:white;
+padding:20px;
+border-radius:14px;
+box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+
+.section{
+background:white;
+padding:25px;
+border-radius:16px;
+margin-bottom:25px;
+box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+
+.gallery{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+}
+
+.gallery img{
+width:100%;
+height:220px;
+object-fit:cover;
+border-radius:14px;
+}
+
+.services{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:12px;
+}
+
+.service{
+background:#f2eee7;
+padding:14px;
+border-radius:10px;
+}
+
+.map-preview{
+height:350px;
+border-radius:16px;
+overflow:hidden;
+background:#ddd;
+cursor:pointer;
+}
+
+.map-preview iframe{
+width:100%;
+height:100%;
+border:0;
+pointer-events:none;
+}
+
+.button{
+display:inline-block;
+background:#111;
+color:white;
+padding:14px 22px;
+border-radius:8px;
+text-decoration:none;
+margin-top:15px;
+}
+
+.empty{
+padding:40px;
+text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="page">
+<div class="empty">Caricamento villa...</div>
+</div>
+
+<script>
+
+const params =
+new URLSearchParams(window.location.search);
+
+const villaId =
+params.get('id');
+
+loadVillaPage();
+
+async function loadVillaPage(){
+
+if(!villaId){
+document.getElementById('page').innerHTML =
+'<div class="empty">Villa non trovata.</div>';
+return;
+}
+
+const { data: villa, error } =
+await supabaseClient
+.from('villas')
+.select(`
+*,
+destinations(name)
+`)
+.eq('id', villaId)
+.single();
+
+if(error || !villa){
+document.getElementById('page').innerHTML =
+'<div class="empty">Villa non trovata.</div>';
+return;
+}
+
+const { data: images } =
+await supabaseClient
+.from('villa_images')
+.select('*')
+.eq('villa_id', villaId);
+
+const { data: services } =
+await supabaseClient
+.from('villa_services')
+.select('service_name')
+.eq('villa_id', villaId);
+
+const mainImage =
+images?.find(img => img.image_type === 'main')?.image_url
+|| images?.[0]?.image_url
+|| '';
+
+renderVilla(villa, images || [], services || [], mainImage);
+
+}
+
+function renderVilla(villa, images, services, mainImage){
+
+const lat = villa.latitude;
+const lng = villa.longitude;
+
+let mapHtml = '';
+
+if(lat && lng){
+
+const delta = 0.005;
+
+const bbox =
+`${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
+
+mapHtml = `
+<div class="section">
+<h2>Posizione</h2>
+
+<div class="map-preview" onclick="openMap('${lat}','${lng}')">
+<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}"></iframe>
+</div>
+
+<a class="button" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">
+Apri su Google Maps
+</a>
+</div>
+`;
+
+}
+
+document.getElementById('page').innerHTML = `
+
+<div class="hero">
+${mainImage ? `<img src="${mainImage}">` : ''}
+</div>
+
+<h1>${villa.title || ''}</h1>
+
+<div class="destination">
+${villa.destinations?.name || ''}
+</div>
+
+<div class="info-grid">
+
+<div class="info-card">
+<strong>Ospiti</strong><br>
+${villa.max_guests || '-'}
+</div>
+
+<div class="info-card">
+<strong>Camere</strong><br>
+${villa.bedrooms || '-'}
+</div>
+
+<div class="info-card">
+<strong>Bagni</strong><br>
+${villa.bathrooms || '-'}
+</div>
+
+<div class="info-card">
+<strong>CIN</strong><br>
+${villa.cin || '-'}
+</div>
+
+</div>
+
+<div class="section">
+<h2>Descrizione</h2>
+<p>${villa.full_description || villa.short_description || 'Descrizione non ancora disponibile.'}</p>
+</div>
+
+<div class="section">
+<h2>Gallery</h2>
+<div class="gallery">
+${images.map(img => `<img src="${img.image_url}">`).join('')}
+</div>
+</div>
+
+<div class="section">
+<h2>Servizi</h2>
+<div class="services">
+${services.map(service => `
+<div class="service">${service.service_name}</div>
+`).join('')}
+</div>
+</div>
+
+${mapHtml}
+
+`;
+
+}
+
+function openMap(lat,lng){
+
+window.open(
+`https://www.google.com/maps?q=${lat},${lng}`,
+'_blank'
+);
+
+}
+
+</script>
+
+</body>
+</html>
