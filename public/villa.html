@@ -15,7 +15,6 @@ body{margin:0;font-family:Arial,sans-serif;background:#f7f4ef;color:#111;}
 .hero img{width:100%;height:100%;object-fit:cover;}
 h1{font-size:42px;margin-bottom:10px;}
 .destination{font-size:18px;color:#777;margin-bottom:25px;}
-.top-actions{margin-bottom:25px;}
 .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin:30px 0;}
 .info-card,.section{background:white;padding:25px;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.06);}
 .section{margin-bottom:25px;}
@@ -30,9 +29,22 @@ h1{font-size:42px;margin-bottom:10px;}
 .empty{padding:40px;text-align:center;}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;}
 input,textarea{width:100%;padding:13px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;}
-textarea{min-height:100px;}
-.booked-list{background:#f2eee7;padding:15px;border-radius:10px;line-height:1.8;}
-.notice{background:#fff7dc;padding:15px;border-radius:10px;margin-bottom:15px;}
+textarea{min-height:100px;margin-top:15px;}
+.calendar-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:25px;}
+.month h3{text-align:center;margin-bottom:15px;}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.day-name{text-align:center;font-weight:bold;color:#777;font-size:13px;}
+.day{background:#f2eee7;min-height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.day.empty-day{background:transparent;cursor:default;}
+.day.booked{background:#c0392b;color:white;cursor:not-allowed;}
+.day.selected{background:#111;color:white;}
+.day.in-range{background:#c9a96e;color:#111;}
+.legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:15px;color:#555;font-size:14px;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.dot{width:14px;height:14px;border-radius:4px;background:#f2eee7;display:inline-block;}
+.dot.booked{background:#c0392b;}
+.dot.selected{background:#111;}
+.selection-box{background:#f2eee7;padding:15px;border-radius:10px;margin-top:20px;}
 </style>
 </head>
 
@@ -45,9 +57,41 @@ textarea{min-height:100px;}
 <script>
 const params = new URLSearchParams(window.location.search);
 const villaId = params.get('id');
-let currentVilla = null;
+
+let selectedCheckIn = null;
+let selectedCheckOut = null;
+let currentBookings = [];
 
 loadVillaPage();
+
+function formatDateIT(dateString){
+if(!dateString)return '-';
+const parts = dateString.split('-');
+return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function toISODate(date){
+const y = date.getFullYear();
+const m = String(date.getMonth()+1).padStart(2,'0');
+const d = String(date.getDate()).padStart(2,'0');
+return `${y}-${m}-${d}`;
+}
+
+function makeDate(y,m,d){
+return new Date(y,m,d);
+}
+
+function isBooked(dateString){
+return currentBookings.some(b=>{
+return dateString >= b.check_in && dateString < b.check_out;
+});
+}
+
+function rangeHasBooked(start,end){
+return currentBookings.some(b=>{
+return start < b.check_out && end > b.check_in;
+});
+}
 
 async function loadVillaPage(){
 
@@ -67,8 +111,6 @@ if(error || !villa){
 document.getElementById('page').innerHTML='<div class="empty">Villa non trovata.</div>';
 return;
 }
-
-currentVilla = villa;
 
 const { data: images } =
 await supabaseClient
@@ -90,16 +132,18 @@ await supabaseClient
 .in('status',['pending','confirmed'])
 .order('check_in');
 
+currentBookings = bookings || [];
+
 const mainImage =
 images?.find(img => img.image_type === 'main')?.image_url
 || images?.[0]?.image_url
 || '';
 
-renderVilla(villa, images || [], services || [], bookings || [], mainImage);
+renderVilla(villa, images || [], services || [], mainImage);
 
 }
 
-function renderVilla(villa, images, services, bookings, mainImage){
+function renderVilla(villa, images, services, mainImage){
 
 const lat = villa.latitude;
 const lng = villa.longitude;
@@ -107,7 +151,6 @@ const lng = villa.longitude;
 let mapHtml = '';
 
 if(lat && lng){
-
 const delta = 0.005;
 const bbox = `${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
 
@@ -117,19 +160,15 @@ mapHtml = `
 <div class="map-preview" onclick="openMap('${lat}','${lng}')">
 <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}"></iframe>
 </div>
-<a class="button" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">
-Apri su Google Maps
-</a>
+<a class="button" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">Apri su Google Maps</a>
 </div>`;
 }
 
 document.getElementById('page').innerHTML = `
 
-<div class="top-actions">
 <a class="button secondary" href="villas.html?destination_id=${villa.destination_id}">
 ← Torna alle ville della destinazione
 </a>
-</div>
 
 <div class="hero">
 ${mainImage ? `<img src="${mainImage}">` : ''}
@@ -166,11 +205,16 @@ ${services.map(service => `<div class="service">${service.service_name}</div>`).
 
 <div class="section">
 <h2>Disponibilità</h2>
-<div class="notice">
-Le date occupate includono le prenotazioni dirette registrate nel sistema. La sincronizzazione iCal Airbnb/Booking verrà collegata nel prossimo passaggio tecnico.
+<div class="calendar-wrap" id="calendarWrap"></div>
+
+<div class="legend">
+<span><i class="dot"></i>Disponibile</span>
+<span><i class="dot booked"></i>Occupata</span>
+<span><i class="dot selected"></i>Selezionata</span>
 </div>
-<div class="booked-list">
-${bookings.length ? bookings.map(b => `Occupata dal ${b.check_in} al ${b.check_out}`).join('<br>') : 'Nessuna prenotazione registrata.'}
+
+<div class="selection-box" id="selectionBox">
+Seleziona check-in e check-out dal calendario.
 </div>
 </div>
 
@@ -178,8 +222,6 @@ ${bookings.length ? bookings.map(b => `Occupata dal ${b.check_in} al ${b.check_o
 <h2>Prenota questa villa</h2>
 
 <div class="form-grid">
-<input id="check_in" type="date" placeholder="Check-in">
-<input id="check_out" type="date" placeholder="Check-out">
 <input id="guests" type="number" placeholder="Numero ospiti">
 <input id="guest_name" placeholder="Nome e cognome">
 <input id="guest_email" type="email" placeholder="Email">
@@ -192,33 +234,157 @@ ${bookings.length ? bookings.map(b => `Occupata dal ${b.check_in} al ${b.check_o
 </div>
 
 ${mapHtml}
-
 `;
+
+renderCalendars();
+
+}
+
+function renderCalendars(){
+
+const wrap = document.getElementById('calendarWrap');
+wrap.innerHTML = '';
+
+const today = new Date();
+
+renderMonth(today.getFullYear(), today.getMonth(), wrap);
+
+const nextMonth = new Date(today.getFullYear(), today.getMonth()+1, 1);
+renderMonth(nextMonth.getFullYear(), nextMonth.getMonth(), wrap);
+
+}
+
+function renderMonth(year,month,container){
+
+const monthNames = [
+'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'
+];
+
+const firstDay = makeDate(year,month,1);
+const lastDay = makeDate(year,month+1,0);
+
+let html = `
+<div class="month">
+<h3>${monthNames[month]} ${year}</h3>
+<div class="calendar">
+<div class="day-name">L</div>
+<div class="day-name">M</div>
+<div class="day-name">M</div>
+<div class="day-name">G</div>
+<div class="day-name">V</div>
+<div class="day-name">S</div>
+<div class="day-name">D</div>
+`;
+
+let startOffset = firstDay.getDay();
+startOffset = startOffset === 0 ? 6 : startOffset - 1;
+
+for(let i=0;i<startOffset;i++){
+html += `<div class="day empty-day"></div>`;
+}
+
+for(let d=1; d<=lastDay.getDate(); d++){
+
+const date = makeDate(year,month,d);
+const iso = toISODate(date);
+const booked = isBooked(iso);
+
+let classes = 'day';
+
+if(booked) classes += ' booked';
+
+if(selectedCheckIn === iso || selectedCheckOut === iso) classes += ' selected';
+
+if(selectedCheckIn && selectedCheckOut && iso > selectedCheckIn && iso < selectedCheckOut){
+classes += ' in-range';
+}
+
+html += `<div class="${classes}" onclick="selectDate('${iso}', ${booked})">${d}</div>`;
+}
+
+html += `</div></div>`;
+
+container.innerHTML += html;
+
+}
+
+function selectDate(iso,booked){
+
+if(booked){
+alert('Questa data risulta occupata.');
+return;
+}
+
+if(!selectedCheckIn || selectedCheckOut){
+selectedCheckIn = iso;
+selectedCheckOut = null;
+}
+
+else if(iso <= selectedCheckIn){
+selectedCheckIn = iso;
+selectedCheckOut = null;
+}
+
+else{
+if(rangeHasBooked(selectedCheckIn, iso)){
+alert('Il periodo selezionato contiene date occupate.');
+return;
+}
+selectedCheckOut = iso;
+}
+
+updateSelectionBox();
+renderCalendars();
+
+}
+
+function updateSelectionBox(){
+
+const box = document.getElementById('selectionBox');
+
+if(selectedCheckIn && selectedCheckOut){
+box.innerHTML = `
+Check-in: <strong>${formatDateIT(selectedCheckIn)}</strong><br>
+Check-out: <strong>${formatDateIT(selectedCheckOut)}</strong>
+`;
+return;
+}
+
+if(selectedCheckIn){
+box.innerHTML = `
+Check-in: <strong>${formatDateIT(selectedCheckIn)}</strong><br>
+Ora seleziona la data di check-out.
+`;
+return;
+}
+
+box.innerHTML = 'Seleziona check-in e check-out dal calendario.';
 
 }
 
 async function submitBooking(){
+
+if(!selectedCheckIn || !selectedCheckOut){
+alert('Seleziona check-in e check-out dal calendario.');
+return;
+}
 
 const booking = {
 villa_id:villaId,
 guest_name:document.getElementById('guest_name').value,
 guest_email:document.getElementById('guest_email').value,
 guest_phone:document.getElementById('guest_phone').value,
-check_in:document.getElementById('check_in').value,
-check_out:document.getElementById('check_out').value,
+check_in:selectedCheckIn,
+check_out:selectedCheckOut,
 guests:document.getElementById('guests').value || null,
 notes:document.getElementById('notes').value,
 status:'pending',
 source:'direct'
 };
 
-if(!booking.guest_name || !booking.guest_email || !booking.check_in || !booking.check_out){
-alert('Compila nome, email, check-in e check-out.');
-return;
-}
-
-if(booking.check_out <= booking.check_in){
-alert('La data di check-out deve essere successiva al check-in.');
+if(!booking.guest_name || !booking.guest_email){
+alert('Compila nome ed email.');
 return;
 }
 
@@ -252,7 +418,6 @@ return;
 }
 
 alert('Richiesta inviata. Riceverai conferma dalla società.');
-
 window.location.reload();
 
 }
