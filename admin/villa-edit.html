@@ -1,1 +1,293 @@
 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Modifica Villa</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+padding:30px;
+max-width:900px;
+margin:auto;
+}
+
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.menu .logout{
+margin-left:auto;
+background:#c0392b;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+input,
+select,
+textarea{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:none;
+border-radius:6px;
+}
+
+textarea{
+min-height:120px;
+}
+
+button.save{
+background:#c9a96e;
+color:black;
+font-weight:bold;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
+<a href="destinations.html">Destinazioni</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Modifica Villa</h1>
+
+<input id="title" placeholder="Nome Villa">
+
+<input id="cin" placeholder="CIN">
+
+<label>Destinazione</label>
+<select id="destination_id">
+<option value="">Seleziona destinazione</option>
+</select>
+
+<input id="owner_name" placeholder="Nome Proprietario">
+<input id="owner_phone" placeholder="Telefono Proprietario">
+<input id="owner_email" placeholder="Email Proprietario">
+
+<label>Stato</label>
+<select id="status">
+<option value="standby">Standby</option>
+<option value="in_review">In revisione</option>
+<option value="approved">Approvata</option>
+<option value="published">Pubblicata</option>
+<option value="rejected">Rifiutata</option>
+</select>
+
+<input id="address" placeholder="Indirizzo">
+
+<input id="bedrooms" type="number" placeholder="Camere">
+<input id="bathrooms" type="number" placeholder="Bagni">
+<input id="max_guests" type="number" placeholder="Ospiti massimi">
+
+<input id="cadastral_sheet" placeholder="Foglio catastale">
+<input id="cadastral_parcel" placeholder="Particella / Mappale">
+<input id="cadastral_subunit" placeholder="Subalterno">
+
+<textarea id="short_description" placeholder="Descrizione breve"></textarea>
+<textarea id="full_description" placeholder="Descrizione completa"></textarea>
+
+<button class="save" onclick="updateVilla()">Salva modifiche</button>
+
+<script>
+
+const params =
+new URLSearchParams(window.location.search);
+
+const villaId =
+params.get('id');
+
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+
+await loadDestinations();
+await loadVilla();
+
+}
+
+async function loadDestinations(){
+
+const { data, error } =
+await supabaseClient
+.from('destinations')
+.select('id,name')
+.order('name');
+
+if(error){
+alert(error.message);
+return;
+}
+
+const select =
+document.getElementById('destination_id');
+
+data.forEach(destination=>{
+
+select.innerHTML += `
+<option value="${destination.id}">
+${destination.name}
+</option>
+`;
+
+});
+
+}
+
+async function loadVilla(){
+
+if(!villaId){
+alert('ID villa mancante');
+window.location.href='villas.html';
+return;
+}
+
+const { data, error } =
+await supabaseClient
+.from('villas')
+.select('*')
+.eq('id', villaId)
+.single();
+
+if(error){
+alert(error.message);
+return;
+}
+
+document.getElementById('title').value = data.title || '';
+document.getElementById('cin').value = data.cin || '';
+document.getElementById('destination_id').value = data.destination_id || '';
+document.getElementById('owner_name').value = data.owner_name || '';
+document.getElementById('owner_phone').value = data.owner_phone || '';
+document.getElementById('owner_email').value = data.owner_email || '';
+document.getElementById('status').value = data.status || 'standby';
+document.getElementById('address').value = data.address || '';
+document.getElementById('bedrooms').value = data.bedrooms || '';
+document.getElementById('bathrooms').value = data.bathrooms || '';
+document.getElementById('max_guests').value = data.max_guests || '';
+document.getElementById('cadastral_sheet').value = data.cadastral_sheet || '';
+document.getElementById('cadastral_parcel').value = data.cadastral_parcel || '';
+document.getElementById('cadastral_subunit').value = data.cadastral_subunit || '';
+document.getElementById('short_description').value = data.short_description || '';
+document.getElementById('full_description').value = data.full_description || '';
+
+}
+
+function createSlug(text){
+
+return text
+.toLowerCase()
+.trim()
+.replaceAll(' ','-')
+.replace(/[^a-z0-9-]/g,'');
+
+}
+
+async function updateVilla(){
+
+const title =
+document.getElementById('title').value;
+
+const destinationId =
+parseInt(document.getElementById('destination_id').value);
+
+if(!title){
+alert('Inserisci il nome della villa');
+return;
+}
+
+if(!destinationId){
+alert('Seleziona una destinazione');
+return;
+}
+
+const villa = {
+title:title,
+slug:createSlug(title),
+cin:document.getElementById('cin').value,
+destination_id:destinationId,
+owner_name:document.getElementById('owner_name').value,
+owner_phone:document.getElementById('owner_phone').value,
+owner_email:document.getElementById('owner_email').value,
+status:document.getElementById('status').value,
+address:document.getElementById('address').value,
+bedrooms:document.getElementById('bedrooms').value || null,
+bathrooms:document.getElementById('bathrooms').value || null,
+max_guests:document.getElementById('max_guests').value || null,
+cadastral_sheet:document.getElementById('cadastral_sheet').value,
+cadastral_parcel:document.getElementById('cadastral_parcel').value,
+cadastral_subunit:document.getElementById('cadastral_subunit').value,
+short_description:document.getElementById('short_description').value,
+full_description:document.getElementById('full_description').value
+};
+
+const { error } =
+await supabaseClient
+.from('villas')
+.update(villa)
+.eq('id', villaId);
+
+if(error){
+alert(error.message);
+return;
+}
+
+alert('Villa aggiornata');
+
+window.location.href='villas.html';
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
+
+}
+
+</script>
+
+</body>
+</html>
