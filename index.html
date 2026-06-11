@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Guest In Town</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+}
+
+.hero{
+min-height:100vh;
+background:
+linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.65)),
+url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=80");
+background-size:cover;
+background-position:center;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:30px;
+}
+
+.box{
+max-width:900px;
+text-align:center;
+}
+
+h1{
+font-size:58px;
+margin-bottom:20px;
+}
+
+p{
+font-size:22px;
+color:#eee;
+margin-bottom:35px;
+}
+
+.search{
+background:white;
+color:#111;
+padding:25px;
+border-radius:18px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:15px;
+text-align:left;
+}
+
+label{
+font-size:13px;
+font-weight:bold;
+color:#555;
+}
+
+input{
+width:100%;
+padding:13px;
+border:1px solid #ddd;
+border-radius:8px;
+margin-top:6px;
+box-sizing:border-box;
+}
+
+button,
+a.button{
+background:#c9a96e;
+color:#111;
+border:0;
+padding:15px 22px;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+text-decoration:none;
+display:inline-block;
+}
+
+.actions{
+margin-top:25px;
+display:flex;
+gap:15px;
+justify-content:center;
+flex-wrap:wrap;
+}
+
+.secondary{
+background:white !important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="hero">
+
+<div class="box">
+
+<h1>Guest In Town</h1>
+
+<p>Ville esclusive, soggiorni privati e ospitalità su misura.</p>
+
+<div class="search">
+
+<div>
+<label>Check-in</label>
+<input id="check_in" type="date">
+</div>
+
+<div>
+<label>Check-out</label>
+<input id="check_out" type="date">
+</div>
+
+<div>
+<label>Ospiti</label>
+<input id="guests" type="number" min="1" placeholder="Es. 4">
+</div>
+
+<div style="display:flex;align-items:end;">
+<button onclick="searchVillas()">Cerca ville disponibili</button>
+</div>
+
+</div>
+
+<div class="actions">
+<a class="button secondary" href="public/villas.html">Esplora tutte le ville</a>
+<a class="button secondary" href="public/villas.html">Scopri le destinazioni</a>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function searchVillas(){
+
+const checkIn =
+document.getElementById('check_in').value;
+
+const checkOut =
+document.getElementById('check_out').value;
+
+const guests =
+document.getElementById('guests').value;
+
+if(!checkIn || !checkOut){
+alert('Seleziona check-in e check-out.');
+return;
+}
+
+if(checkOut <= checkIn){
+alert('Il check-out deve essere successivo al check-in.');
+return;
+}
+
+let url =
+`public/villas.html?check_in=${checkIn}&check_out=${checkOut}`;
+
+if(guests){
+url += `&guests=${guests}`;
+}
+
+window.location.href = url;
+
+}
+
+</script>
+
+</body>
+</html>
