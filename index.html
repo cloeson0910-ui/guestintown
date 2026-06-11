@@ -9,6 +9,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
+html{scroll-behavior:smooth;}
+
 body{
 font-family:Georgia,"Times New Roman",serif;
 background:#050505;
@@ -18,8 +20,8 @@ color:white;
 .hero{
 min-height:100vh;
 background:
-linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.82)),
-url("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2200&q=90");
+linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.82)),
+url("https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=2200&q=90");
 background-size:cover;
 background-position:center;
 display:flex;
@@ -29,26 +31,31 @@ text-align:center;
 padding:30px;
 }
 
-.brand{max-width:1000px;}
+.brand{
+max-width:1100px;
+}
 
 .logo{
-font-size:86px;
-letter-spacing:10px;
+font-size:92px;
+letter-spacing:12px;
 text-transform:uppercase;
 color:#c9a96e;
 font-weight:400;
-margin-bottom:18px;
+line-height:1;
+text-shadow:0 8px 35px rgba(0,0,0,.7);
 }
 
 .subtitle{
-font-size:24px;
-letter-spacing:2px;
+margin-top:22px;
+font-size:23px;
+letter-spacing:3px;
 font-weight:300;
-color:#f4efe6;
-margin-bottom:55px;
+color:#f5efe4;
+text-transform:uppercase;
 }
 
 .actions{
+margin-top:60px;
 display:flex;
 justify-content:center;
 gap:18px;
@@ -65,6 +72,7 @@ letter-spacing:2px;
 text-transform:uppercase;
 font-size:13px;
 transition:.3s;
+font-family:Arial,sans-serif;
 }
 
 .button:hover{
@@ -86,7 +94,7 @@ padding:35px;
 }
 
 .search-title{
-font-size:36px;
+font-size:38px;
 color:#c9a96e;
 text-align:center;
 margin-bottom:12px;
@@ -154,10 +162,25 @@ border:1px solid #222;
 color:#ddd;
 }
 
-.day:hover{border-color:#c9a96e;}
-.day.empty-day{background:transparent;border:0;cursor:default;}
-.day.selected{background:#c9a96e;color:#050505;}
-.day.in-range{background:#5f4b28;color:white;}
+.day:hover{
+border-color:#c9a96e;
+}
+
+.day.empty-day{
+background:transparent;
+border:0;
+cursor:default;
+}
+
+.day.selected{
+background:#c9a96e;
+color:#050505;
+}
+
+.day.in-range{
+background:#5f4b28;
+color:white;
+}
 
 .search-bottom{
 display:grid;
@@ -224,9 +247,9 @@ margin-bottom:18px;
 .explore p{
 font-family:Arial,sans-serif;
 color:#bbb;
-max-width:700px;
+max-width:760px;
 margin:0 auto 35px;
-line-height:1.7;
+line-height:1.8;
 }
 
 .footer{
@@ -238,10 +261,33 @@ background:#050505;
 }
 
 @media(max-width:700px){
-.logo{font-size:44px;letter-spacing:5px;}
-.subtitle{font-size:18px;}
-.hero{min-height:85vh;}
-.search-section,.explore{padding:55px 20px;}
+.logo{
+font-size:42px;
+letter-spacing:5px;
+}
+
+.subtitle{
+font-size:15px;
+letter-spacing:2px;
+}
+
+.hero{
+min-height:88vh;
+}
+
+.search-section,
+.explore{
+padding:55px 20px;
+}
+
+.calendar-header{
+gap:10px;
+}
+
+.calendar-header button{
+padding:10px;
+font-size:12px;
+}
 }
 </style>
 </head>
@@ -272,7 +318,7 @@ Le sue vacanze di lusso in Salento
 <h2 class="search-title">Trova la villa perfetta</h2>
 
 <div class="search-subtitle">
-Selezioni le date del soggiorno e scopra le ville disponibili.
+Selezioni le date del soggiorno e scopra tutte le ville disponibili.
 </div>
 
 <div class="calendar-header">
@@ -314,7 +360,7 @@ Cerca ville disponibili
 
 <p>
 Guest in Town seleziona ville esclusive, dimore private e residenze di charme
-per soggiorni eleganti, riservati e costruiti intorno ai desideri dell’ospite.
+tra mare cristallino, borghi bianchi, pietra leccese e ulivi secolari.
 </p>
 
 <a class="button" href="public/villas.html">Scopri la collezione</a>
