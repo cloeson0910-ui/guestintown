@@ -10,156 +10,30 @@
 <script src="../js/supabase.js"></script>
 
 <style>
-body{
-font-family:Arial,sans-serif;
-background:#111;
-color:white;
-padding:30px;
-max-width:1200px;
-margin:auto;
-}
-
-.menu{
-display:flex;
-gap:15px;
-align-items:center;
-margin-bottom:30px;
-}
-
-.menu a,
-.menu button{
-background:#222;
-color:white;
-padding:10px 15px;
-text-decoration:none;
-border:0;
-border-radius:6px;
-cursor:pointer;
-}
-
-.menu .logout{
-margin-left:auto;
-background:#c0392b;
-}
-
-h1{
-margin-bottom:20px;
-}
-
-.filters{
-background:#1b1b1b;
-padding:20px;
-border-radius:10px;
-margin-bottom:25px;
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-}
-
-input,
-select{
-padding:12px;
-border:none;
-border-radius:6px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-background:#1b1b1b;
-}
-
-th,td{
-padding:12px;
-border-bottom:1px solid #333;
-text-align:left;
-vertical-align:top;
-}
-
-th{
-background:#222;
-}
-
-.status{
-padding:6px 10px;
-border-radius:20px;
-font-size:12px;
-display:inline-block;
-}
-
-.pending{
-background:orange;
-color:black;
-}
-
-.confirmed{
-background:green;
-color:white;
-}
-
-.cancelled{
-background:red;
-color:white;
-}
-
-.completed{
-background:#555;
-color:white;
-}
-
-button.action{
-padding:7px 10px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-margin:3px 0;
-display:block;
-width:100%;
-}
-
-.confirm{
-background:#27ae60;
-color:white;
-}
-
-.cancel{
-background:#c0392b;
-color:white;
-}
-
-.complete{
-background:#555;
-color:white;
-}
-
-.empty{
-background:#1b1b1b;
-padding:30px;
-border-radius:10px;
-text-align:center;
-}
-
-.total-box{
-background:#1b1b1b;
-padding:20px;
-border-radius:10px;
-margin-bottom:25px;
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:15px;
-}
-
-.total-card{
-background:#151515;
-padding:15px;
-border-radius:8px;
-}
-
-.total-card strong{
-display:block;
-font-size:24px;
-margin-top:8px;
-}
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1200px;margin:auto;}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;}
+.menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer;}
+.menu .logout{margin-left:auto;background:#c0392b;}
+h1{margin-bottom:20px;}
+.filters{background:#1b1b1b;padding:20px;border-radius:10px;margin-bottom:25px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;}
+input,select{padding:12px;border:none;border-radius:6px;}
+table{width:100%;border-collapse:collapse;background:#1b1b1b;}
+th,td{padding:12px;border-bottom:1px solid #333;text-align:left;vertical-align:top;}
+th{background:#222;}
+.status{padding:6px 10px;border-radius:20px;font-size:12px;display:inline-block;}
+.pending{background:orange;color:black;}
+.confirmed{background:green;color:white;}
+.cancelled{background:red;color:white;}
+.completed{background:#555;color:white;}
+button.action,a.action-link{padding:7px 10px;border:none;border-radius:6px;cursor:pointer;margin:3px 0;display:block;width:100%;text-align:center;text-decoration:none;box-sizing:border-box;font-size:13px;}
+.confirm{background:#27ae60;color:white;}
+.cancel{background:#c0392b;color:white;}
+.complete{background:#555;color:white;}
+.open{background:#c9a96e;color:black;}
+.empty{background:#1b1b1b;padding:30px;border-radius:10px;text-align:center;}
+.total-box{background:#1b1b1b;padding:20px;border-radius:10px;margin-bottom:25px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;}
+.total-card{background:#151515;padding:15px;border-radius:8px;}
+.total-card strong{display:block;font-size:24px;margin-top:8px;}
 </style>
 </head>
 
@@ -193,25 +67,10 @@ margin-top:8px;
 </div>
 
 <div class="total-box">
-<div class="total-card">
-Prenotazioni
-<strong id="totalBookings">0</strong>
-</div>
-
-<div class="total-card">
-Totale valore
-<strong id="totalRevenue">€0</strong>
-</div>
-
-<div class="total-card">
-Confermate
-<strong id="confirmedBookings">0</strong>
-</div>
-
-<div class="total-card">
-In attesa
-<strong id="pendingBookings">0</strong>
-</div>
+<div class="total-card">Prenotazioni<strong id="totalBookings">0</strong></div>
+<div class="total-card">Totale valore<strong id="totalRevenue">€0</strong></div>
+<div class="total-card">Confermate<strong id="confirmedBookings">0</strong></div>
+<div class="total-card">In attesa<strong id="pendingBookings">0</strong></div>
 </div>
 
 <div id="bookingsContainer">
@@ -223,9 +82,7 @@ In attesa
 checkAuth();
 
 async function checkAuth(){
-
-const { data } =
-await supabaseClient.auth.getUser();
+const { data } = await supabaseClient.auth.getUser();
 
 if(!data.user){
 window.location.href = "login.html";
@@ -234,11 +91,9 @@ return;
 
 await loadVillas();
 await loadBookings();
-
 }
 
 async function loadVillas(){
-
 const { data, error } =
 await supabaseClient
 .from('villas')
@@ -250,68 +105,33 @@ alert(error.message);
 return;
 }
 
-const select =
-document.getElementById('villaFilter');
+const select = document.getElementById('villaFilter');
 
 data.forEach(villa=>{
-select.innerHTML += `
-<option value="${villa.id}">
-${villa.title}
-</option>
-`;
+select.innerHTML += `<option value="${villa.id}">${villa.title}</option>`;
 });
-
 }
 
 function formatDateIT(dateString){
-
-if(!dateString){
-return '-';
-}
-
-const parts =
-dateString.split('-');
-
+if(!dateString)return '-';
+const parts = dateString.split('-');
 return `${parts[2]}/${parts[1]}/${parts[0]}`;
-
 }
 
 function formatEuro(value){
-
-const number =
-Number(value || 0);
-
-return number.toLocaleString('it-IT',{
-style:'currency',
-currency:'EUR'
-});
-
+const number = Number(value || 0);
+return number.toLocaleString('it-IT',{style:'currency',currency:'EUR'});
 }
 
 function calculateNights(checkIn, checkOut){
+if(!checkIn || !checkOut)return '-';
 
-if(!checkIn || !checkOut){
-return '-';
-}
+const start = new Date(checkIn + 'T00:00:00');
+const end = new Date(checkOut + 'T00:00:00');
+const diff = end - start;
+const nights = Math.round(diff / (1000 * 60 * 60 * 24));
 
-const start =
-new Date(checkIn + 'T00:00:00');
-
-const end =
-new Date(checkOut + 'T00:00:00');
-
-const diff =
-end - start;
-
-const nights =
-Math.round(diff / (1000 * 60 * 60 * 24));
-
-if(nights <= 0){
-return '-';
-}
-
-return nights;
-
+return nights > 0 ? nights : '-';
 }
 
 async function loadBookings(){
@@ -325,14 +145,9 @@ villas(title)
 `)
 .order('check_in',{ascending:true});
 
-const villaFilter =
-document.getElementById('villaFilter').value;
-
-const statusFilter =
-document.getElementById('statusFilter').value;
-
-const searchFilter =
-document.getElementById('searchFilter').value.toLowerCase();
+const villaFilter = document.getElementById('villaFilter').value;
+const statusFilter = document.getElementById('statusFilter').value;
+const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
 
 if(villaFilter){
 query = query.eq('villa_id', villaFilter);
@@ -342,8 +157,7 @@ if(statusFilter){
 query = query.eq('status', statusFilter);
 }
 
-const { data, error } =
-await query;
+const { data, error } = await query;
 
 if(error){
 document.getElementById('bookingsContainer').innerHTML =
@@ -351,12 +165,10 @@ document.getElementById('bookingsContainer').innerHTML =
 return;
 }
 
-let bookings =
-data || [];
+let bookings = data || [];
 
 if(searchFilter){
-bookings =
-bookings.filter(booking =>
+bookings = bookings.filter(booking =>
 (booking.guest_name || '').toLowerCase().includes(searchFilter) ||
 (booking.guest_email || '').toLowerCase().includes(searchFilter)
 );
@@ -364,7 +176,6 @@ bookings.filter(booking =>
 
 renderTotals(bookings);
 renderBookings(bookings);
-
 }
 
 function renderTotals(bookings){
@@ -378,28 +189,18 @@ bookings.filter(b=>b.status === 'confirmed').length;
 const pending =
 bookings.filter(b=>b.status === 'pending').length;
 
-document.getElementById('totalBookings').innerText =
-bookings.length;
-
-document.getElementById('totalRevenue').innerText =
-formatEuro(totalRevenue);
-
-document.getElementById('confirmedBookings').innerText =
-confirmed;
-
-document.getElementById('pendingBookings').innerText =
-pending;
-
+document.getElementById('totalBookings').innerText = bookings.length;
+document.getElementById('totalRevenue').innerText = formatEuro(totalRevenue);
+document.getElementById('confirmedBookings').innerText = confirmed;
+document.getElementById('pendingBookings').innerText = pending;
 }
 
 function renderBookings(bookings){
 
-const container =
-document.getElementById('bookingsContainer');
+const container = document.getElementById('bookingsContainer');
 
 if(bookings.length === 0){
-container.innerHTML =
-'<div class="empty">Nessuna prenotazione trovata.</div>';
+container.innerHTML = '<div class="empty">Nessuna prenotazione trovata.</div>';
 return;
 }
 
@@ -433,9 +234,7 @@ Check-in: ${formatDateIT(booking.check_in)}<br>
 Check-out: ${formatDateIT(booking.check_out)}
 </td>
 
-<td>
-<strong>${calculateNights(booking.check_in, booking.check_out)}</strong>
-</td>
+<td><strong>${calculateNights(booking.check_in, booking.check_out)}</strong></td>
 
 <td>${booking.guests || '-'}</td>
 
@@ -448,6 +247,10 @@ ${booking.status}
 </td>
 
 <td>
+<a class="action-link open" href="booking-edit.html?id=${booking.id}">
+Apri
+</a>
+
 <button class="action confirm" onclick="updateBookingStatus(${booking.id},'confirmed')">
 Conferma
 </button>
@@ -465,7 +268,45 @@ Completa
 </tbody>
 </table>
 `;
+}
 
+function buildEmailPayload(booking){
+return {
+id:booking.id,
+guest_name:booking.guest_name,
+guest_email:booking.guest_email,
+guest_phone:booking.guest_phone,
+villa_title:booking.villas?.title || '',
+check_in:booking.check_in,
+check_out:booking.check_out,
+guests:booking.guests,
+total_price:booking.total_price
+};
+}
+
+async function sendConfirmationEmail(booking){
+
+const { data, error } =
+await supabaseClient.functions.invoke(
+'send-booking-confirmation',
+{
+body:{
+booking:buildEmailPayload(booking)
+}
+}
+);
+
+if(error){
+alert('Prenotazione confermata, ma email NON inviata: ' + error.message);
+return;
+}
+
+if(data && data.success === false){
+alert('Prenotazione confermata, ma email NON inviata: ' + data.error);
+return;
+}
+
+alert('Prenotazione confermata ed email inviata.');
 }
 
 async function updateBookingStatus(id,status){
@@ -474,12 +315,25 @@ if(!confirm('Aggiornare lo stato della prenotazione?')){
 return;
 }
 
+const { data: bookingBefore, error: readError } =
+await supabaseClient
+.from('bookings')
+.select(`
+*,
+villas(title)
+`)
+.eq('id', id)
+.single();
+
+if(readError){
+alert(readError.message);
+return;
+}
+
 const { error } =
 await supabaseClient
 .from('bookings')
-.update({
-status:status
-})
+.update({status:status})
 .eq('id', id);
 
 if(error){
@@ -487,16 +341,21 @@ alert(error.message);
 return;
 }
 
-loadBookings();
+if(status === 'confirmed'){
+const confirmedBooking = {
+...bookingBefore,
+status:'confirmed'
+};
 
+await sendConfirmationEmail(confirmedBooking);
+}
+
+loadBookings();
 }
 
 async function logout(){
-
 await supabaseClient.auth.signOut();
-
 window.location.href = "login.html";
-
 }
 
 </script>
