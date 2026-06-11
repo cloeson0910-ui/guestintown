@@ -113,6 +113,8 @@ Posizione non ancora confermata.
 <input id="bathrooms" type="number" placeholder="Bagni">
 <input id="max_guests" type="number" placeholder="Ospiti massimi">
 
+<input id="nightly_price" type="number" step="0.01" placeholder="Prezzo per notte (€)">
+
 <input id="cadastral_sheet" placeholder="Foglio catastale">
 <input id="cadastral_parcel" placeholder="Particella / Mappale">
 <input id="cadastral_subunit" placeholder="Subalterno">
@@ -293,6 +295,7 @@ document.getElementById('longitude').value = data.longitude || '';
 document.getElementById('bedrooms').value = data.bedrooms || '';
 document.getElementById('bathrooms').value = data.bathrooms || '';
 document.getElementById('max_guests').value = data.max_guests || '';
+document.getElementById('nightly_price').value = data.nightly_price || '';
 document.getElementById('cadastral_sheet').value = data.cadastral_sheet || '';
 document.getElementById('cadastral_parcel').value = data.cadastral_parcel || '';
 document.getElementById('cadastral_subunit').value = data.cadastral_subunit || '';
@@ -658,6 +661,7 @@ longitude:lng || null,
 bedrooms:document.getElementById('bedrooms').value || null,
 bathrooms:document.getElementById('bathrooms').value || null,
 max_guests:document.getElementById('max_guests').value || null,
+nightly_price:document.getElementById('nightly_price').value || null,
 cadastral_sheet:document.getElementById('cadastral_sheet').value,
 cadastral_parcel:document.getElementById('cadastral_parcel').value,
 cadastral_subunit:document.getElementById('cadastral_subunit').value,
