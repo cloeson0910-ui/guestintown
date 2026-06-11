@@ -19,9 +19,9 @@ font-family:Georgia,"Times New Roman",serif;
 }
 
 .container{
-max-width:1300px;
+max-width:1350px;
 margin:auto;
-padding:40px 30px 80px;
+padding:40px 30px 90px;
 }
 
 .header{
@@ -73,7 +73,7 @@ margin:auto;
 
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
 gap:28px;
 }
 
@@ -82,7 +82,7 @@ position:relative;
 height:390px;
 overflow:hidden;
 background:#111;
-border:1px solid rgba(201,169,110,.25);
+border:1px solid rgba(201,169,110,.28);
 text-decoration:none;
 color:white;
 display:block;
@@ -105,14 +105,15 @@ filter:brightness(.55);
 .card-overlay{
 position:absolute;
 inset:0;
-background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,.15));
+background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.12));
 display:flex;
 align-items:flex-end;
 padding:28px;
+z-index:2;
 }
 
 .card h2{
-font-size:34px;
+font-size:36px;
 font-weight:400;
 color:#f5efe4;
 margin-bottom:8px;
@@ -124,6 +125,23 @@ font-size:13px;
 letter-spacing:2px;
 text-transform:uppercase;
 color:#c9a96e;
+}
+
+.fallback{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+background:
+linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,.88)),
+radial-gradient(circle at center,#3a2c16,#050505 70%);
+color:#c9a96e;
+font-size:28px;
+letter-spacing:4px;
+text-transform:uppercase;
+padding:30px;
 }
 
 .info{
@@ -167,21 +185,6 @@ color:#bbb;
 font-family:Arial,sans-serif;
 }
 
-.fallback{
-width:100%;
-height:100%;
-display:flex;
-align-items:center;
-justify-content:center;
-background:
-linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.78)),
-radial-gradient(circle at center,#2b2418,#050505);
-color:#c9a96e;
-font-size:26px;
-letter-spacing:3px;
-text-transform:uppercase;
-}
-
 @media(max-width:700px){
 .header{flex-direction:column;align-items:flex-start;}
 .hero h1{font-size:40px;}
@@ -196,7 +199,6 @@ text-transform:uppercase;
 
 <div class="header">
 <div class="logo">Guest in Town</div>
-
 <div class="nav">
 <a href="../">Home</a>
 </div>
@@ -216,17 +218,11 @@ dimore private, ville esclusive e soggiorni di lusso nel cuore della Puglia.
 
 <script>
 
-const params =
-new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
 
-const checkIn =
-params.get('check_in');
-
-const checkOut =
-params.get('check_out');
-
-const guests =
-params.get('guests');
+const checkIn = params.get('check_in');
+const checkOut = params.get('check_out');
+const guests = params.get('guests');
 
 if(checkIn && checkOut){
 loadAvailableVillas();
@@ -241,55 +237,63 @@ return (name || '')
 .replace(/[\u0300-\u036f]/g,'');
 }
 
-function getDestinationPhoto(name){
+function getDestinationImage(name){
 
-const n =
-normalizeName(name);
+const n = normalizeName(name);
 
-if(n.includes('brindisi')){
-return 'https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=1600&q=90';
+let query = 'puglia,masseria,ulivi,luxury';
+
+if(n.includes('alberobello')){
+query = 'alberobello,trulli,puglia';
 }
 
-if(n.includes('lecce')){
-return 'https://images.unsplash.com/photo-1606763150119-4f9f98f472d0?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('bari')){
+query = 'polignano-a-mare,puglia,sea';
 }
 
-if(n.includes('bari')){
-return 'https://images.unsplash.com/photo-1605538032432-a9e0c8b78053?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('brindisi')){
+query = 'ostuni,puglia,masseria,olive';
 }
 
-if(n.includes('taranto')){
-return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('fasano')){
+query = 'fasano,puglia,masseria,olive';
 }
 
-if(n.includes('salento')){
-return 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('ostuni')){
+query = 'ostuni,puglia,white-town';
 }
 
-if(n.includes('valle')){
-return 'https://images.unsplash.com/photo-1523805009345-7448845a9e53?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('lecce')){
+query = 'lecce,puglia,baroque';
 }
 
-if(n.includes('ostuni')){
-return 'https://images.unsplash.com/photo-1605538032432-a9e0c8b78053?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('otranto')){
+query = 'otranto,salento,sea';
 }
 
-if(n.includes('otranto')){
-return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('gallipoli')){
+query = 'gallipoli,salento,sea';
 }
 
-if(n.includes('gallipoli')){
-return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('taranto')){
+query = 'ionian-sea,puglia,coast';
 }
 
-return 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1600&q=90';
+else if(n.includes('salento')){
+query = 'salento,puglia,sea,olive';
+}
+
+else if(n.includes('valle')){
+query = 'valle-itria,puglia,trulli';
+}
+
+return `https://source.unsplash.com/1600x1100/?${query}`;
 
 }
 
 function formatEuro(value){
 
-const number =
-Number(value || 0);
+const number = Number(value || 0);
 
 return number.toLocaleString('it-IT',{
 style:'currency',
@@ -318,19 +322,24 @@ document.getElementById('content').innerHTML =
 return;
 }
 
-const content =
-document.getElementById('content');
+const content = document.getElementById('content');
 
 content.innerHTML = '';
 
-for(const destination of destinations){
+destinations.forEach(destination=>{
 
-const imageUrl =
-getDestinationPhoto(destination.name);
+const imageUrl = getDestinationImage(destination.name);
 
 content.innerHTML += `
 <a class="card" href="destination.html?id=${destination.id}">
-<img src="${imageUrl}" alt="${destination.name}">
+<div class="fallback">${destination.name}</div>
+
+<img
+src="${imageUrl}"
+alt="${destination.name}"
+loading="lazy"
+onerror="this.style.display='none';"
+>
 
 <div class="card-overlay">
 <div>
@@ -341,7 +350,7 @@ content.innerHTML += `
 </a>
 `;
 
-}
+});
 
 }
 
@@ -367,8 +376,7 @@ if(guests){
 query = query.gte('max_guests', guests);
 }
 
-const { data: villas, error } =
-await query;
+const { data: villas, error } = await query;
 
 if(error){
 document.getElementById('content').innerHTML =
@@ -405,8 +413,7 @@ document.getElementById('content').innerHTML =
 return;
 }
 
-const content =
-document.getElementById('content');
+const content = document.getElementById('content');
 
 content.innerHTML = '';
 
@@ -425,7 +432,16 @@ images?.find(img => img.image_type === 'main')?.image_url
 
 content.innerHTML += `
 <div class="card">
-${mainImage ? `<img src="${mainImage}" alt="${villa.title || ''}">` : `<div class="fallback">${villa.title || 'Villa'}</div>`}
+<div class="fallback">${villa.title || 'Villa'}</div>
+
+${mainImage ? `
+<img
+src="${mainImage}"
+alt="${villa.title || ''}"
+loading="lazy"
+onerror="this.style.display='none';"
+>
+` : ''}
 
 <div class="card-overlay">
 <div>
