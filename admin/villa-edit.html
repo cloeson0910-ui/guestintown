@@ -72,6 +72,57 @@ textarea{
 min-height:120px;
 }
 
+.gps-actions{
+display:flex;
+gap:10px;
+margin-bottom:15px;
+}
+
+.gps-actions button{
+flex:1;
+padding:12px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.gps-button{
+background:#c9a96e;
+color:black;
+font-weight:bold;
+}
+
+.map-button{
+background:#333;
+color:white;
+}
+
+.map-preview{
+width:100%;
+height:260px;
+border-radius:10px;
+overflow:hidden;
+background:#222;
+margin-bottom:15px;
+cursor:pointer;
+border:1px solid #333;
+}
+
+.map-preview iframe{
+width:100%;
+height:100%;
+border:0;
+pointer-events:none;
+}
+
+.map-empty{
+height:260px;
+display:flex;
+align-items:center;
+justify-content:center;
+color:#aaa;
+}
+
 .photo-grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
@@ -160,7 +211,6 @@ margin-top:5px;
 <h2>Dati principali</h2>
 
 <input id="title" placeholder="Nome Villa">
-
 <input id="cin" placeholder="CIN">
 
 <label>Destinazione</label>
@@ -186,6 +236,19 @@ margin-top:5px;
 <h2>Dati immobile</h2>
 
 <input id="address" placeholder="Indirizzo">
+
+<div class="gps-actions">
+<button class="gps-button" onclick="detectLocation()">📍 Rileva posizione GPS</button>
+<button class="map-button" onclick="openMap()">Apri su Google Maps</button>
+</div>
+
+<input id="latitude" type="number" step="any" placeholder="Latitudine">
+<input id="longitude" type="number" step="any" placeholder="Longitudine">
+
+<div class="map-preview" onclick="openMap()">
+<div id="mapEmpty" class="map-empty">Nessuna posizione rilevata</div>
+<iframe id="mapFrame" style="display:none;"></iframe>
+</div>
 
 <input id="bedrooms" type="number" placeholder="Camere">
 <input id="bathrooms" type="number" placeholder="Bagni">
@@ -256,18 +319,14 @@ margin-top:5px;
 
 <script>
 
-const params =
-new URLSearchParams(window.location.search);
-
-const villaId =
-params.get('id');
+const params = new URLSearchParams(window.location.search);
+const villaId = params.get('id');
 
 checkAuth();
 
 async function checkAuth(){
 
-const { data } =
-await supabaseClient.auth.getUser();
+const { data } = await supabaseClient.auth.getUser();
 
 if(!data.user){
 window.location.href = "login.html";
@@ -293,8 +352,7 @@ alert(error.message);
 return;
 }
 
-const select =
-document.getElementById('destination_id');
+const select = document.getElementById('destination_id');
 
 data.forEach(destination=>{
 
@@ -336,6 +394,8 @@ document.getElementById('owner_phone').value = data.owner_phone || '';
 document.getElementById('owner_email').value = data.owner_email || '';
 document.getElementById('status').value = data.status || 'standby';
 document.getElementById('address').value = data.address || '';
+document.getElementById('latitude').value = data.latitude || '';
+document.getElementById('longitude').value = data.longitude || '';
 document.getElementById('bedrooms').value = data.bedrooms || '';
 document.getElementById('bathrooms').value = data.bathrooms || '';
 document.getElementById('max_guests').value = data.max_guests || '';
@@ -344,6 +404,8 @@ document.getElementById('cadastral_parcel').value = data.cadastral_parcel || '';
 document.getElementById('cadastral_subunit').value = data.cadastral_subunit || '';
 document.getElementById('short_description').value = data.short_description || '';
 document.getElementById('full_description').value = data.full_description || '';
+
+updateMapPreview();
 
 }
 
@@ -362,9 +424,6 @@ return;
 
 data.forEach(image=>{
 
-const previewId =
-'image-' + image.image_type;
-
 const map = {
 main:'preview-main',
 exterior:'preview-exterior',
@@ -374,8 +433,7 @@ bathroom:'preview-bathroom',
 pool:'preview-pool'
 };
 
-const img =
-document.getElementById(map[image.image_type]);
+const img = document.getElementById(map[image.image_type]);
 
 if(img){
 img.src = image.image_url;
@@ -383,6 +441,83 @@ img.style.display = 'block';
 }
 
 });
+
+}
+
+function detectLocation(){
+
+if(!navigator.geolocation){
+alert('Geolocalizzazione non supportata da questo browser');
+return;
+}
+
+navigator.geolocation.getCurrentPosition(
+position => {
+
+document.getElementById('latitude').value = position.coords.latitude;
+document.getElementById('longitude').value = position.coords.longitude;
+
+updateMapPreview();
+
+alert('Posizione GPS rilevata');
+
+},
+error => {
+alert('Impossibile rilevare la posizione: ' + error.message);
+},
+{
+enableHighAccuracy:true,
+timeout:15000,
+maximumAge:0
+}
+);
+
+}
+
+function updateMapPreview(){
+
+const lat = document.getElementById('latitude').value;
+const lng = document.getElementById('longitude').value;
+
+const mapFrame = document.getElementById('mapFrame');
+const mapEmpty = document.getElementById('mapEmpty');
+
+if(!lat || !lng){
+
+mapFrame.style.display = 'none';
+mapEmpty.style.display = 'flex';
+
+return;
+
+}
+
+const delta = 0.005;
+
+const bbox =
+`${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
+
+mapFrame.src =
+`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+
+mapFrame.style.display = 'block';
+mapEmpty.style.display = 'none';
+
+}
+
+function openMap(){
+
+const lat = document.getElementById('latitude').value;
+const lng = document.getElementById('longitude').value;
+
+if(!lat || !lng){
+alert('Coordinate mancanti');
+return;
+}
+
+window.open(
+`https://www.google.com/maps?q=${lat},${lng}`,
+'_blank'
+);
 
 }
 
@@ -398,11 +533,8 @@ return text
 
 async function updateVilla(){
 
-const title =
-document.getElementById('title').value;
-
-const destinationId =
-parseInt(document.getElementById('destination_id').value);
+const title = document.getElementById('title').value;
+const destinationId = parseInt(document.getElementById('destination_id').value);
 
 if(!title){
 alert('Inserisci il nome della villa');
@@ -424,6 +556,8 @@ owner_phone:document.getElementById('owner_phone').value,
 owner_email:document.getElementById('owner_email').value,
 status:document.getElementById('status').value,
 address:document.getElementById('address').value,
+latitude:document.getElementById('latitude').value || null,
+longitude:document.getElementById('longitude').value || null,
 bedrooms:document.getElementById('bedrooms').value || null,
 bathrooms:document.getElementById('bathrooms').value || null,
 max_guests:document.getElementById('max_guests').value || null,
@@ -453,8 +587,7 @@ window.location.href='villas.html';
 
 async function uploadImage(event, imageType, previewId){
 
-const file =
-event.target.files[0];
+const file = event.target.files[0];
 
 if(!file){
 return;
@@ -499,8 +632,7 @@ alert(error.message);
 return;
 }
 
-const preview =
-document.getElementById(previewId);
+const preview = document.getElementById(previewId);
 
 preview.src = publicUrl;
 preview.style.display = 'block';
@@ -527,8 +659,7 @@ alert(error.message);
 return;
 }
 
-const preview =
-document.getElementById(previewId);
+const preview = document.getElementById(previewId);
 
 preview.src = '';
 preview.style.display = 'none';
