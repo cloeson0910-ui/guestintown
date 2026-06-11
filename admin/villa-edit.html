@@ -163,51 +163,7 @@ Inserisci qui i link iCal esportati da Airbnb e Booking. Serviranno per sincroni
 <div class="section">
 <h2>Foto villa</h2>
 
-<div class="photo-grid">
-
-<div class="photo-box">
-<label>Foto principale</label>
-<img id="preview-main">
-<input type="file" accept="image/*" onchange="uploadImage(event,'main','preview-main')">
-<button class="delete-photo" onclick="deleteImage('main','preview-main')">Elimina</button>
-</div>
-
-<div class="photo-box">
-<label>Foto esterno</label>
-<img id="preview-exterior">
-<input type="file" accept="image/*" onchange="uploadImage(event,'exterior','preview-exterior')">
-<button class="delete-photo" onclick="deleteImage('exterior','preview-exterior')">Elimina</button>
-</div>
-
-<div class="photo-box">
-<label>Foto soggiorno</label>
-<img id="preview-living">
-<input type="file" accept="image/*" onchange="uploadImage(event,'living','preview-living')">
-<button class="delete-photo" onclick="deleteImage('living','preview-living')">Elimina</button>
-</div>
-
-<div class="photo-box">
-<label>Foto camera</label>
-<img id="preview-bedroom">
-<input type="file" accept="image/*" onchange="uploadImage(event,'bedroom','preview-bedroom')">
-<button class="delete-photo" onclick="deleteImage('bedroom','preview-bedroom')">Elimina</button>
-</div>
-
-<div class="photo-box">
-<label>Foto bagno</label>
-<img id="preview-bathroom">
-<input type="file" accept="image/*" onchange="uploadImage(event,'bathroom','preview-bathroom')">
-<button class="delete-photo" onclick="deleteImage('bathroom','preview-bathroom')">Elimina</button>
-</div>
-
-<div class="photo-box">
-<label>Foto piscina / giardino</label>
-<img id="preview-pool">
-<input type="file" accept="image/*" onchange="uploadImage(event,'pool','preview-pool')">
-<button class="delete-photo" onclick="deleteImage('pool','preview-pool')">Elimina</button>
-</div>
-
-</div>
+<div class="photo-grid" id="photoGrid"></div>
 </div>
 
 <div class="actions">
@@ -223,7 +179,48 @@ const villaId = params.get('id');
 let gpsAccuracy = null;
 let locationConfirmed = false;
 
+const photoTypes = [
+{type:'main', label:'Foto principale'},
+{type:'exterior_day', label:'Esterno giorno'},
+{type:'exterior_night', label:'Esterno sera'},
+{type:'entrance', label:'Ingresso'},
+{type:'living', label:'Soggiorno'},
+{type:'kitchen', label:'Cucina'},
+{type:'dining', label:'Sala pranzo'},
+{type:'master_bedroom', label:'Camera master'},
+{type:'bedroom_2', label:'Camera 2'},
+{type:'bedroom_3', label:'Camera 3'},
+{type:'master_bathroom', label:'Bagno master'},
+{type:'bathroom_2', label:'Bagno 2'},
+{type:'pool', label:'Piscina'},
+{type:'garden', label:'Giardino'},
+{type:'terrace', label:'Terrazza'},
+{type:'view', label:'Vista'},
+{type:'lounge', label:'Area relax'},
+{type:'extra', label:'Dettagli / extra'}
+];
+
+renderPhotoBoxes();
 checkAuth();
+
+function renderPhotoBoxes(){
+
+const grid = document.getElementById('photoGrid');
+
+photoTypes.forEach(photo=>{
+
+grid.innerHTML += `
+<div class="photo-box">
+<label>${photo.label}</label>
+<img id="preview-${photo.type}">
+<input type="file" accept="image/*" onchange="uploadImage(event,'${photo.type}','preview-${photo.type}')">
+<button class="delete-photo" onclick="deleteImage('${photo.type}','preview-${photo.type}')">Elimina</button>
+</div>
+`;
+
+});
+
+}
 
 async function checkAuth(){
 
@@ -468,16 +465,7 @@ return;
 
 data.forEach(image=>{
 
-const map = {
-main:'preview-main',
-exterior:'preview-exterior',
-living:'preview-living',
-bedroom:'preview-bedroom',
-bathroom:'preview-bathroom',
-pool:'preview-pool'
-};
-
-const img = document.getElementById(map[image.image_type]);
+const img = document.getElementById(`preview-${image.image_type}`);
 
 if(img){
 img.src = image.image_url;
