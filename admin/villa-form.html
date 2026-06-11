@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 
@@ -23,14 +22,54 @@ max-width:900px;
 margin:auto;
 }
 
-input{
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.menu a:hover,
+.menu button:hover{
+background:#333;
+}
+
+.menu .logout{
+margin-left:auto;
+background:#c0392b;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+input,
+select{
 width:100%;
 padding:12px;
 margin-bottom:15px;
+border:none;
+border-radius:6px;
 }
 
-button{
+button.save{
+background:#c9a96e;
+color:black;
+font-weight:bold;
 padding:12px 20px;
+border:none;
+border-radius:6px;
 cursor:pointer;
 }
 
@@ -39,6 +78,14 @@ cursor:pointer;
 </head>
 
 <body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
+<a href="destinations.html">Destinazioni</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
 
 <h1>Nuova Villa</h1>
 
@@ -49,24 +96,38 @@ cursor:pointer;
 <label>Destinazione</label>
 
 <select id="destination_id">
-
-<option value="">
-Seleziona destinazione
-</option>
-
+<option value="">Seleziona destinazione</option>
 </select>
+
 <input id="owner_name" placeholder="Nome Proprietario">
 
 <input id="owner_phone" placeholder="Telefono Proprietario">
 
 <input id="owner_email" placeholder="Email Proprietario">
 
-<button onclick="saveVilla()">
+<button class="save" onclick="saveVilla()">
 Salva Villa
 </button>
 
 <script>
+
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+
+window.location.href = "login.html";
+return;
+
+}
+
 loadDestinations();
+
+}
 
 async function loadDestinations(){
 
@@ -79,7 +140,7 @@ await supabaseClient
 if(error){
 
 console.error(error);
-
+alert(error.message);
 return;
 
 }
@@ -98,6 +159,7 @@ ${destination.name}
 });
 
 }
+
 async function saveVilla(){
 
 const destinationId =
@@ -106,7 +168,6 @@ parseInt(document.getElementById('destination_id').value);
 if(!destinationId){
 
 alert('Seleziona una destinazione');
-
 return;
 
 }
@@ -133,28 +194,30 @@ status:'standby'
 
 };
 
-console.log(villa);
-
-const { data, error } =
+const { error } =
 await supabaseClient
 .from('villas')
-.insert([villa])
-.select();
+.insert([villa]);
 
 if(error){
 
 console.error(error);
-alert(JSON.stringify(error,null,2));
-
+alert(error.message);
 return;
 
 }
 
-console.log(data);
-
 alert('Villa salvata');
 
 window.location.href='villas.html';
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
 
 }
 
