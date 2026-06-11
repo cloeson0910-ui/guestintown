@@ -6,8 +6,10 @@
 
 <title>Guest In Town Admin</title>
 
-<style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
 
+<style>
 *{
 margin:0;
 padding:0;
@@ -72,7 +74,6 @@ margin-bottom:10px;
 margin-top:30px;
 background:#c0392b !important;
 }
-
 </style>
 </head>
 
@@ -84,11 +85,10 @@ background:#c0392b !important;
 
 <a href="dashboard.html">Dashboard</a>
 <a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
 <a href="destinations.html">Destinazioni</a>
 
-<a href="#" onclick="logout()" class="logout">
-Logout
-</a>
+<a href="#" onclick="logout()" class="logout">Logout</a>
 
 </div>
 
@@ -124,8 +124,46 @@ Logout
 
 <script>
 
-function logout(){
-window.location.href="login.html";
+checkAuth();
+loadDashboardCounts();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+}
+
+}
+
+async function loadDashboardCounts(){
+
+const villas =
+await supabaseClient
+.from('villas')
+.select('*', { count:'exact', head:true });
+
+const destinations =
+await supabaseClient
+.from('destinations')
+.select('*', { count:'exact', head:true });
+
+document.getElementById('villaCount').innerText =
+villas.count || 0;
+
+document.getElementById('destinationCount').innerText =
+destinations.count || 0;
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
+
 }
 
 </script>
