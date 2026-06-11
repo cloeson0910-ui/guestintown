@@ -1,1 +1,474 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Calendario Prenotazioni</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+padding:30px;
+max-width:1400px;
+margin:auto;
+}
+
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+flex-wrap:wrap;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.logout{
+margin-left:auto;
+background:#c0392b !important;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+.controls{
+background:#1b1b1b;
+padding:20px;
+border-radius:10px;
+margin-bottom:25px;
+display:flex;
+gap:15px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.controls button{
+background:#c9a96e;
+color:black;
+font-weight:bold;
+padding:10px 15px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.controls strong{
+font-size:22px;
+}
+
+.calendar{
+overflow-x:auto;
+background:#1b1b1b;
+border-radius:10px;
+padding:15px;
+}
+
+.calendar-table{
+border-collapse:collapse;
+min-width:1200px;
+width:100%;
+}
+
+.calendar-table th,
+.calendar-table td{
+border:1px solid #333;
+padding:8px;
+text-align:center;
+min-width:42px;
+height:46px;
+font-size:13px;
+}
+
+.calendar-table th{
+background:#222;
+position:sticky;
+top:0;
+z-index:2;
+}
+
+.villa-name{
+background:#222;
+font-weight:bold;
+text-align:left !important;
+min-width:180px !important;
+position:sticky;
+left:0;
+z-index:3;
+}
+
+.day-cell{
+background:#151515;
+}
+
+.day-cell.booked{
+background:#c0392b;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.day-cell.pending{
+background:orange;
+color:black;
+font-weight:bold;
+cursor:pointer;
+}
+
+.day-cell.confirmed{
+background:#27ae60;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.day-cell.completed{
+background:#555;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.legend{
+display:flex;
+gap:15px;
+flex-wrap:wrap;
+margin-top:20px;
+}
+
+.legend span{
+display:flex;
+align-items:center;
+gap:8px;
+color:#ccc;
+}
+
+.dot{
+width:14px;
+height:14px;
+border-radius:4px;
+display:inline-block;
+background:#151515;
+border:1px solid #333;
+}
+
+.dot.pending{background:orange;border:0;}
+.dot.confirmed{background:#27ae60;border:0;}
+.dot.cancelled{background:#c0392b;border:0;}
+.dot.completed{background:#555;border:0;}
+
+.empty{
+background:#1b1b1b;
+padding:30px;
+border-radius:10px;
+text-align:center;
+}
+
+.small{
+font-size:11px;
+opacity:.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="destinations.html">Destinazioni</a>
+<a href="bookings.html">Prenotazioni</a>
+<a href="calendar.html">Calendario</a>
+<a href="reports.html">Report</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Calendario Prenotazioni</h1>
+
+<div class="controls">
+<button onclick="changeMonth(-1)">← Mese precedente</button>
+<strong id="monthTitle">Mese</strong>
+<button onclick="changeMonth(1)">Mese successivo →</button>
+</div>
+
+<div id="calendarContainer">
+<div class="empty">Caricamento calendario...</div>
+</div>
+
+<div class="legend">
+<span><i class="dot"></i>Disponibile</span>
+<span><i class="dot pending"></i>Pending</span>
+<span><i class="dot confirmed"></i>Confirmed</span>
+<span><i class="dot completed"></i>Completed</span>
+<span><i class="dot cancelled"></i>Cancelled</span>
+</div>
+
+<script>
+
+let currentDate = new Date();
+let villas = [];
+let bookings = [];
+
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+
+await loadData();
+
+}
+
+function formatDateISO(date){
+
+const y =
+date.getFullYear();
+
+const m =
+String(date.getMonth()+1).padStart(2,'0');
+
+const d =
+String(date.getDate()).padStart(2,'0');
+
+return `${y}-${m}-${d}`;
+
+}
+
+function formatDateIT(dateString){
+
+if(!dateString){
+return '-';
+}
+
+const parts =
+dateString.split('-');
+
+return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+}
+
+function getMonthName(month){
+
+const names = [
+'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'
+];
+
+return names[month];
+
+}
+
+function getDaysInMonth(year, month){
+
+return new Date(year, month + 1, 0).getDate();
+
+}
+
+function changeMonth(direction){
+
+currentDate =
+new Date(
+currentDate.getFullYear(),
+currentDate.getMonth() + direction,
+1
+);
+
+renderCalendar();
+
+}
+
+async function loadData(){
+
+const { data: villasData, error: villasError } =
+await supabaseClient
+.from('villas')
+.select('id,title')
+.order('title');
+
+if(villasError){
+document.getElementById('calendarContainer').innerHTML =
+`<div class="empty">${villasError.message}</div>`;
+return;
+}
+
+const { data: bookingsData, error: bookingsError } =
+await supabaseClient
+.from('bookings')
+.select('*')
+.in('status',['pending','confirmed','completed'])
+.order('check_in');
+
+if(bookingsError){
+document.getElementById('calendarContainer').innerHTML =
+`<div class="empty">${bookingsError.message}</div>`;
+return;
+}
+
+villas =
+villasData || [];
+
+bookings =
+bookingsData || [];
+
+renderCalendar();
+
+}
+
+function getBookingForDay(villaId, isoDate){
+
+return bookings.find(booking =>
+Number(booking.villa_id) === Number(villaId) &&
+isoDate >= booking.check_in &&
+isoDate < booking.check_out
+);
+
+}
+
+function renderCalendar(){
+
+const year =
+currentDate.getFullYear();
+
+const month =
+currentDate.getMonth();
+
+const days =
+getDaysInMonth(year, month);
+
+document.getElementById('monthTitle').innerText =
+`${getMonthName(month)} ${year}`;
+
+if(villas.length === 0){
+document.getElementById('calendarContainer').innerHTML =
+'<div class="empty">Nessuna villa disponibile.</div>';
+return;
+}
+
+let html = `
+<div class="calendar">
+<table class="calendar-table">
+<thead>
+<tr>
+<th class="villa-name">Villa</th>
+`;
+
+for(let day=1; day<=days; day++){
+
+const date =
+new Date(year, month, day);
+
+const weekDay =
+date.toLocaleDateString('it-IT',{weekday:'short'});
+
+html += `
+<th>
+${day}<br>
+<span class="small">${weekDay}</span>
+</th>
+`;
+
+}
+
+html += `
+</tr>
+</thead>
+<tbody>
+`;
+
+villas.forEach(villa=>{
+
+html += `
+<tr>
+<td class="villa-name">${villa.title || '-'}</td>
+`;
+
+for(let day=1; day<=days; day++){
+
+const date =
+new Date(year, month, day);
+
+const iso =
+formatDateISO(date);
+
+const booking =
+getBookingForDay(villa.id, iso);
+
+if(booking){
+
+html += `
+<td
+class="day-cell ${booking.status}"
+title="${booking.guest_name || ''} - ${formatDateIT(booking.check_in)} / ${formatDateIT(booking.check_out)}"
+onclick="openBooking(${booking.id})">
+${booking.guest_name ? booking.guest_name.split(' ')[0] : 'Occupata'}
+</td>
+`;
+
+} else {
+
+html += `
+<td class="day-cell"></td>
+`;
+
+}
+
+}
+
+html += `
+</tr>
+`;
+
+});
+
+html += `
+</tbody>
+</table>
+</div>
+`;
+
+document.getElementById('calendarContainer').innerHTML =
+html;
+
+}
+
+function openBooking(id){
+
+window.location.href =
+`booking-edit.html?id=${id}`;
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href =
+"login.html";
+
+}
+
+</script>
+
+</body>
+</html>
