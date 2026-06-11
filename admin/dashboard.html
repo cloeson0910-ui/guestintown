@@ -51,6 +51,7 @@ background:#333;
 .main{
 flex:1;
 padding:30px;
+overflow:auto;
 }
 
 .cards{
@@ -70,9 +71,29 @@ border-radius:12px;
 margin-bottom:10px;
 }
 
+.card p{
+font-size:28px;
+font-weight:bold;
+margin-bottom:15px;
+}
+
+.card a{
+display:inline-block;
+background:#c9a96e;
+color:black;
+padding:10px 14px;
+text-decoration:none;
+border-radius:6px;
+font-weight:bold;
+}
+
 .logout{
 margin-top:30px;
 background:#c0392b !important;
+}
+
+.highlight{
+border:1px solid #c9a96e;
 }
 </style>
 </head>
@@ -87,6 +108,7 @@ background:#c0392b !important;
 <a href="villas.html">Ville</a>
 <a href="villa-form.html">Nuova Villa</a>
 <a href="destinations.html">Destinazioni</a>
+<a href="bookings.html">Prenotazioni</a>
 
 <a href="#" onclick="logout()" class="logout">Logout</a>
 
@@ -101,11 +123,25 @@ background:#c0392b !important;
 <div class="card">
 <h3>Ville</h3>
 <p id="villaCount">0</p>
+<a href="villas.html">Gestisci ville</a>
 </div>
 
 <div class="card">
 <h3>Destinazioni</h3>
 <p id="destinationCount">0</p>
+<a href="destinations.html">Gestisci destinazioni</a>
+</div>
+
+<div class="card highlight">
+<h3>Prenotazioni</h3>
+<p id="bookingCount">0</p>
+<a href="bookings.html">Apri prenotazioni</a>
+</div>
+
+<div class="card">
+<h3>Prenotazioni in attesa</h3>
+<p id="pendingBookingCount">0</p>
+<a href="bookings.html">Gestisci richieste</a>
 </div>
 
 <div class="card">
@@ -150,11 +186,28 @@ await supabaseClient
 .from('destinations')
 .select('*', { count:'exact', head:true });
 
+const bookings =
+await supabaseClient
+.from('bookings')
+.select('*', { count:'exact', head:true });
+
+const pendingBookings =
+await supabaseClient
+.from('bookings')
+.select('*', { count:'exact', head:true })
+.eq('status','pending');
+
 document.getElementById('villaCount').innerText =
 villas.count || 0;
 
 document.getElementById('destinationCount').innerText =
 destinations.count || 0;
+
+document.getElementById('bookingCount').innerText =
+bookings.count || 0;
+
+document.getElementById('pendingBookingCount').innerText =
+pendingBookings.count || 0;
 
 }
 
