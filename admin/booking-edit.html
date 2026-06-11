@@ -185,19 +185,6 @@ await loadBooking();
 
 }
 
-function formatDateIT(dateString){
-
-if(!dateString){
-return '-';
-}
-
-const parts =
-dateString.split('-');
-
-return `${parts[2]}/${parts[1]}/${parts[0]}`;
-
-}
-
 function formatEuro(value){
 
 const number =
@@ -228,11 +215,7 @@ end - start;
 const nights =
 Math.round(diff / (1000 * 60 * 60 * 24));
 
-if(nights <= 0){
-return '-';
-}
-
-return nights;
+return nights > 0 ? nights : '-';
 
 }
 
@@ -387,7 +370,7 @@ ${booking.status}
 
 <div class="actions">
 <button class="save" onclick="saveBooking()">Salva modifiche</button>
-<button class="confirm" onclick="quickStatus('confirmed')">Conferma</button>
+<button class="confirm" onclick="quickStatus('confirmed')">Conferma e invia email</button>
 <button class="cancel" onclick="quickStatus('cancelled')">Cancella</button>
 <button class="back" onclick="window.location.href='bookings.html'">Torna alle prenotazioni</button>
 </div>
@@ -396,7 +379,55 @@ ${booking.status}
 
 }
 
+function buildEmailPayload(booking){
+
+return {
+id:booking.id,
+guest_name:booking.guest_name,
+guest_email:booking.guest_email,
+guest_phone:booking.guest_phone,
+villa_title:booking.villas?.title || '',
+check_in:booking.check_in,
+check_out:booking.check_out,
+guests:booking.guests,
+total_price:booking.total_price
+};
+
+}
+
+async function sendConfirmationEmail(){
+
+const payload =
+buildEmailPayload(currentBooking);
+
+const { data, error } =
+await supabaseClient.functions.invoke(
+'send-booking-confirmation',
+{
+body:{
+booking:payload
+}
+}
+);
+
+if(error){
+alert('Prenotazione confermata, ma email NON inviata: ' + error.message);
+return;
+}
+
+if(data && data.success === false){
+alert('Prenotazione confermata, ma email NON inviata: ' + data.error);
+return;
+}
+
+alert('Email di conferma inviata al cliente.');
+
+}
+
 async function saveBooking(){
+
+const oldStatus =
+currentBooking.status;
 
 const updatedBooking = {
 guest_name:document.getElementById('guest_name').value,
@@ -439,9 +470,13 @@ alert(error.message);
 return;
 }
 
-alert('Prenotazione aggiornata');
-
 await loadBooking();
+
+if(oldStatus !== 'confirmed' && updatedBooking.status === 'confirmed'){
+await sendConfirmationEmail();
+}
+
+alert('Prenotazione aggiornata');
 
 }
 
@@ -465,6 +500,10 @@ return;
 }
 
 await loadBooking();
+
+if(status === 'confirmed'){
+await sendConfirmationEmail();
+}
 
 }
 
