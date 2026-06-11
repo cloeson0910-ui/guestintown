@@ -19,10 +19,15 @@ h1{margin-bottom:20px;}
 .section h2{font-size:20px;margin-bottom:15px;}
 input,select,textarea{width:100%;padding:12px;margin-bottom:15px;border:none;border-radius:6px;}
 textarea{min-height:120px;}
-.gps-actions{display:flex;gap:10px;margin-bottom:15px;}
-.gps-actions button{flex:1;padding:12px;border:none;border-radius:6px;cursor:pointer;}
+.gps-actions{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;}
+.gps-actions button{flex:1;min-width:180px;padding:12px;border:none;border-radius:6px;cursor:pointer;}
 .gps-button{background:#c9a96e;color:black;font-weight:bold;}
+.confirm-button{background:#27ae60;color:white;font-weight:bold;}
 .map-button{background:#333;color:white;}
+.gps-status{background:#151515;padding:12px;border-radius:8px;margin-bottom:15px;color:#ccc;}
+.gps-good{color:#2ecc71;font-weight:bold;}
+.gps-warning{color:#f1c40f;font-weight:bold;}
+.gps-bad{color:#e74c3c;font-weight:bold;}
 .map-preview{width:100%;height:260px;border-radius:10px;overflow:hidden;background:#222;margin-bottom:15px;cursor:pointer;border:1px solid #333;}
 .map-preview iframe{width:100%;height:100%;border:0;pointer-events:none;}
 .map-empty{height:260px;display:flex;align-items:center;justify-content:center;color:#aaa;}
@@ -81,12 +86,16 @@ button.delete-photo{background:#c0392b;color:white;border:none;padding:8px 10px;
 <div class="section">
 <h2>Dati immobile</h2>
 
-<input id="address" placeholder="Indirizzo completo">
+<input id="address" placeholder="Indirizzo / note posizione">
 
 <div class="gps-actions">
-<button class="gps-button" onclick="findAddress()">🔎 Trova indirizzo</button>
-<button class="gps-button" onclick="detectLocation()">📍 Rileva posizione GPS</button>
+<button class="gps-button" onclick="detectLocation()">📍 Rileva posizione villa</button>
+<button class="confirm-button" onclick="confirmLocation()">✅ Conferma posizione</button>
 <button class="map-button" onclick="openMap()">Apri Google Maps</button>
+</div>
+
+<div class="gps-status" id="gpsStatus">
+Posizione non ancora confermata.
 </div>
 
 <input id="latitude" type="number" step="any" placeholder="Latitudine">
@@ -188,6 +197,9 @@ button.delete-photo{background:#c0392b;color:white;border:none;padding:8px 10px;
 const params = new URLSearchParams(window.location.search);
 const villaId = params.get('id');
 
+let gpsAccuracy = null;
+let locationConfirmed = false;
+
 checkAuth();
 
 async function checkAuth(){
@@ -266,8 +278,24 @@ document.getElementById('cadastral_subunit').value = data.cadastral_subunit || '
 document.getElementById('short_description').value = data.short_description || '';
 document.getElementById('full_description').value = data.full_description || '';
 
+if(data.latitude && data.longitude){
+locationConfirmed = true;
+document.getElementById('gpsStatus').innerHTML =
+'<span class="gps-good">Posizione già salvata e considerata confermata.</span>';
+}
+
 updateMapPreview();
 
+document.getElementById('latitude').addEventListener('input', markLocationUnconfirmed);
+document.getElementById('longitude').addEventListener('input', markLocationUnconfirmed);
+
+}
+
+function markLocationUnconfirmed(){
+locationConfirmed = false;
+document.getElementById('gpsStatus').innerHTML =
+'<span class="gps-warning">Coordinate modificate. Conferma nuovamente la posizione.</span>';
+updateMapPreview();
 }
 
 async function loadServices(){
@@ -283,8 +311,7 @@ console.error(error);
 return;
 }
 
-const selectedServices =
-data.map(item => item.service_name);
+const selectedServices = data.map(item => item.service_name);
 
 document.querySelectorAll('#servicesGrid input[type="checkbox"]').forEach(input=>{
 input.checked = selectedServices.includes(input.value);
@@ -358,40 +385,6 @@ img.style.display = 'block';
 
 }
 
-async function findAddress(){
-
-const address = document.getElementById('address').value;
-
-if(!address){
-alert('Inserisci un indirizzo da cercare');
-return;
-}
-
-const url =
-`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-
-const response = await fetch(url, {
-headers:{
-'Accept':'application/json'
-}
-});
-
-const results = await response.json();
-
-if(!results || results.length === 0){
-alert('Indirizzo non trovato');
-return;
-}
-
-document.getElementById('latitude').value = results[0].lat;
-document.getElementById('longitude').value = results[0].lon;
-
-updateMapPreview();
-
-alert('Indirizzo trovato');
-
-}
-
 function detectLocation(){
 
 if(!navigator.geolocation){
@@ -399,26 +392,89 @@ alert('Geolocalizzazione non supportata da questo browser');
 return;
 }
 
+document.getElementById('gpsStatus').innerHTML =
+'Rilevamento GPS in corso... resta fermo e, se possibile, mettiti all’esterno.';
+
 navigator.geolocation.getCurrentPosition(
 position => {
 
-document.getElementById('latitude').value = position.coords.latitude;
-document.getElementById('longitude').value = position.coords.longitude;
+const lat = position.coords.latitude;
+const lng = position.coords.longitude;
+gpsAccuracy = position.coords.accuracy;
+
+document.getElementById('latitude').value = lat;
+document.getElementById('longitude').value = lng;
+
+locationConfirmed = false;
 
 updateMapPreview();
-
-alert('Posizione GPS rilevata');
+updateAccuracyStatus();
 
 },
 error => {
-alert('Impossibile rilevare la posizione: ' + error.message);
+document.getElementById('gpsStatus').innerHTML =
+'<span class="gps-bad">Impossibile rilevare la posizione: ' + error.message + '</span>';
 },
 {
 enableHighAccuracy:true,
-timeout:15000,
+timeout:20000,
 maximumAge:0
 }
 );
+
+}
+
+function updateAccuracyStatus(){
+
+const status = document.getElementById('gpsStatus');
+
+if(gpsAccuracy === null){
+status.innerHTML = '<span class="gps-warning">Precisione non disponibile. Conferma manualmente solo se hai verificato la mappa.</span>';
+return;
+}
+
+if(gpsAccuracy <= 15){
+status.innerHTML =
+`<span class="gps-good">Precisione GPS ottima: ${Math.round(gpsAccuracy)} metri. Puoi confermare la posizione.</span>`;
+return;
+}
+
+if(gpsAccuracy <= 30){
+status.innerHTML =
+`<span class="gps-good">Precisione GPS accettabile: ${Math.round(gpsAccuracy)} metri. Verifica sulla mappa e conferma.</span>`;
+return;
+}
+
+if(gpsAccuracy <= 50){
+status.innerHTML =
+`<span class="gps-warning">Precisione GPS da verificare: ${Math.round(gpsAccuracy)} metri. Controlla bene su Google Maps prima di confermare.</span>`;
+return;
+}
+
+status.innerHTML =
+`<span class="gps-bad">Precisione GPS insufficiente: ${Math.round(gpsAccuracy)} metri. Spostati all’esterno e riprova. Non confermare questa posizione.</span>`;
+
+}
+
+function confirmLocation(){
+
+const lat = document.getElementById('latitude').value;
+const lng = document.getElementById('longitude').value;
+
+if(!lat || !lng){
+alert('Coordinate mancanti');
+return;
+}
+
+if(gpsAccuracy !== null && gpsAccuracy > 50){
+alert('Precisione troppo bassa. Rileva nuovamente la posizione prima di confermare.');
+return;
+}
+
+locationConfirmed = true;
+
+document.getElementById('gpsStatus').innerHTML =
+'<span class="gps-good">Posizione villa confermata. Ora puoi salvare le modifiche.</span>';
 
 }
 
@@ -488,6 +544,14 @@ alert('Seleziona una destinazione');
 return;
 }
 
+const lat = document.getElementById('latitude').value;
+const lng = document.getElementById('longitude').value;
+
+if((lat || lng) && !locationConfirmed){
+alert('La posizione GPS non è stata confermata. Premi "Conferma posizione" prima di salvare.');
+return;
+}
+
 const villa = {
 title:title,
 slug:createSlug(title),
@@ -498,8 +562,8 @@ owner_phone:document.getElementById('owner_phone').value,
 owner_email:document.getElementById('owner_email').value,
 status:document.getElementById('status').value,
 address:document.getElementById('address').value,
-latitude:document.getElementById('latitude').value || null,
-longitude:document.getElementById('longitude').value || null,
+latitude:lat || null,
+longitude:lng || null,
 bedrooms:document.getElementById('bedrooms').value || null,
 bathrooms:document.getElementById('bathrooms').value || null,
 max_guests:document.getElementById('max_guests').value || null,
