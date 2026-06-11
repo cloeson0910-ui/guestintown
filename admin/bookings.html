@@ -1,1 +1,474 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Prenotazioni</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+padding:30px;
+max-width:1200px;
+margin:auto;
+}
+
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.menu .logout{
+margin-left:auto;
+background:#c0392b;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+.filters{
+background:#1b1b1b;
+padding:20px;
+border-radius:10px;
+margin-bottom:25px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+}
+
+input,
+select{
+padding:12px;
+border:none;
+border-radius:6px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:#1b1b1b;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #333;
+text-align:left;
+vertical-align:top;
+}
+
+th{
+background:#222;
+}
+
+.status{
+padding:6px 10px;
+border-radius:20px;
+font-size:12px;
+display:inline-block;
+}
+
+.pending{
+background:orange;
+color:black;
+}
+
+.confirmed{
+background:green;
+color:white;
+}
+
+.cancelled{
+background:red;
+color:white;
+}
+
+.completed{
+background:#555;
+color:white;
+}
+
+button.action{
+padding:7px 10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin:3px 0;
+display:block;
+width:100%;
+}
+
+.confirm{
+background:#27ae60;
+color:white;
+}
+
+.cancel{
+background:#c0392b;
+color:white;
+}
+
+.complete{
+background:#555;
+color:white;
+}
+
+.empty{
+background:#1b1b1b;
+padding:30px;
+border-radius:10px;
+text-align:center;
+}
+
+.total-box{
+background:#1b1b1b;
+padding:20px;
+border-radius:10px;
+margin-bottom:25px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:15px;
+}
+
+.total-card{
+background:#151515;
+padding:15px;
+border-radius:8px;
+}
+
+.total-card strong{
+display:block;
+font-size:24px;
+margin-top:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
+<a href="destinations.html">Destinazioni</a>
+<a href="bookings.html">Prenotazioni</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Prenotazioni</h1>
+
+<div class="filters">
+<select id="villaFilter" onchange="loadBookings()">
+<option value="">Tutte le ville</option>
+</select>
+
+<select id="statusFilter" onchange="loadBookings()">
+<option value="">Tutti gli stati</option>
+<option value="pending">Pending</option>
+<option value="confirmed">Confirmed</option>
+<option value="cancelled">Cancelled</option>
+<option value="completed">Completed</option>
+</select>
+
+<input id="searchFilter" placeholder="Cerca cliente o email" oninput="loadBookings()">
+</div>
+
+<div class="total-box">
+<div class="total-card">
+Prenotazioni
+<strong id="totalBookings">0</strong>
+</div>
+
+<div class="total-card">
+Totale valore
+<strong id="totalRevenue">€0</strong>
+</div>
+
+<div class="total-card">
+Confermate
+<strong id="confirmedBookings">0</strong>
+</div>
+
+<div class="total-card">
+In attesa
+<strong id="pendingBookings">0</strong>
+</div>
+</div>
+
+<div id="bookingsContainer">
+<div class="empty">Caricamento prenotazioni...</div>
+</div>
+
+<script>
+
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+
+await loadVillas();
+await loadBookings();
+
+}
+
+async function loadVillas(){
+
+const { data, error } =
+await supabaseClient
+.from('villas')
+.select('id,title')
+.order('title');
+
+if(error){
+alert(error.message);
+return;
+}
+
+const select =
+document.getElementById('villaFilter');
+
+data.forEach(villa=>{
+select.innerHTML += `
+<option value="${villa.id}">
+${villa.title}
+</option>
+`;
+});
+
+}
+
+function formatDateIT(dateString){
+
+if(!dateString){
+return '-';
+}
+
+const parts =
+dateString.split('-');
+
+return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+}
+
+function formatEuro(value){
+
+const number =
+Number(value || 0);
+
+return number.toLocaleString('it-IT',{
+style:'currency',
+currency:'EUR'
+});
+
+}
+
+async function loadBookings(){
+
+let query =
+supabaseClient
+.from('bookings')
+.select(`
+*,
+villas(title)
+`)
+.order('check_in',{ascending:true});
+
+const villaFilter =
+document.getElementById('villaFilter').value;
+
+const statusFilter =
+document.getElementById('statusFilter').value;
+
+const searchFilter =
+document.getElementById('searchFilter').value.toLowerCase();
+
+if(villaFilter){
+query = query.eq('villa_id', villaFilter);
+}
+
+if(statusFilter){
+query = query.eq('status', statusFilter);
+}
+
+const { data, error } =
+await query;
+
+if(error){
+document.getElementById('bookingsContainer').innerHTML =
+`<div class="empty">${error.message}</div>`;
+return;
+}
+
+let bookings =
+data || [];
+
+if(searchFilter){
+bookings =
+bookings.filter(booking =>
+(booking.guest_name || '').toLowerCase().includes(searchFilter) ||
+(booking.guest_email || '').toLowerCase().includes(searchFilter)
+);
+}
+
+renderTotals(bookings);
+renderBookings(bookings);
+
+}
+
+function renderTotals(bookings){
+
+const totalRevenue =
+bookings.reduce((sum,b)=> sum + Number(b.total_price || 0),0);
+
+const confirmed =
+bookings.filter(b=>b.status === 'confirmed').length;
+
+const pending =
+bookings.filter(b=>b.status === 'pending').length;
+
+document.getElementById('totalBookings').innerText =
+bookings.length;
+
+document.getElementById('totalRevenue').innerText =
+formatEuro(totalRevenue);
+
+document.getElementById('confirmedBookings').innerText =
+confirmed;
+
+document.getElementById('pendingBookings').innerText =
+pending;
+
+}
+
+function renderBookings(bookings){
+
+const container =
+document.getElementById('bookingsContainer');
+
+if(bookings.length === 0){
+container.innerHTML =
+'<div class="empty">Nessuna prenotazione trovata.</div>';
+return;
+}
+
+container.innerHTML = `
+<table>
+<thead>
+<tr>
+<th>Villa</th>
+<th>Cliente</th>
+<th>Date</th>
+<th>Ospiti</th>
+<th>Totale</th>
+<th>Stato</th>
+<th>Azioni</th>
+</tr>
+</thead>
+<tbody>
+${bookings.map(booking=>`
+<tr>
+<td>${booking.villas?.title || '-'}</td>
+
+<td>
+<strong>${booking.guest_name || '-'}</strong><br>
+${booking.guest_email || '-'}<br>
+${booking.guest_phone || ''}
+</td>
+
+<td>
+Check-in: ${formatDateIT(booking.check_in)}<br>
+Check-out: ${formatDateIT(booking.check_out)}
+</td>
+
+<td>${booking.guests || '-'}</td>
+
+<td>${formatEuro(booking.total_price)}</td>
+
+<td>
+<span class="status ${booking.status}">
+${booking.status}
+</span>
+</td>
+
+<td>
+<button class="action confirm" onclick="updateBookingStatus(${booking.id},'confirmed')">
+Conferma
+</button>
+
+<button class="action cancel" onclick="updateBookingStatus(${booking.id},'cancelled')">
+Cancella
+</button>
+
+<button class="action complete" onclick="updateBookingStatus(${booking.id},'completed')">
+Completa
+</button>
+</td>
+</tr>
+`).join('')}
+</tbody>
+</table>
+`;
+
+}
+
+async function updateBookingStatus(id,status){
+
+if(!confirm('Aggiornare lo stato della prenotazione?')){
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('bookings')
+.update({
+status:status
+})
+.eq('id', id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+loadBookings();
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
+
+}
+
+</script>
+
+</body>
+</html>
