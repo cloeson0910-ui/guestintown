@@ -29,6 +29,7 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 margin-bottom:60px;
+gap:20px;
 }
 
 .logo{
@@ -132,6 +133,38 @@ text-transform:uppercase;
 color:#c9a96e;
 }
 
+.info{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+margin:18px 0;
+font-family:Arial,sans-serif;
+}
+
+.info span{
+background:rgba(201,169,110,.16);
+border:1px solid rgba(201,169,110,.28);
+color:#f5efe4;
+padding:8px 10px;
+font-size:13px;
+letter-spacing:0;
+text-transform:none;
+}
+
+.button{
+display:inline-block;
+margin-top:12px;
+color:#050505;
+background:#c9a96e;
+padding:12px 18px;
+font-family:Arial,sans-serif;
+font-size:13px;
+text-decoration:none;
+letter-spacing:1px;
+text-transform:uppercase;
+font-weight:bold;
+}
+
 .empty{
 background:#111;
 border:1px solid rgba(201,169,110,.3);
@@ -141,8 +174,25 @@ color:#bbb;
 font-family:Arial,sans-serif;
 }
 
+.fallback{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+background:
+linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,.88)),
+radial-gradient(circle at center,#3a2c16,#050505 70%);
+color:#c9a96e;
+font-size:28px;
+letter-spacing:4px;
+text-transform:uppercase;
+padding:30px;
+}
+
 @media(max-width:700px){
-.header{flex-direction:column;align-items:flex-start;gap:20px;}
+.header{flex-direction:column;align-items:flex-start;}
 .hero h1{font-size:40px;}
 .card{height:340px;}
 }
@@ -165,7 +215,7 @@ font-family:Arial,sans-serif;
 <section class="hero">
 <h1 id="pageTitle">Destinazione</h1>
 <p id="pageSubtitle">
-Scopra i paesi selezionati in questa destinazione e scelga la villa più adatta al suo soggiorno.
+Scopra i paesi e le ville selezionate in questa destinazione.
 </p>
 </section>
 
@@ -175,11 +225,8 @@ Scopra i paesi selezionati in questa destinazione e scelga la villa più adatta 
 
 <script>
 
-const params =
-new URLSearchParams(window.location.search);
-
-const destinationId =
-params.get('id');
+const params = new URLSearchParams(window.location.search);
+const destinationId = params.get('id');
 
 loadDestination();
 
@@ -190,75 +237,70 @@ return (name || '')
 .replace(/[\u0300-\u036f]/g,'');
 }
 
-function getTownImage(name){
+function getImageByName(name){
 
 const n = normalizeName(name);
 
 if(n.includes('alberobello')){
-return 'https://loremflickr.com/1600/1100/alberobello,trulli,puglia?lock=101';
+return 'https://loremflickr.com/1600/1100/alberobello,trulli,puglia?lock=301';
 }
 
 if(n.includes('ostuni')){
-return 'https://loremflickr.com/1600/1100/ostuni,puglia,white-town?lock=102';
+return 'https://loremflickr.com/1600/1100/ostuni,puglia,white-town?lock=302';
 }
 
 if(n.includes('cisternino')){
-return 'https://loremflickr.com/1600/1100/cisternino,puglia,white-town?lock=103';
+return 'https://loremflickr.com/1600/1100/cisternino,puglia?lock=303';
 }
 
 if(n.includes('carovigno')){
-return 'https://loremflickr.com/1600/1100/carovigno,puglia,olive?lock=104';
+return 'https://loremflickr.com/1600/1100/carovigno,puglia,ulivi?lock=304';
 }
 
 if(n.includes('francavilla')){
-return 'https://loremflickr.com/1600/1100/francavilla-fontana,puglia?lock=105';
+return 'https://loremflickr.com/1600/1100/francavilla-fontana,puglia?lock=305';
 }
 
 if(n.includes('fasano')){
-return 'https://loremflickr.com/1600/1100/fasano,puglia,masseria?lock=106';
+return 'https://loremflickr.com/1600/1100/fasano,puglia,masseria?lock=306';
 }
 
-if(n.includes('polignano')){
-return 'https://loremflickr.com/1600/1100/polignano-a-mare,puglia?lock=107';
-}
-
-if(n.includes('monopoli')){
-return 'https://loremflickr.com/1600/1100/monopoli,puglia,sea?lock=108';
+if(n.includes('bari')){
+return 'https://loremflickr.com/1600/1100/polignano-a-mare,puglia?lock=307';
 }
 
 if(n.includes('lecce')){
-return 'https://loremflickr.com/1600/1100/lecce,puglia,baroque?lock=109';
+return 'https://loremflickr.com/1600/1100/lecce,puglia,baroque?lock=308';
 }
 
 if(n.includes('otranto')){
-return 'https://loremflickr.com/1600/1100/otranto,salento,sea?lock=110';
+return 'https://loremflickr.com/1600/1100/otranto,salento,sea?lock=309';
 }
 
 if(n.includes('gallipoli')){
-return 'https://loremflickr.com/1600/1100/gallipoli,salento,sea?lock=111';
+return 'https://loremflickr.com/1600/1100/gallipoli,salento,sea?lock=310';
 }
 
-if(n.includes('porto cesareo')){
-return 'https://loremflickr.com/1600/1100/porto-cesareo,salento,sea?lock=112';
+return 'https://loremflickr.com/1600/1100/puglia,ulivi,masseria?lock=311';
+
 }
 
-if(n.includes('nard')){
-return 'https://loremflickr.com/1600/1100/nardo,salento,puglia?lock=113';
-}
+function formatEuro(value){
 
-if(n.includes('ugento')){
-return 'https://loremflickr.com/1600/1100/ugento,salento,sea?lock=114';
-}
+const number =
+Number(value || 0);
 
-return 'https://loremflickr.com/1600/1100/puglia,ulivi,masseria?lock=115';
+return number.toLocaleString('it-IT',{
+style:'currency',
+currency:'EUR'
+});
 
 }
 
 async function loadDestination(){
 
 if(!destinationId){
-document.getElementById('content').innerHTML =
-'<div class="empty">Destinazione non trovata.</div>';
+showError('Destinazione non trovata.');
 return;
 }
 
@@ -270,13 +312,18 @@ await supabaseClient
 .single();
 
 if(destinationError || !destination){
-document.getElementById('content').innerHTML =
-'<div class="empty">Destinazione non trovata.</div>';
+showError('Destinazione non trovata.');
 return;
 }
 
 document.getElementById('pageTitle').innerText =
 destination.name || 'Destinazione';
+
+await loadTownsOrVillas(destination);
+
+}
+
+async function loadTownsOrVillas(destination){
 
 const { data: towns, error: townsError } =
 await supabaseClient
@@ -285,17 +332,19 @@ await supabaseClient
 .eq('destination_id', destinationId)
 .order('name');
 
-if(townsError){
-document.getElementById('content').innerHTML =
-`<div class="empty">${townsError.message}</div>`;
+if(!townsError && towns && towns.length > 0){
+renderTowns(towns);
 return;
 }
 
-if(!towns || towns.length === 0){
-document.getElementById('content').innerHTML =
-'<div class="empty">Nessun paese disponibile per questa destinazione.</div>';
-return;
+await loadVillas(destination);
+
 }
+
+function renderTowns(towns){
+
+document.getElementById('pageSubtitle').innerText =
+'Scopra i paesi selezionati in questa destinazione e scelga la villa più adatta al suo soggiorno.';
 
 const content =
 document.getElementById('content');
@@ -305,11 +354,18 @@ content.innerHTML = '';
 towns.forEach(town=>{
 
 const imageUrl =
-town.image_url || getTownImage(town.name);
+town.image_url || getImageByName(town.name);
 
 content.innerHTML += `
 <a class="card" href="town.html?id=${town.id}">
-<img src="${imageUrl}" alt="${town.name}" loading="lazy">
+<div class="fallback">${town.name}</div>
+
+<img
+src="${imageUrl}"
+alt="${town.name}"
+loading="lazy"
+onerror="this.style.display='none';"
+>
 
 <div class="card-overlay">
 <div>
@@ -321,6 +377,89 @@ content.innerHTML += `
 `;
 
 });
+
+}
+
+async function loadVillas(destination){
+
+document.getElementById('pageSubtitle').innerText =
+'Ville esclusive selezionate da Guest in Town in questa destinazione.';
+
+const { data: villas, error } =
+await supabaseClient
+.from('villas')
+.select('*')
+.eq('destination_id', destinationId)
+.or('status.eq.published,status.eq.approved,published.eq.true')
+.order('created_at',{ascending:false});
+
+if(error){
+showError(error.message);
+return;
+}
+
+if(!villas || villas.length === 0){
+showError('Nessun paese o villa disponibile per questa destinazione.');
+return;
+}
+
+const content =
+document.getElementById('content');
+
+content.innerHTML = '';
+
+for(const villa of villas){
+
+const { data: images } =
+await supabaseClient
+.from('villa_images')
+.select('*')
+.eq('villa_id', villa.id);
+
+const mainImage =
+images?.find(img => img.image_type === 'main')?.image_url
+|| images?.[0]?.image_url
+|| getImageByName(destination.name);
+
+content.innerHTML += `
+<div class="card">
+<div class="fallback">${villa.title || 'Villa'}</div>
+
+<img
+src="${mainImage}"
+alt="${villa.title || ''}"
+loading="lazy"
+onerror="this.style.display='none';"
+>
+
+<div class="card-overlay">
+<div>
+<h2>${villa.title || ''}</h2>
+<span>${destination.name || ''}</span>
+
+<div class="info">
+<span>${villa.max_guests || '-'} ospiti</span>
+<span>${villa.bedrooms || '-'} camere</span>
+<span>${villa.bathrooms || '-'} bagni</span>
+${villa.nightly_price ? `<span>Da ${formatEuro(villa.nightly_price)} / notte</span>` : ''}
+</div>
+
+<a class="button" href="villa.html?id=${villa.id}">
+Scopri la villa
+</a>
+</div>
+</div>
+</div>
+`;
+
+}
+
+}
+
+function showError(message){
+
+document.getElementById('content').innerHTML =
+`<div class="empty">${message}</div>`;
 
 }
 
