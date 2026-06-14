@@ -64,12 +64,18 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 
 <div class="section">
 <h2>Dati principali</h2>
+
 <input id="title" placeholder="Nome Villa">
 <input id="cin" placeholder="CIN">
 
-<label>Destinazione</label>
-<select id="destination_id">
+<label>Destinazione / Provincia</label>
+<select id="destination_id" onchange="handleDestinationChange()">
 <option value="">Seleziona destinazione</option>
+</select>
+
+<label>Paese</label>
+<select id="town_id">
+<option value="">Seleziona prima una destinazione</option>
 </select>
 
 <input id="owner_name" placeholder="Nome Proprietario">
@@ -259,9 +265,68 @@ return;
 
 const select = document.getElementById('destination_id');
 
+select.innerHTML = '<option value="">Seleziona destinazione</option>';
+
 data.forEach(destination=>{
 select.innerHTML += `<option value="${destination.id}">${destination.name}</option>`;
 });
+}
+
+async function handleDestinationChange(){
+
+const destinationId =
+document.getElementById('destination_id').value;
+
+await loadTowns(destinationId, null);
+
+}
+
+async function loadTowns(destinationId, selectedTownId){
+
+const townSelect =
+document.getElementById('town_id');
+
+townSelect.innerHTML =
+'<option value="">Seleziona paese</option>';
+
+if(!destinationId){
+townSelect.innerHTML =
+'<option value="">Seleziona prima una destinazione</option>';
+return;
+}
+
+const { data, error } =
+await supabaseClient
+.from('towns')
+.select('id,name')
+.eq('destination_id', destinationId)
+.order('name');
+
+if(error){
+console.error(error);
+townSelect.innerHTML =
+'<option value="">Errore caricamento paesi</option>';
+return;
+}
+
+if(!data || data.length === 0){
+townSelect.innerHTML =
+'<option value="">Nessun paese disponibile</option>';
+return;
+}
+
+data.forEach(town=>{
+townSelect.innerHTML += `
+<option value="${town.id}">
+${town.name}
+</option>
+`;
+});
+
+if(selectedTownId){
+townSelect.value = selectedTownId;
+}
+
 }
 
 async function loadVilla(){
@@ -287,6 +352,9 @@ return;
 document.getElementById('title').value = data.title || '';
 document.getElementById('cin').value = data.cin || '';
 document.getElementById('destination_id').value = data.destination_id || '';
+
+await loadTowns(data.destination_id, data.town_id);
+
 document.getElementById('owner_name').value = data.owner_name || '';
 document.getElementById('owner_phone').value = data.owner_phone || '';
 document.getElementById('owner_email').value = data.owner_email || '';
@@ -688,6 +756,7 @@ async function updateVilla(){
 
 const title = document.getElementById('title').value;
 const destinationId = parseInt(document.getElementById('destination_id').value);
+const townId = document.getElementById('town_id').value;
 
 if(!title){
 alert('Inserisci il nome della villa');
@@ -696,6 +765,11 @@ return;
 
 if(!destinationId){
 alert('Seleziona una destinazione');
+return;
+}
+
+if(!townId){
+alert('Seleziona un paese');
 return;
 }
 
@@ -712,6 +786,7 @@ title:title,
 slug:createSlug(title),
 cin:document.getElementById('cin').value,
 destination_id:destinationId,
+town_id:parseInt(townId),
 owner_name:document.getElementById('owner_name').value,
 owner_phone:document.getElementById('owner_phone').value,
 owner_email:document.getElementById('owner_email').value,
