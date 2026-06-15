@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +15,7 @@ font-family:Arial,sans-serif;
 background:#111;
 color:white;
 padding:30px;
-max-width:1000px;
+max-width:1100px;
 margin:auto;
 }
 
@@ -60,6 +59,7 @@ padding:12px;
 margin-bottom:15px;
 border:none;
 border-radius:6px;
+box-sizing:border-box;
 }
 
 button.save{
@@ -68,6 +68,15 @@ color:black;
 font-weight:bold;
 padding:12px 20px;
 border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+button.delete{
+background:#c0392b;
+color:white;
+border:none;
+padding:8px 10px;
 border-radius:6px;
 cursor:pointer;
 }
@@ -82,10 +91,27 @@ th,td{
 padding:12px;
 border-bottom:1px solid #333;
 text-align:left;
+vertical-align:top;
 }
 
 th{
 background:#222;
+}
+
+.preview{
+width:140px;
+height:90px;
+object-fit:cover;
+border-radius:8px;
+background:#222;
+display:block;
+margin-top:8px;
+}
+
+.small{
+font-size:12px;
+color:#aaa;
+line-height:1.5;
 }
 </style>
 </head>
@@ -103,17 +129,20 @@ background:#222;
 <h1>Destinazioni</h1>
 
 <div class="form">
-<input id="name" placeholder="Nome destinazione">
+<input id="name" placeholder="Nome destinazione / provincia">
 <input id="country" placeholder="Paese">
+<input id="image_url" placeholder="URL immagine destinazione">
 <button class="save" onclick="saveDestination()">Salva Destinazione</button>
 </div>
 
 <table>
 <thead>
 <tr>
+<th>Foto</th>
 <th>Nome</th>
 <th>Slug</th>
 <th>Paese</th>
+<th>URL immagine</th>
 <th>Azioni</th>
 </tr>
 </thead>
@@ -152,10 +181,13 @@ return text
 async function saveDestination(){
 
 const name =
-document.getElementById('name').value;
+document.getElementById('name').value.trim();
 
 const country =
-document.getElementById('country').value;
+document.getElementById('country').value.trim();
+
+const imageUrl =
+document.getElementById('image_url').value.trim();
 
 if(!name){
 alert('Inserisci il nome della destinazione');
@@ -166,6 +198,7 @@ const destination = {
 name:name,
 slug:createSlug(name),
 country:country,
+image_url:imageUrl || null,
 active:true
 };
 
@@ -175,13 +208,13 @@ await supabaseClient
 .insert([destination]);
 
 if(error){
-console.error(error);
 alert(error.message);
 return;
 }
 
 document.getElementById('name').value='';
 document.getElementById('country').value='';
+document.getElementById('image_url').value='';
 
 loadDestinations();
 
@@ -196,7 +229,6 @@ await supabaseClient
 .order('name');
 
 if(error){
-console.error(error);
 alert(error.message);
 return;
 }
@@ -210,11 +242,31 @@ data.forEach(destination=>{
 
 table.innerHTML += `
 <tr>
-<td>${destination.name || ''}</td>
-<td>${destination.slug || ''}</td>
-<td>${destination.country || ''}</td>
 <td>
-<button onclick="deleteDestination(${destination.id})">
+${destination.image_url ? `<img class="preview" src="${destination.image_url}">` : '<div class="small">Nessuna foto</div>'}
+</td>
+
+<td>
+<input id="name-${destination.id}" value="${destination.name || ''}">
+</td>
+
+<td>${destination.slug || ''}</td>
+
+<td>
+<input id="country-${destination.id}" value="${destination.country || ''}">
+</td>
+
+<td>
+<input id="image-${destination.id}" value="${destination.image_url || ''}" placeholder="URL immagine">
+<div class="small">Usata nella pagina pubblica delle destinazioni.</div>
+</td>
+
+<td>
+<button class="save" onclick="updateDestination(${destination.id})">
+Salva
+</button>
+<br><br>
+<button class="delete" onclick="deleteDestination(${destination.id})">
 Elimina
 </button>
 </td>
@@ -222,6 +274,42 @@ Elimina
 `;
 
 });
+
+}
+
+async function updateDestination(id){
+
+const name =
+document.getElementById(`name-${id}`).value.trim();
+
+const country =
+document.getElementById(`country-${id}`).value.trim();
+
+const imageUrl =
+document.getElementById(`image-${id}`).value.trim();
+
+if(!name){
+alert('Il nome destinazione è obbligatorio');
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('destinations')
+.update({
+name:name,
+slug:createSlug(name),
+country:country,
+image_url:imageUrl || null
+})
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+loadDestinations();
 
 }
 
