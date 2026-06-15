@@ -177,7 +177,14 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 <input id="booking_ical" placeholder="https://admin.booking.com/hotel/hoteladmin/ical.html?...">
 </div>
 
+<div class="actions">
 <button class="save" onclick="saveCalendarLinks()">Salva calendari</button>
+<button class="save" onclick="syncCalendars()">Sincronizza ora Airbnb / Booking</button>
+</div>
+
+<div class="gps-status" id="syncStatus">
+Nessuna sincronizzazione eseguita in questa sessione.
+</div>
 </div>
 
 <div class="section">
@@ -602,6 +609,59 @@ return;
 }
 
 alert('Calendari salvati');
+}
+
+
+async function syncCalendars(){
+
+const syncStatus =
+document.getElementById('syncStatus');
+
+if(syncStatus){
+syncStatus.innerHTML =
+'Sincronizzazione calendari in corso...';
+}
+
+await saveCalendarLinks();
+
+const { data, error } =
+await supabaseClient.functions.invoke(
+'sync-villa-calendars',
+{
+body:{
+villa_id:Number(villaId)
+}
+}
+);
+
+if(error){
+if(syncStatus){
+syncStatus.innerHTML =
+'<span class="gps-bad">Errore sincronizzazione: ' + error.message + '</span>';
+}
+alert(error.message);
+return;
+}
+
+if(data && data.success === false){
+if(syncStatus){
+syncStatus.innerHTML =
+'<span class="gps-bad">Errore sincronizzazione: ' + data.error + '</span>';
+}
+alert(data.error || 'Errore sincronizzazione');
+return;
+}
+
+const imported =
+data?.imported || 0;
+
+if(syncStatus){
+syncStatus.innerHTML =
+'<span class="gps-good">Sincronizzazione completata. Prenotazioni importate: ' + imported + '.</span>';
+}
+
+alert('Sincronizzazione completata. Prenotazioni importate: ' + imported);
+
 }
 
 async function loadImages(){
