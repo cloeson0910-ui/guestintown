@@ -10,131 +10,23 @@
 <script src="../js/supabase.js"></script>
 
 <style>
-body{
-font-family:Arial,sans-serif;
-background:#111;
-color:white;
-padding:30px;
-max-width:1200px;
-margin:auto;
-}
-
-.menu{
-display:flex;
-gap:15px;
-align-items:center;
-margin-bottom:30px;
-flex-wrap:wrap;
-}
-
-.menu a,
-.menu button{
-background:#222;
-color:white;
-padding:10px 15px;
-text-decoration:none;
-border:0;
-border-radius:6px;
-cursor:pointer;
-}
-
-.menu .logout{
-margin-left:auto;
-background:#c0392b;
-}
-
-h1{
-margin-bottom:20px;
-}
-
-.form,
-.filters{
-background:#1b1b1b;
-padding:20px;
-border-radius:10px;
-margin-bottom:25px;
-}
-
-.form-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-align-items:end;
-}
-
-input,
-select{
-width:100%;
-padding:12px;
-border:none;
-border-radius:6px;
-box-sizing:border-box;
-}
-
-label{
-display:block;
-font-size:13px;
-color:#ccc;
-margin-bottom:8px;
-}
-
-button.save{
-background:#c9a96e;
-color:black;
-font-weight:bold;
-padding:12px 20px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-}
-
-button.delete{
-background:#c0392b;
-color:white;
-border:none;
-padding:8px 10px;
-border-radius:6px;
-cursor:pointer;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-background:#1b1b1b;
-}
-
-th,td{
-padding:12px;
-border-bottom:1px solid #333;
-text-align:left;
-vertical-align:top;
-}
-
-th{
-background:#222;
-}
-
-.preview{
-width:150px;
-height:95px;
-object-fit:cover;
-border-radius:8px;
-background:#222;
-display:block;
-}
-
-.small{
-font-size:12px;
-color:#aaa;
-line-height:1.5;
-}
-
-.empty{
-background:#1b1b1b;
-padding:30px;
-border-radius:10px;
-text-align:center;
-}
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1200px;margin:auto;}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
+.menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer;}
+.menu .logout{margin-left:auto;background:#c0392b;}
+h1{margin-bottom:20px;}
+.form,.filters{background:#1b1b1b;padding:20px;border-radius:10px;margin-bottom:25px;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;align-items:end;}
+input,select{width:100%;padding:12px;border:none;border-radius:6px;box-sizing:border-box;}
+label{display:block;font-size:13px;color:#ccc;margin-bottom:8px;}
+button.save{background:#c9a96e;color:black;font-weight:bold;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;}
+button.delete{background:#c0392b;color:white;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;}
+table{width:100%;border-collapse:collapse;background:#1b1b1b;}
+th,td{padding:12px;border-bottom:1px solid #333;text-align:left;vertical-align:top;}
+th{background:#222;}
+.preview{width:150px;height:95px;object-fit:cover;border-radius:8px;background:#222;display:block;}
+.small{font-size:12px;color:#aaa;line-height:1.5;}
+.empty{background:#1b1b1b;padding:30px;border-radius:10px;text-align:center;}
 </style>
 </head>
 
@@ -152,7 +44,6 @@ text-align:center;
 <h1>Paesi</h1>
 
 <div class="form">
-
 <div class="form-grid">
 
 <div>
@@ -169,7 +60,12 @@ text-align:center;
 
 <div>
 <label>URL immagine paese</label>
-<input id="image_url" placeholder="https://...">
+<input id="image_url" placeholder="URL immagine oppure carica file">
+</div>
+
+<div>
+<label>Carica immagine dal PC</label>
+<input id="image_file" type="file" accept="image/*">
 </div>
 
 <div>
@@ -177,7 +73,6 @@ text-align:center;
 </div>
 
 </div>
-
 </div>
 
 <div class="filters">
@@ -253,6 +148,44 @@ ${destination.name}
 
 }
 
+async function uploadLocationImage(file, folder){
+
+if(!file){
+return '';
+}
+
+const cleanName =
+file.name
+.toLowerCase()
+.replaceAll(' ','-')
+.replace(/[^a-z0-9.\-_]/g,'');
+
+const filePath =
+`${folder}/${Date.now()}-${cleanName}`;
+
+const upload =
+await supabaseClient.storage
+.from('location-images')
+.upload(filePath, file, {
+cacheControl:'3600',
+upsert:false
+});
+
+if(upload.error){
+alert(upload.error.message);
+return '';
+}
+
+const publicUrl =
+supabaseClient.storage
+.from('location-images')
+.getPublicUrl(filePath)
+.data.publicUrl;
+
+return publicUrl;
+
+}
+
 async function saveTown(){
 
 const destinationId =
@@ -261,8 +194,11 @@ document.getElementById('destination_id').value;
 const name =
 document.getElementById('name').value.trim();
 
-const imageUrl =
+let imageUrl =
 document.getElementById('image_url').value.trim();
+
+const imageFile =
+document.getElementById('image_file').files[0];
 
 if(!destinationId){
 alert('Seleziona una destinazione');
@@ -272,6 +208,19 @@ return;
 if(!name){
 alert('Inserisci il nome del paese');
 return;
+}
+
+if(imageFile){
+
+const uploadedUrl =
+await uploadLocationImage(imageFile, 'towns');
+
+if(!uploadedUrl){
+return;
+}
+
+imageUrl = uploadedUrl;
+
 }
 
 const { error } =
@@ -290,6 +239,7 @@ return;
 
 document.getElementById('name').value = '';
 document.getElementById('image_url').value = '';
+document.getElementById('image_file').value = '';
 
 await loadTowns();
 
@@ -341,7 +291,7 @@ document.getElementById('tableContainer').innerHTML = `
 <th>Foto</th>
 <th>Paese</th>
 <th>Destinazione</th>
-<th>URL immagine</th>
+<th>Immagine</th>
 <th>Azioni</th>
 </tr>
 </thead>
@@ -364,7 +314,9 @@ ${getDestinationOptions(town.destination_id)}
 
 <td>
 <input id="image-${town.id}" value="${town.image_url || ''}" placeholder="URL immagine">
-<div class="small">Usata nella pagina pubblica del paese.</div>
+<br><br>
+<input id="file-${town.id}" type="file" accept="image/*">
+<div class="small">Puoi incollare un URL o caricare una nuova foto dal PC.</div>
 </td>
 
 <td>
@@ -417,8 +369,11 @@ document.getElementById(`name-${id}`).value.trim();
 const destinationId =
 document.getElementById(`destination-${id}`).value;
 
-const imageUrl =
+let imageUrl =
 document.getElementById(`image-${id}`).value.trim();
+
+const imageFile =
+document.getElementById(`file-${id}`).files[0];
 
 if(!name){
 alert('Il nome paese è obbligatorio');
@@ -428,6 +383,19 @@ return;
 if(!destinationId){
 alert('La destinazione è obbligatoria');
 return;
+}
+
+if(imageFile){
+
+const uploadedUrl =
+await uploadLocationImage(imageFile, 'towns');
+
+if(!uploadedUrl){
+return;
+}
+
+imageUrl = uploadedUrl;
+
 }
 
 const { error } =
