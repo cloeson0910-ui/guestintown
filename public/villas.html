@@ -10,199 +10,37 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+body{background:#050505;color:white;font-family:Georgia,"Times New Roman",serif;}
+.container{max-width:1350px;margin:auto;padding:40px 30px 90px;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:60px;gap:20px;}
+.logo{color:#c9a96e;font-size:24px;letter-spacing:4px;text-transform:uppercase;}
+.nav a{color:#c9a96e;border:1px solid rgba(201,169,110,.55);padding:12px 20px;text-decoration:none;font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+.hero{text-align:center;margin-bottom:70px;}
+.hero h1{font-size:58px;font-weight:400;color:#c9a96e;margin-bottom:18px;}
+.hero p{font-family:Arial,sans-serif;color:#bbb;font-size:17px;line-height:1.8;max-width:760px;margin:auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:30px;}
 
-body{
-background:#050505;
-color:white;
-font-family:Georgia,"Times New Roman",serif;
-}
-
-.container{
-max-width:1350px;
-margin:auto;
-padding:40px 30px 90px;
-}
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:60px;
-gap:20px;
-}
-
-.logo{
-color:#c9a96e;
-font-size:24px;
-letter-spacing:4px;
-text-transform:uppercase;
-}
-
-.nav a{
-color:#c9a96e;
-border:1px solid rgba(201,169,110,.55);
-padding:12px 20px;
-text-decoration:none;
-font-family:Arial,sans-serif;
-font-size:13px;
-letter-spacing:1px;
-text-transform:uppercase;
-}
-
-.hero{
-text-align:center;
-margin-bottom:70px;
-}
-
-.hero h1{
-font-size:58px;
-font-weight:400;
-color:#c9a96e;
-margin-bottom:18px;
-}
-
-.hero p{
-font-family:Arial,sans-serif;
-color:#bbb;
-font-size:17px;
-line-height:1.8;
-max-width:760px;
-margin:auto;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
-gap:30px;
-}
-
-.card{
-position:relative;
-height:420px;
-overflow:hidden;
-background:#111;
-border:1px solid rgba(201,169,110,.35);
-text-decoration:none;
-color:white;
-display:block;
-}
-
-.card img{
-width:100%;
-height:100%;
-object-fit:cover;
-display:block;
-transition:.6s;
-}
-
-.card:hover img{
-transform:scale(1.05);
-}
+.card{position:relative;height:420px;overflow:hidden;background:#111;border:1px solid rgba(201,169,110,.35);text-decoration:none;color:white;display:block;}
+.card img{width:100%;height:100%;object-fit:cover;display:block;transition:.5s;}
+.card:hover img{transform:scale(1.03);}
 
 .card-overlay{
 position:absolute;
 inset:0;
-background:linear-gradient(
-to top,
-rgba(0,0,0,.58),
-rgba(0,0,0,.18) 42%,
-rgba(0,0,0,0) 70%
-);
+background:linear-gradient(to top,rgba(0,0,0,.22),rgba(0,0,0,0) 32%);
 display:flex;
 align-items:flex-end;
 padding:34px;
 z-index:2;
 }
 
-.card h2{
-font-size:38px;
-font-weight:400;
-color:#fff;
-margin-bottom:10px;
-text-shadow:0 3px 18px rgba(0,0,0,.85);
-}
-
-.card span{
-font-family:Arial,sans-serif;
-font-size:13px;
-letter-spacing:2px;
-text-transform:uppercase;
-color:#c9a96e;
-text-shadow:0 2px 12px rgba(0,0,0,.9);
-}
-
-.info{
-display:flex;
-gap:12px;
-flex-wrap:wrap;
-margin:18px 0;
-font-family:Arial,sans-serif;
-}
-
-.info span{
-background:rgba(0,0,0,.45);
-border:1px solid rgba(201,169,110,.45);
-color:#f5efe4;
-padding:8px 10px;
-font-size:13px;
-letter-spacing:0;
-text-transform:none;
-}
-
-.button{
-display:inline-block;
-margin-top:12px;
-color:#050505;
-background:#c9a96e;
-padding:12px 18px;
-font-family:Arial,sans-serif;
-font-size:13px;
-text-decoration:none;
-letter-spacing:1px;
-text-transform:uppercase;
-font-weight:bold;
-}
-
-.empty{
-background:#111;
-border:1px solid rgba(201,169,110,.3);
-padding:45px;
-text-align:center;
-color:#bbb;
-font-family:Arial,sans-serif;
-}
-
-.fallback{
-position:absolute;
-inset:0;
-display:flex;
-align-items:center;
-justify-content:center;
-text-align:center;
-background:
-linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.45)),
-radial-gradient(circle at center,#3a2c16,#050505 70%);
-color:#c9a96e;
-font-size:28px;
-letter-spacing:4px;
-text-transform:uppercase;
-padding:30px;
-}
-
-@media(max-width:700px){
-.header{
-flex-direction:column;
-align-items:flex-start;
-}
-
-.hero h1{
-font-size:40px;
-}
-
-.card{
-height:340px;
-}
-}
+.card h2{font-size:38px;font-weight:400;color:#fff;margin-bottom:10px;text-shadow:0 3px 18px rgba(0,0,0,.9);}
+.card span{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#c9a96e;text-shadow:0 2px 12px rgba(0,0,0,.9);}
+.info{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0;font-family:Arial,sans-serif;}
+.info span{background:rgba(0,0,0,.35);border:1px solid rgba(201,169,110,.4);color:#f5efe4;padding:8px 10px;font-size:13px;letter-spacing:0;text-transform:none;}
+.button{display:inline-block;margin-top:12px;color:#050505;background:#c9a96e;padding:12px 18px;font-family:Arial,sans-serif;font-size:13px;text-decoration:none;letter-spacing:1px;text-transform:uppercase;font-weight:bold;}
+.empty{background:#111;border:1px solid rgba(201,169,110,.3);padding:45px;text-align:center;color:#bbb;font-family:Arial,sans-serif;}
+@media(max-width:700px){.header{flex-direction:column;align-items:flex-start;}.hero h1{font-size:40px;}.card{height:340px;}}
 </style>
 </head>
 
@@ -228,17 +66,10 @@ Scopra solo le destinazioni in cui Guest in Town dispone di ville selezionate.
 
 <script>
 
-const params =
-new URLSearchParams(window.location.search);
-
-const checkIn =
-params.get('check_in');
-
-const checkOut =
-params.get('check_out');
-
-const guests =
-params.get('guests');
+const params = new URLSearchParams(window.location.search);
+const checkIn = params.get('check_in');
+const checkOut = params.get('check_out');
+const guests = params.get('guests');
 
 if(checkIn && checkOut){
 loadAvailableVillas();
@@ -254,20 +85,17 @@ return (name || '')
 }
 
 function getDestinationImage(name){
+const n = normalizeName(name);
 
-const n =
-normalizeName(name);
-
-if(n.includes('alberobello'))return 'https://loremflickr.com/1600/1100/alberobello,trulli,puglia?lock=11';
-if(n.includes('bari'))return 'https://loremflickr.com/1600/1100/polignano,mare,puglia?lock=12';
-if(n.includes('brindisi'))return 'https://loremflickr.com/1600/1100/ostuni,puglia,ulivi?lock=13';
-if(n.includes('fasano'))return 'https://loremflickr.com/1600/1100/masseria,puglia,ulivi?lock=14';
-if(n.includes('lecce'))return 'https://loremflickr.com/1600/1100/lecce,puglia,barocco?lock=16';
-if(n.includes('taranto'))return 'https://loremflickr.com/1600/1100/taranto,puglia,mare?lock=19';
-if(n.includes('foggia'))return 'https://loremflickr.com/1600/1100/gargano,puglia,mare?lock=23';
+if(n.includes('alberobello')) return 'https://loremflickr.com/1600/1100/alberobello,trulli,puglia?lock=11';
+if(n.includes('bari')) return 'https://loremflickr.com/1600/1100/polignano,mare,puglia?lock=12';
+if(n.includes('brindisi')) return 'https://loremflickr.com/1600/1100/ostuni,puglia,ulivi?lock=13';
+if(n.includes('fasano')) return 'https://loremflickr.com/1600/1100/masseria,puglia,ulivi?lock=14';
+if(n.includes('lecce')) return 'https://loremflickr.com/1600/1100/lecce,puglia,barocco?lock=16';
+if(n.includes('taranto')) return 'https://loremflickr.com/1600/1100/taranto,puglia,mare?lock=19';
+if(n.includes('foggia')) return 'https://loremflickr.com/1600/1100/gargano,puglia,mare?lock=23';
 
 return 'https://loremflickr.com/1600/1100/puglia,ulivi,masseria?lock=22';
-
 }
 
 function formatEuro(value){
@@ -278,7 +106,6 @@ currency:'EUR'
 }
 
 async function destinationHasVillas(destinationId){
-
 const { count, error } =
 await supabaseClient
 .from('villas')
@@ -291,7 +118,6 @@ return false;
 }
 
 return count > 0;
-
 }
 
 async function loadDestinations(){
@@ -308,9 +134,7 @@ document.getElementById('content').innerHTML =
 return;
 }
 
-const content =
-document.getElementById('content');
-
+const content = document.getElementById('content');
 content.innerHTML = '';
 
 let visibleCount = 0;
@@ -331,7 +155,6 @@ destination.image_url || getDestinationImage(destination.name);
 
 content.innerHTML += `
 <a class="card" href="destination.html?id=${destination.id}">
-
 <img
 src="${imageUrl}"
 alt="${destination.name}"
@@ -408,9 +231,7 @@ availableVillas.push(villa);
 
 }
 
-const content =
-document.getElementById('content');
-
+const content = document.getElementById('content');
 content.innerHTML = '';
 
 if(availableVillas.length === 0){
@@ -435,8 +256,6 @@ images?.find(img=>img.image_type==='main')?.image_url
 
 content.innerHTML += `
 <div class="card">
-<div class="fallback">${villa.title || 'Villa'}</div>
-
 <img
 src="${mainImage}"
 alt="${villa.title || ''}"
