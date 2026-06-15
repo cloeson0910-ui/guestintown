@@ -1,1 +1,484 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Paesi</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#111;
+color:white;
+padding:30px;
+max-width:1200px;
+margin:auto;
+}
+
+.menu{
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:30px;
+flex-wrap:wrap;
+}
+
+.menu a,
+.menu button{
+background:#222;
+color:white;
+padding:10px 15px;
+text-decoration:none;
+border:0;
+border-radius:6px;
+cursor:pointer;
+}
+
+.menu .logout{
+margin-left:auto;
+background:#c0392b;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+.form,
+.filters{
+background:#1b1b1b;
+padding:20px;
+border-radius:10px;
+margin-bottom:25px;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+align-items:end;
+}
+
+input,
+select{
+width:100%;
+padding:12px;
+border:none;
+border-radius:6px;
+box-sizing:border-box;
+}
+
+label{
+display:block;
+font-size:13px;
+color:#ccc;
+margin-bottom:8px;
+}
+
+button.save{
+background:#c9a96e;
+color:black;
+font-weight:bold;
+padding:12px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+button.delete{
+background:#c0392b;
+color:white;
+border:none;
+padding:8px 10px;
+border-radius:6px;
+cursor:pointer;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:#1b1b1b;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #333;
+text-align:left;
+vertical-align:top;
+}
+
+th{
+background:#222;
+}
+
+.preview{
+width:150px;
+height:95px;
+object-fit:cover;
+border-radius:8px;
+background:#222;
+display:block;
+}
+
+.small{
+font-size:12px;
+color:#aaa;
+line-height:1.5;
+}
+
+.empty{
+background:#1b1b1b;
+padding:30px;
+border-radius:10px;
+text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
+<a href="destinations.html">Destinazioni</a>
+<a href="towns.html">Paesi</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Paesi</h1>
+
+<div class="form">
+
+<div class="form-grid">
+
+<div>
+<label>Destinazione / Provincia</label>
+<select id="destination_id">
+<option value="">Seleziona destinazione</option>
+</select>
+</div>
+
+<div>
+<label>Nome paese</label>
+<input id="name" placeholder="Es. Ostuni">
+</div>
+
+<div>
+<label>URL immagine paese</label>
+<input id="image_url" placeholder="https://...">
+</div>
+
+<div>
+<button class="save" onclick="saveTown()">Salva Paese</button>
+</div>
+
+</div>
+
+</div>
+
+<div class="filters">
+<label>Filtra per destinazione</label>
+<select id="filter_destination" onchange="loadTowns()">
+<option value="">Tutte le destinazioni</option>
+</select>
+</div>
+
+<div id="tableContainer">
+<div class="empty">Caricamento paesi...</div>
+</div>
+
+<script>
+
+checkAuth();
+
+async function checkAuth(){
+
+const { data } =
+await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+
+await loadDestinations();
+await loadTowns();
+
+}
+
+async function loadDestinations(){
+
+const { data, error } =
+await supabaseClient
+.from('destinations')
+.select('id,name')
+.order('name');
+
+if(error){
+alert(error.message);
+return;
+}
+
+const destinationSelect =
+document.getElementById('destination_id');
+
+const filterSelect =
+document.getElementById('filter_destination');
+
+destinationSelect.innerHTML =
+'<option value="">Seleziona destinazione</option>';
+
+filterSelect.innerHTML =
+'<option value="">Tutte le destinazioni</option>';
+
+data.forEach(destination=>{
+
+destinationSelect.innerHTML += `
+<option value="${destination.id}">
+${destination.name}
+</option>
+`;
+
+filterSelect.innerHTML += `
+<option value="${destination.id}">
+${destination.name}
+</option>
+`;
+
+});
+
+}
+
+async function saveTown(){
+
+const destinationId =
+document.getElementById('destination_id').value;
+
+const name =
+document.getElementById('name').value.trim();
+
+const imageUrl =
+document.getElementById('image_url').value.trim();
+
+if(!destinationId){
+alert('Seleziona una destinazione');
+return;
+}
+
+if(!name){
+alert('Inserisci il nome del paese');
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('towns')
+.insert([{
+destination_id:parseInt(destinationId),
+name:name,
+image_url:imageUrl || null
+}]);
+
+if(error){
+alert(error.message);
+return;
+}
+
+document.getElementById('name').value = '';
+document.getElementById('image_url').value = '';
+
+await loadTowns();
+
+}
+
+async function loadTowns(){
+
+let query =
+supabaseClient
+.from('towns')
+.select(`
+*,
+destinations(id,name)
+`)
+.order('name');
+
+const filterDestination =
+document.getElementById('filter_destination').value;
+
+if(filterDestination){
+query = query.eq('destination_id', filterDestination);
+}
+
+const { data, error } =
+await query;
+
+if(error){
+document.getElementById('tableContainer').innerHTML =
+`<div class="empty">${error.message}</div>`;
+return;
+}
+
+if(!data || data.length === 0){
+document.getElementById('tableContainer').innerHTML =
+'<div class="empty">Nessun paese trovato.</div>';
+return;
+}
+
+renderTable(data);
+
+}
+
+function renderTable(towns){
+
+document.getElementById('tableContainer').innerHTML = `
+<table>
+<thead>
+<tr>
+<th>Foto</th>
+<th>Paese</th>
+<th>Destinazione</th>
+<th>URL immagine</th>
+<th>Azioni</th>
+</tr>
+</thead>
+<tbody>
+${towns.map(town=>`
+<tr>
+<td>
+${town.image_url ? `<img class="preview" src="${town.image_url}">` : '<div class="small">Nessuna foto</div>'}
+</td>
+
+<td>
+<input id="name-${town.id}" value="${town.name || ''}">
+</td>
+
+<td>
+<select id="destination-${town.id}">
+${getDestinationOptions(town.destination_id)}
+</select>
+</td>
+
+<td>
+<input id="image-${town.id}" value="${town.image_url || ''}" placeholder="URL immagine">
+<div class="small">Usata nella pagina pubblica del paese.</div>
+</td>
+
+<td>
+<button class="save" onclick="updateTown(${town.id})">
+Salva
+</button>
+<br><br>
+<button class="delete" onclick="deleteTown(${town.id})">
+Elimina
+</button>
+</td>
+</tr>
+`).join('')}
+</tbody>
+</table>
+`;
+
+}
+
+function getDestinationOptions(selectedId){
+
+const filterSelect =
+document.getElementById('filter_destination');
+
+let html = '';
+
+Array.from(filterSelect.options).forEach(option=>{
+
+if(!option.value){
+return;
+}
+
+html += `
+<option value="${option.value}" ${Number(option.value) === Number(selectedId) ? 'selected' : ''}>
+${option.text}
+</option>
+`;
+
+});
+
+return html;
+
+}
+
+async function updateTown(id){
+
+const name =
+document.getElementById(`name-${id}`).value.trim();
+
+const destinationId =
+document.getElementById(`destination-${id}`).value;
+
+const imageUrl =
+document.getElementById(`image-${id}`).value.trim();
+
+if(!name){
+alert('Il nome paese è obbligatorio');
+return;
+}
+
+if(!destinationId){
+alert('La destinazione è obbligatoria');
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('towns')
+.update({
+name:name,
+destination_id:parseInt(destinationId),
+image_url:imageUrl || null
+})
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+await loadTowns();
+
+}
+
+async function deleteTown(id){
+
+if(!confirm('Eliminare questo paese?')){
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('towns')
+.delete()
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+await loadTowns();
+
+}
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href = "login.html";
+
+}
+
+</script>
+
+</body>
+</html>
