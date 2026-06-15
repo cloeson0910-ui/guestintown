@@ -4,36 +4,212 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Destinazioni - Guest in Town</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#050505;color:white;font-family:Georgia,"Times New Roman",serif;}
-.container{max-width:1350px;margin:auto;padding:40px 30px 90px;}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:60px;gap:20px;}
-.logo{color:#c9a96e;font-size:24px;letter-spacing:4px;text-transform:uppercase;}
-.nav a{color:#c9a96e;border:1px solid rgba(201,169,110,.55);padding:12px 20px;text-decoration:none;font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
-.hero{text-align:center;margin-bottom:70px;}
-.hero h1{font-size:58px;font-weight:400;color:#c9a96e;margin-bottom:18px;}
-.hero p{font-family:Arial,sans-serif;color:#bbb;font-size:17px;line-height:1.8;max-width:760px;margin:auto;}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:30px;}
-.card{position:relative;height:420px;overflow:hidden;background:#111;border:1px solid rgba(201,169,110,.35);text-decoration:none;color:white;display:block;}
-.card img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.62);transition:.6s;}
-.card:hover img{transform:scale(1.07);filter:brightness(.48);}
-.card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.08));display:flex;align-items:flex-end;padding:34px;z-index:2;}
-.card h2{font-size:38px;font-weight:400;color:#f5efe4;margin-bottom:10px;}
-.card span{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#c9a96e;}
-.info{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0;font-family:Arial,sans-serif;}
-.info span{background:rgba(201,169,110,.16);border:1px solid rgba(201,169,110,.28);color:#f5efe4;padding:8px 10px;font-size:13px;letter-spacing:0;text-transform:none;}
-.button{display:inline-block;margin-top:12px;color:#050505;background:#c9a96e;padding:12px 18px;font-family:Arial,sans-serif;font-size:13px;text-decoration:none;letter-spacing:1px;text-transform:uppercase;font-weight:bold;}
-.empty{background:#111;border:1px solid rgba(201,169,110,.3);padding:45px;text-align:center;color:#bbb;font-family:Arial,sans-serif;}
-.fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,.88)),radial-gradient(circle at center,#3a2c16,#050505 70%);color:#c9a96e;font-size:28px;letter-spacing:4px;text-transform:uppercase;padding:30px;}
-@media(max-width:700px){.header{flex-direction:column;align-items:flex-start;}.hero h1{font-size:40px;}.card{height:340px;}}
+
+body{
+background:#050505;
+color:white;
+font-family:Georgia,"Times New Roman",serif;
+}
+
+.container{
+max-width:1350px;
+margin:auto;
+padding:40px 30px 90px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:60px;
+gap:20px;
+}
+
+.logo{
+color:#c9a96e;
+font-size:24px;
+letter-spacing:4px;
+text-transform:uppercase;
+}
+
+.nav a{
+color:#c9a96e;
+border:1px solid rgba(201,169,110,.55);
+padding:12px 20px;
+text-decoration:none;
+font-family:Arial,sans-serif;
+font-size:13px;
+letter-spacing:1px;
+text-transform:uppercase;
+}
+
+.hero{
+text-align:center;
+margin-bottom:70px;
+}
+
+.hero h1{
+font-size:58px;
+font-weight:400;
+color:#c9a96e;
+margin-bottom:18px;
+}
+
+.hero p{
+font-family:Arial,sans-serif;
+color:#bbb;
+font-size:17px;
+line-height:1.8;
+max-width:760px;
+margin:auto;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+gap:30px;
+}
+
+.card{
+position:relative;
+height:420px;
+overflow:hidden;
+background:#111;
+border:1px solid rgba(201,169,110,.35);
+text-decoration:none;
+color:white;
+display:block;
+}
+
+.card img{
+width:100%;
+height:100%;
+object-fit:cover;
+display:block;
+transition:.6s;
+}
+
+.card:hover img{
+transform:scale(1.05);
+}
+
+.card-overlay{
+position:absolute;
+inset:0;
+background:linear-gradient(
+to top,
+rgba(0,0,0,.58),
+rgba(0,0,0,.18) 42%,
+rgba(0,0,0,0) 70%
+);
+display:flex;
+align-items:flex-end;
+padding:34px;
+z-index:2;
+}
+
+.card h2{
+font-size:38px;
+font-weight:400;
+color:#fff;
+margin-bottom:10px;
+text-shadow:0 3px 18px rgba(0,0,0,.85);
+}
+
+.card span{
+font-family:Arial,sans-serif;
+font-size:13px;
+letter-spacing:2px;
+text-transform:uppercase;
+color:#c9a96e;
+text-shadow:0 2px 12px rgba(0,0,0,.9);
+}
+
+.info{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+margin:18px 0;
+font-family:Arial,sans-serif;
+}
+
+.info span{
+background:rgba(0,0,0,.45);
+border:1px solid rgba(201,169,110,.45);
+color:#f5efe4;
+padding:8px 10px;
+font-size:13px;
+letter-spacing:0;
+text-transform:none;
+}
+
+.button{
+display:inline-block;
+margin-top:12px;
+color:#050505;
+background:#c9a96e;
+padding:12px 18px;
+font-family:Arial,sans-serif;
+font-size:13px;
+text-decoration:none;
+letter-spacing:1px;
+text-transform:uppercase;
+font-weight:bold;
+}
+
+.empty{
+background:#111;
+border:1px solid rgba(201,169,110,.3);
+padding:45px;
+text-align:center;
+color:#bbb;
+font-family:Arial,sans-serif;
+}
+
+.fallback{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+background:
+linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.45)),
+radial-gradient(circle at center,#3a2c16,#050505 70%);
+color:#c9a96e;
+font-size:28px;
+letter-spacing:4px;
+text-transform:uppercase;
+padding:30px;
+}
+
+@media(max-width:700px){
+.header{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.hero h1{
+font-size:40px;
+}
+
+.card{
+height:340px;
+}
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
+
 <div class="header">
 <div class="logo">Guest in Town</div>
 <div class="nav"><a href="../">Home</a></div>
@@ -41,26 +217,47 @@ body{background:#050505;color:white;font-family:Georgia,"Times New Roman",serif;
 
 <section class="hero">
 <h1 id="pageTitle">Le destinazioni</h1>
-<p id="pageSubtitle">Scopra solo le destinazioni in cui Guest in Town dispone di ville selezionate.</p>
+<p id="pageSubtitle">
+Scopra solo le destinazioni in cui Guest in Town dispone di ville selezionate.
+</p>
 </section>
 
 <div id="content" class="grid"></div>
+
 </div>
 
 <script>
-const params=new URLSearchParams(window.location.search);
-const checkIn=params.get('check_in');
-const checkOut=params.get('check_out');
-const guests=params.get('guests');
 
-if(checkIn && checkOut){loadAvailableVillas();}else{loadDestinations();}
+const params =
+new URLSearchParams(window.location.search);
+
+const checkIn =
+params.get('check_in');
+
+const checkOut =
+params.get('check_out');
+
+const guests =
+params.get('guests');
+
+if(checkIn && checkOut){
+loadAvailableVillas();
+} else {
+loadDestinations();
+}
 
 function normalizeName(name){
-return (name||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+return (name || '')
+.toLowerCase()
+.normalize('NFD')
+.replace(/[\u0300-\u036f]/g,'');
 }
 
 function getDestinationImage(name){
-const n=normalizeName(name);
+
+const n =
+normalizeName(name);
+
 if(n.includes('alberobello'))return 'https://loremflickr.com/1600/1100/alberobello,trulli,puglia?lock=11';
 if(n.includes('bari'))return 'https://loremflickr.com/1600/1100/polignano,mare,puglia?lock=12';
 if(n.includes('brindisi'))return 'https://loremflickr.com/1600/1100/ostuni,puglia,ulivi?lock=13';
@@ -68,14 +265,20 @@ if(n.includes('fasano'))return 'https://loremflickr.com/1600/1100/masseria,pugli
 if(n.includes('lecce'))return 'https://loremflickr.com/1600/1100/lecce,puglia,barocco?lock=16';
 if(n.includes('taranto'))return 'https://loremflickr.com/1600/1100/taranto,puglia,mare?lock=19';
 if(n.includes('foggia'))return 'https://loremflickr.com/1600/1100/gargano,puglia,mare?lock=23';
+
 return 'https://loremflickr.com/1600/1100/puglia,ulivi,masseria?lock=22';
+
 }
 
 function formatEuro(value){
-return Number(value||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+return Number(value || 0).toLocaleString('it-IT',{
+style:'currency',
+currency:'EUR'
+});
 }
 
 async function destinationHasVillas(destinationId){
+
 const { count, error } =
 await supabaseClient
 .from('villas')
@@ -83,29 +286,39 @@ await supabaseClient
 .eq('destination_id',destinationId)
 .or('status.eq.published,status.eq.approved,published.eq.true');
 
-if(error){return false;}
+if(error){
+return false;
+}
+
 return count > 0;
+
 }
 
 async function loadDestinations(){
+
 const { data: destinations, error } =
 await supabaseClient
 .from('destinations')
-.select('id,name')
+.select('id,name,image_url')
 .order('name');
 
 if(error){
-document.getElementById('content').innerHTML=`<div class="empty">${error.message}</div>`;
+document.getElementById('content').innerHTML =
+`<div class="empty">${error.message}</div>`;
 return;
 }
 
-const content=document.getElementById('content');
-content.innerHTML='';
+const content =
+document.getElementById('content');
 
-let visibleCount=0;
+content.innerHTML = '';
+
+let visibleCount = 0;
 
 for(const destination of destinations || []){
-const hasVillas=await destinationHasVillas(destination.id);
+
+const hasVillas =
+await destinationHasVillas(destination.id);
 
 if(!hasVillas){
 continue;
@@ -113,47 +326,74 @@ continue;
 
 visibleCount++;
 
-content.innerHTML+=`
+const imageUrl =
+destination.image_url || getDestinationImage(destination.name);
+
+content.innerHTML += `
 <a class="card" href="destination.html?id=${destination.id}">
 <div class="fallback">${destination.name}</div>
-<img src="${getDestinationImage(destination.name)}" alt="${destination.name}" loading="lazy" onerror="this.style.display='none';">
+
+<img
+src="${imageUrl}"
+alt="${destination.name}"
+loading="lazy"
+onerror="this.style.display='none';"
+>
+
 <div class="card-overlay">
 <div>
 <h2>${destination.name}</h2>
 <span>Scopri i paesi</span>
 </div>
 </div>
-</a>`;
+</a>
+`;
+
 }
 
-if(visibleCount===0){
-content.innerHTML='<div class="empty">Nessuna destinazione disponibile al momento.</div>';
+if(visibleCount === 0){
+content.innerHTML =
+'<div class="empty">Nessuna destinazione disponibile al momento.</div>';
 }
+
 }
 
 async function loadAvailableVillas(){
-document.getElementById('pageTitle').innerText='Ville disponibili';
-document.getElementById('pageSubtitle').innerText='Le ville disponibili nelle date selezionate.';
+
+document.getElementById('pageTitle').innerText =
+'Ville disponibili';
+
+document.getElementById('pageSubtitle').innerText =
+'Le ville disponibili nelle date selezionate.';
 
 let query =
 supabaseClient
 .from('villas')
-.select(`*,destinations(id,name),towns(id,name)`)
+.select(`
+*,
+destinations(id,name,image_url),
+towns(id,name)
+`)
 .or('status.eq.published,status.eq.approved,published.eq.true')
 .order('created_at',{ascending:false});
 
-if(guests){query=query.gte('max_guests',guests);}
+if(guests){
+query = query.gte('max_guests',guests);
+}
 
-const { data: villas, error }=await query;
+const { data: villas, error } =
+await query;
 
 if(error){
-document.getElementById('content').innerHTML=`<div class="empty">${error.message}</div>`;
+document.getElementById('content').innerHTML =
+`<div class="empty">${error.message}</div>`;
 return;
 }
 
-const availableVillas=[];
+const availableVillas = [];
 
 for(const villa of villas || []){
+
 const { data: overlaps } =
 await supabaseClient
 .from('bookings')
@@ -163,20 +403,25 @@ await supabaseClient
 .lt('check_in',checkOut)
 .gt('check_out',checkIn);
 
-if(!overlaps || overlaps.length===0){
+if(!overlaps || overlaps.length === 0){
 availableVillas.push(villa);
 }
+
 }
 
-const content=document.getElementById('content');
-content.innerHTML='';
+const content =
+document.getElementById('content');
 
-if(availableVillas.length===0){
-content.innerHTML='<div class="empty">Nessuna villa disponibile nelle date selezionate.</div>';
+content.innerHTML = '';
+
+if(availableVillas.length === 0){
+content.innerHTML =
+'<div class="empty">Nessuna villa disponibile nelle date selezionate.</div>';
 return;
 }
 
 for(const villa of availableVillas){
+
 const { data: images } =
 await supabaseClient
 .from('villa_images')
@@ -186,28 +431,47 @@ await supabaseClient
 const mainImage =
 images?.find(img=>img.image_type==='main')?.image_url
 || images?.[0]?.image_url
+|| villa.destinations?.image_url
 || getDestinationImage(villa.destinations?.name);
 
-content.innerHTML+=`
+content.innerHTML += `
 <div class="card">
 <div class="fallback">${villa.title || 'Villa'}</div>
-<img src="${mainImage}" alt="${villa.title || ''}" loading="lazy" onerror="this.style.display='none';">
+
+<img
+src="${mainImage}"
+alt="${villa.title || ''}"
+loading="lazy"
+onerror="this.style.display='none';"
+>
+
 <div class="card-overlay">
 <div>
 <h2>${villa.title || ''}</h2>
-<span>${villa.towns?.name ? villa.towns.name + ' · ' : ''}${villa.destinations?.name || ''}</span>
+
+<span>
+${villa.towns?.name ? villa.towns.name + ' · ' : ''}${villa.destinations?.name || ''}
+</span>
+
 <div class="info">
 <span>${villa.max_guests || '-'} ospiti</span>
 <span>${villa.bedrooms || '-'} camere</span>
 <span>${villa.bathrooms || '-'} bagni</span>
 ${villa.nightly_price ? `<span>Da ${formatEuro(villa.nightly_price)} / notte</span>` : ''}
 </div>
-<a class="button" href="villa.html?id=${villa.id}">Scopri la villa</a>
+
+<a class="button" href="villa.html?id=${villa.id}">
+Scopri la villa
+</a>
 </div>
 </div>
-</div>`;
+</div>
+`;
+
 }
+
 }
+
 </script>
 </body>
 </html>
