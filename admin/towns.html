@@ -59,12 +59,7 @@ th{background:#222;}
 </div>
 
 <div>
-<label>URL immagine paese</label>
-<input id="image_url" placeholder="URL immagine oppure carica file">
-</div>
-
-<div>
-<label>Carica immagine dal PC</label>
+<label>Foto paese dal PC</label>
 <input id="image_file" type="file" accept="image/*">
 </div>
 
@@ -176,13 +171,10 @@ alert(upload.error.message);
 return '';
 }
 
-const publicUrl =
-supabaseClient.storage
+return supabaseClient.storage
 .from('location-images')
 .getPublicUrl(filePath)
 .data.publicUrl;
-
-return publicUrl;
 
 }
 
@@ -193,9 +185,6 @@ document.getElementById('destination_id').value;
 
 const name =
 document.getElementById('name').value.trim();
-
-let imageUrl =
-document.getElementById('image_url').value.trim();
 
 const imageFile =
 document.getElementById('image_file').files[0];
@@ -210,17 +199,14 @@ alert('Inserisci il nome del paese');
 return;
 }
 
+let imageUrl = '';
+
 if(imageFile){
+imageUrl = await uploadLocationImage(imageFile, 'towns');
 
-const uploadedUrl =
-await uploadLocationImage(imageFile, 'towns');
-
-if(!uploadedUrl){
+if(!imageUrl){
 return;
 }
-
-imageUrl = uploadedUrl;
-
 }
 
 const { error } =
@@ -238,7 +224,6 @@ return;
 }
 
 document.getElementById('name').value = '';
-document.getElementById('image_url').value = '';
 document.getElementById('image_file').value = '';
 
 await loadTowns();
@@ -291,7 +276,7 @@ document.getElementById('tableContainer').innerHTML = `
 <th>Foto</th>
 <th>Paese</th>
 <th>Destinazione</th>
-<th>Immagine</th>
+<th>Nuova foto</th>
 <th>Azioni</th>
 </tr>
 </thead>
@@ -313,10 +298,8 @@ ${getDestinationOptions(town.destination_id)}
 </td>
 
 <td>
-<input id="image-${town.id}" value="${town.image_url || ''}" placeholder="URL immagine">
-<br><br>
 <input id="file-${town.id}" type="file" accept="image/*">
-<div class="small">Puoi incollare un URL o caricare una nuova foto dal PC.</div>
+<div class="small">Seleziona una nuova foto dal PC solo se vuoi cambiarla.</div>
 </td>
 
 <td>
@@ -369,9 +352,6 @@ document.getElementById(`name-${id}`).value.trim();
 const destinationId =
 document.getElementById(`destination-${id}`).value;
 
-let imageUrl =
-document.getElementById(`image-${id}`).value.trim();
-
 const imageFile =
 document.getElementById(`file-${id}`).files[0];
 
@@ -385,6 +365,11 @@ alert('La destinazione è obbligatoria');
 return;
 }
 
+const updateData = {
+name:name,
+destination_id:parseInt(destinationId)
+};
+
 if(imageFile){
 
 const uploadedUrl =
@@ -394,18 +379,14 @@ if(!uploadedUrl){
 return;
 }
 
-imageUrl = uploadedUrl;
+updateData.image_url = uploadedUrl;
 
 }
 
 const { error } =
 await supabaseClient
 .from('towns')
-.update({
-name:name,
-destination_id:parseInt(destinationId),
-image_url:imageUrl || null
-})
+.update(updateData)
 .eq('id',id);
 
 if(error){
