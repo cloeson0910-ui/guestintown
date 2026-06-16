@@ -204,6 +204,19 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 <div class="gps-status" id="syncStatus">
 Nessuna sincronizzazione eseguita in questa sessione.
 </div>
+
+<div class="export-box">
+<h3>Calendario Guest in Town per Airbnb / Booking</h3>
+<p class="note">Questo è il calendario iCal della villa generato da Guest in Town. Copia questo link e incollalo nei portali Airbnb e Booking.com come calendario da importare, così le prenotazioni ricevute dal tuo sito bloccano automaticamente le date sui portali.</p>
+
+<label>Link iCal Guest in Town</label>
+<input id="guestintown_ical_url" readonly placeholder="Link calendario in caricamento...">
+
+<div class="export-actions">
+<button type="button" onclick="copyGuestInTownCalendarUrl()">Copia link calendario</button>
+<a id="open_guestintown_ical" href="#" target="_blank">Apri calendario</a>
+</div>
+</div>
 </div>
 
 <div class="section">
