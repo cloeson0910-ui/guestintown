@@ -7,13 +7,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
 body{margin:0;font-family:Arial,sans-serif;background:#050505;color:#f5efe4;}
 .container{max-width:1200px;margin:auto;padding:30px;}
-.hero{height:560px;background:#111;border-radius:0;overflow:hidden;margin-bottom:35px;border:1px solid rgba(201,169,110,.25);}
+.hero{height:560px;background:#111;overflow:hidden;margin-bottom:35px;border:1px solid rgba(201,169,110,.25);}
 .hero img{width:100%;height:100%;object-fit:cover;}
 h1{font-family:Georgia,"Times New Roman",serif;font-size:52px;font-weight:400;color:#c9a96e;margin-bottom:10px;}
 h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:#c9a96e;}
@@ -30,264 +29,6 @@ h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:#c9a96e;}
 .service i{color:#c9a96e;font-size:22px;width:28px;text-align:center;}
 .service span{color:#f5efe4;font-size:15px;}
 .extra-note{font-family:Arial,sans-serif;color:#aaa;line-height:1.7;margin-bottom:18px;}
-.map-preview{height:350px;overflow:hidden;background:#111;cursor:pointer;border:1px solid rgba(201,169,110,.25);}
-.map-preview iframe{width:100%;height:100%;border:0;pointer-events:none;}
-.button{display:inline-block;background:#c9a96e;color:#050505;padding:14px 22px;text-decoration:none;margin-top:15px;border:0;cursor:pointer;font-weight:bold;letter-spacing:1px;text-transform:uppercase;}
-.button.secondary{background:transparent;color:#c9a96e;border:1px solid #c9a96e;margin-right:10px;}
-.empty{padding:40px;text-align:center;}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;}
-input,textarea{width:100%;padding:13px;border:1px solid rgba(201,169,110,.25);background:#151515;color:white;box-sizing:border-box;}
-textarea{min-height:100px;margin-top:15px;}
-.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px;}
-.calendar-header button{background:transparent;color:#c9a96e;border:1px solid #c9a96e;padding:12px 16px;cursor:pointer;}
-.calendar-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:25px;}
-.month h3{text-align:center;margin-bottom:15px;color:#f5efe4;font-family:Georgia,"Times New Roman",serif;font-weight:400;}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-.day-name{text-align:center;font-weight:bold;color:#777;font-size:13px;}
-.day{background:#151515;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid #222;}
-.day.empty-day{background:transparent;cursor:default;border:0;}
-.day.booked{background:#6f1d1b;color:white;cursor:not-allowed;}
-.day.selected{background:#c9a96e;color:#050505;}
-.day.in-range{background:#5f4b28;color:white;}
-.day-price{font-size:11px;margin-top:4px;opacity:.85;}
-.legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:15px;color:#aaa;font-size:14px;}
-.legend span{display:inline-flex;align-items:center;gap:6px;}
-.dot{width:14px;height:14px;background:#151515;border:1px solid #333;display:inline-block;}
-.dot.booked{background:#6f1d1b;}
-.dot.selected{background:#c9a96e;}
-.selection-box{background:#151515;border:1px solid rgba(201,169,110,.25);padding:15px;margin-top:20px;line-height:1.7;}
-.price-box{background:#c9a96e;color:#050505;padding:18px;margin-top:20px;line-height:1.8;}
-.price-box strong{font-size:24px;}
-.price-detail{font-size:14px;opacity:.9;margin-top:10px;}
-</style>
-</head>
-
-<body>
-
-<div class="container" id="page">
-<div class="empty">Caricamento villa...</div>
-</div>
-
-<script>
-const params = new URLSearchParams(window.location.search);
-const villaId = params.get('id');
-
-let selectedCheckIn = null;
-let selectedCheckOut = null;
-let currentBookings = [];
-let currentVilla = null;
-let currentRates = [];
-let calendarBaseDate = new Date();
-
-const serviceIcons = {
-'wi-fi':'fa-solid fa-wifi','wifi':'fa-solid fa-wifi','piscina':'fa-solid fa-water-ladder','jacuzzi':'fa-solid fa-hot-tub-person','jakuzi':'fa-solid fa-hot-tub-person','giardino':'fa-solid fa-tree','barbecue':'fa-solid fa-fire-burner','bbq':'fa-solid fa-fire-burner','parcheggio':'fa-solid fa-square-parking','parcheggio privato':'fa-solid fa-square-parking','vista mare':'fa-solid fa-water','aria condizionata':'fa-solid fa-snowflake','animali ammessi':'fa-solid fa-paw','lavatrice':'fa-solid fa-shirt','cucina attrezzata':'fa-solid fa-kitchen-set','palestra':'fa-solid fa-dumbbell','sauna':'fa-solid fa-temperature-high','accesso spiaggia':'fa-solid fa-umbrella-beach','camino':'fa-solid fa-fire','ricarica auto elettrica':'fa-solid fa-charging-station','campo da tennis':'fa-solid fa-table-tennis-paddle-ball','cantina vini':'fa-solid fa-wine-bottle'
-};
-
-const fallbackExtraServices = [
-{name:'Chef privato',icon_class:'fa-solid fa-utensils'},
-{name:'Concierge',icon_class:'fa-solid fa-bell-concierge'},
-{name:'Transfer aeroportuale',icon_class:'fa-solid fa-car-side'},
-{name:'Personal trainer',icon_class:'fa-solid fa-dumbbell'},
-{name:'Massaggi',icon_class:'fa-solid fa-spa'},
-{name:'Estetista',icon_class:'fa-solid fa-hand-sparkles'},
-{name:'Parrucchiere',icon_class:'fa-solid fa-scissors'},
-{name:'Yoga',icon_class:'fa-solid fa-person-praying'},
-{name:'Boat tour',icon_class:'fa-solid fa-ship'},
-{name:'Noleggio auto',icon_class:'fa-solid fa-car'},
-{name:'Baby sitter',icon_class:'fa-solid fa-baby'},
-{name:'Pulizie extra',icon_class:'fa-solid fa-broom'}
-];
-
-loadVillaPage();
-
-function normalizeServiceName(name){return (name || '').toLowerCase().trim();}
-function getServiceIcon(name){return serviceIcons[normalizeServiceName(name)] || 'fa-solid fa-circle-check';}
-
-function renderIncludedServices(services){
-if(!services || services.length === 0){return '<div class="service"><i class="fa-solid fa-circle-info"></i><span>Servizi in aggiornamento</span></div>';}
-return services.map(service => `<div class="service"><i class="${getServiceIcon(service.service_name)}"></i><span>${service.service_name}</span></div>`).join('');
-}
-
-function renderExtraServices(extraServices){
-const list = extraServices && extraServices.length ? extraServices : fallbackExtraServices;
-return list.map(service => `<div class="service"><i class="${service.icon_class || 'fa-solid fa-star'}"></i><span>${service.name}</span></div>`).join('');
-}
-
-function formatDateIT(dateString){if(!dateString)return '-'; const parts = dateString.split('-'); return `${parts[2]}/${parts[1]}/${parts[0]}`;}
-function formatEuro(value){return Number(value || 0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});}
-function toISODate(date){const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,'0'); const d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`;}
-function makeDate(y,m,d){return new Date(y,m,d);}
-function dateDiffNights(start,end){const startDate=new Date(start+'T00:00:00'); const endDate=new Date(end+'T00:00:00'); return Math.round((endDate-startDate)/(1000*60*60*24));}
-function isBooked(dateString){return currentBookings.some(b => dateString >= b.check_in && dateString < b.check_out);}
-function rangeHasBooked(start,end){return currentBookings.some(b => start < b.check_out && end > b.check_in);}
-function getNightPrice(dateString){const rate=currentRates.find(r => dateString >= r.date_from && dateString <= r.date_to); if(rate){return Number(rate.nightly_price || 0);} return Number(currentVilla?.nightly_price || 0);}
-
-function calculateStayTotal(start,end){
-let total=0; let details=[]; let current=new Date(start+'T00:00:00'); const endDate=new Date(end+'T00:00:00');
-while(current < endDate){const iso=toISODate(current); const price=getNightPrice(iso); total += price; details.push({date:iso,price:price}); current.setDate(current.getDate()+1);}
-return {total:total,details:details};
-}
-
-async function loadVillaPage(){
-if(!villaId){document.getElementById('page').innerHTML='<div class="empty">Villa non trovata.</div>'; return;}
-
-const { data: villa, error } = await supabaseClient.from('villas').select(`*,destinations(id,name),towns(id,name)`).eq('id', villaId).single();
-if(error || !villa){document.getElementById('page').innerHTML='<div class="empty">Villa non trovata.</div>'; return;}
-
-currentVilla = villa;
-
-const { data: images } = await supabaseClient.from('villa_images').select('*').eq('villa_id', villaId);
-const { data: services } = await supabaseClient.from('villa_services').select('service_name').eq('villa_id', villaId);
-const { data: extraServices } = await supabaseClient.from('extra_services').select('*').eq('active', true).order('sort_order');
-
-const { data: directBookings } = await supabaseClient.from('bookings').select('*').eq('villa_id', villaId).in('status',['pending','confirmed']).order('check_in');
-const { data: externalBookings } = await supabaseClient.from('external_bookings').select('*').eq('villa_id', villaId).order('check_in');
-
-const { data: rates } = await supabaseClient.from('villa_rates').select('*').eq('villa_id', villaId).order('date_from');
-
-currentBookings = [
-...(directBookings || []).map(b => ({check_in:b.check_in, check_out:b.check_out, source:'direct'})),
-...(externalBookings || []).map(b => ({check_in:b.check_in, check_out:b.check_out, source:b.platform || 'external'}))
-];
-
-currentRates = rates || [];
-
-const mainImage = images?.find(img => img.image_type === 'main')?.image_url || images?.[0]?.image_url || '';
-renderVilla(villa, images || [], services || [], mainImage, extraServices || fallbackExtraServices);
-}
-
-function renderVilla(villa, images, services, mainImage, extraServices){
-const lat = villa.latitude;
-const lng = villa.longitude;
-let mapHtml = '';
-
-if(lat && lng){
-const delta = 0.005;
-const bbox = `${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
-mapHtml = `<div class="section"><h2>Posizione</h2><div class="map-preview" onclick="openMap('${lat}','${lng}')"><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}"></iframe></div><a class="button" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">Apri su Google Maps</a></div>`;
-}
-
-document.getElementById('page').innerHTML = `
-<a class="button secondary" href="${villa.town_id ? `town.html?id=${villa.town_id}` : `villas.html?destination_id=${villa.destination_id}`}">← Torna alla selezione</a>
-
-<div class="hero">${mainImage ? `<img src="${mainImage}">` : ''}</div>
-
-<h1>${villa.title || ''}</h1>
-<div class="destination">${villa.towns?.name ? villa.towns.name + ' · ' : ''}${villa.destinations?.name || ''}</div>
-
-<div class="info-grid">
-<div class="info-card"><strong>Ospiti</strong><br>${villa.max_guests || '-'}</div>
-<div class="info-card"><strong>Camere</strong><br>${villa.bedrooms || '-'}</div>
-<div class="info-card"><strong>Bagni</strong><br>${villa.bathrooms || '-'}</div>
-<div class="info-card"><strong>CIN</strong><br>${villa.cin || '-'}</div>
-<div class="info-card"><strong>Prezzo da</strong><br>${villa.nightly_price ? formatEuro(villa.nightly_price) + ' / notte' : 'Su richiesta'}</div>
-</div>
-
-<div class="section"><h2>Descrizione</h2><p>${villa.full_description || villa.short_description || 'Descrizione non ancora disponibile.'}</p></div>
-
-<div class="section"><h2>Gallery</h2><div class="gallery">${images.map(img => `<img src="${img.image_url}">`).join('')}</div></div>
-
-<div class="section"><h2>Servizi inclusi</h2><div class="services">${renderIncludedServices(services)}</div></div>
-
-<div class="section"><h2>Servizi extra su richiesta</h2><p class="extra-note">I seguenti servizi non sono inclusi nel soggiorno e possono essere organizzati su richiesta dal team Guest in Town.</p><div class="services">${renderExtraServices(extraServices)}</div></div>
-
-<div class="section">
-<h2>Disponibilità e tariffe</h2>
-<div class="calendar-header"><button onclick="changeMonth(-1)">← Mese precedente</button><button onclick="changeMonth(1)">Mese successivo →</button></div>
-<div class="calendar-wrap" id="calendarWrap"></div>
-<div class="legend"><span><i class="dot"></i>Disponibile</span><span><i class="dot booked"></i>Occupata</span><span><i class="dot selected"></i>Selezionata</span></div>
-<div class="selection-box" id="selectionBox">Seleziona check-in e check-out dal calendario.</div>
-</div>
-
-<div class="section">
-<h2>Prenota questa villa</h2>
-<div class="price-box" id="priceBox">${villa.nightly_price ? `Prezzo base per notte: <strong>${formatEuro(villa.nightly_price)}</strong>` : 'Prezzo su richiesta'}</div>
-<div class="form-grid"><input id="guests" type="number" placeholder="Numero ospiti"><input id="guest_name" required placeholder="Nome e cognome *"><input id="guest_email" required type="email" placeholder="Email *"><input id="guest_phone" required placeholder="Telefono *"></div>
-<textarea id="notes" placeholder="Note o richieste speciali"></textarea>
-<button class="button" onclick="submitBooking()">Invia richiesta di prenotazione</button>
-</div>
-
-${mapHtml}
-`;
-
-renderCalendars();
-updateSelectionBox();
-}
-
-function changeMonth(direction){calendarBaseDate = new Date(calendarBaseDate.getFullYear(),calendarBaseDate.getMonth()+direction,1); renderCalendars();}
-function renderCalendars(){const wrap=document.getElementById('calendarWrap'); wrap.innerHTML=''; renderMonth(calendarBaseDate.getFullYear(),calendarBaseDate.getMonth(),wrap); const nextMonth=new Date(calendarBaseDate.getFullYear(),calendarBaseDate.getMonth()+1,1); renderMonth(nextMonth.getFullYear(),nextMonth.getMonth(),wrap);}
-
-function renderMonth(year,month,container){
-const monthNames=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-const firstDay=makeDate(year,month,1); const lastDay=makeDate(year,month+1,0);
-let html=`<div class="month"><h3>${monthNames[month]} ${year}</h3><div class="calendar"><div class="day-name">L</div><div class="day-name">M</div><div class="day-name">M</div><div class="day-name">G</div><div class="day-name">V</div><div class="day-name">S</div><div class="day-name">D</div>`;
-let startOffset=firstDay.getDay(); startOffset=startOffset===0?6:startOffset-1;
-for(let i=0;i<startOffset;i++){html += `<div class="day empty-day"></div>`;}
-for(let d=1; d<=lastDay.getDate(); d++){
-const date=makeDate(year,month,d); const iso=toISODate(date); const booked=isBooked(iso); const price=getNightPrice(iso);
-let classes='day'; if(booked) classes += ' booked'; if(selectedCheckIn===iso || selectedCheckOut===iso) classes += ' selected'; if(selectedCheckIn && selectedCheckOut && iso > selectedCheckIn && iso < selectedCheckOut){classes += ' in-range';}
-const priceHtml = price > 0 ? `<div class="day-price">${formatEuro(price).replace(',00','')}</div>` : `<div class="day-price">su richiesta</div>`;
-html += `<div class="${classes}" onclick="selectDate('${iso}', ${booked})"><div>${d}</div>${booked ? '<div class="day-price">occupata</div>' : priceHtml}</div>`;
-}
-html += `</div></div>`;
-container.innerHTML += html;
-}
-
-function selectDate(iso,booked){
-if(booked){alert('Questa data risulta occupata.'); return;}
-if(!selectedCheckIn || selectedCheckOut){selectedCheckIn=iso; selectedCheckOut=null;}
-else if(iso <= selectedCheckIn){selectedCheckIn=iso; selectedCheckOut=null;}
-else{if(rangeHasBooked(selectedCheckIn, iso)){alert('Il periodo selezionato contiene date occupate.'); return;} selectedCheckOut=iso;}
-updateSelectionBox(); renderCalendars();
-}
-
-function updateSelectionBox(){
-const box=document.getElementById('selectionBox'); const priceBox=document.getElementById('priceBox'); if(!box)return;
-if(selectedCheckIn && selectedCheckOut){
-const nights=dateDiffNights(selectedCheckIn,selectedCheckOut); const calculation=calculateStayTotal(selectedCheckIn,selectedCheckOut); const total=calculation.total;
-box.innerHTML=`Check-in: <strong>${formatDateIT(selectedCheckIn)}</strong><br>Check-out: <strong>${formatDateIT(selectedCheckOut)}</strong><br>Notti: <strong>${nights}</strong>`;
-const detailHtml=calculation.details.map(item => `${formatDateIT(item.date)}: ${item.price > 0 ? formatEuro(item.price) : 'su richiesta'}`).join('<br>');
-if(priceBox){priceBox.innerHTML = total > 0 ? `Totale soggiorno: <strong>${formatEuro(total)}</strong><div class="price-detail">${detailHtml}</div>` : 'Prezzo su richiesta';}
-return;
-}
-if(selectedCheckIn){box.innerHTML=`Check-in: <strong>${formatDateIT(selectedCheckIn)}</strong><br>Ora seleziona la data di check-out.`; if(priceBox){const price=getNightPrice(selectedCheckIn); priceBox.innerHTML=price > 0 ? `Prezzo notte selezionata: <strong>${formatEuro(price)}</strong>` : 'Prezzo su richiesta';} return;}
-box.innerHTML='Seleziona check-in e check-out dal calendario.';
-if(priceBox){priceBox.innerHTML=currentVilla?.nightly_price ? `Prezzo base per notte: <strong>${formatEuro(currentVilla.nightly_price)}</strong>` : 'Prezzo su richiesta';}
-}
-
-async function submitBooking(){
-if(!selectedCheckIn || !selectedCheckOut){alert('Seleziona check-in e check-out dal calendario.'); return;}
-const nights=dateDiffNights(selectedCheckIn,selectedCheckOut); const calculation=calculateStayTotal(selectedCheckIn,selectedCheckOut); const totalPrice=calculation.total > 0 ? calculation.total : null;
-const booking={villa_id:villaId,guest_name:document.getElementById('guest_name').value.trim(),guest_email:document.getElementById('guest_email').value.trim(),guest_phone:document.getElementById('guest_phone').value.trim(),check_in:selectedCheckIn,check_out:selectedCheckOut,guests:document.getElementById('guests').value || null,notes:document.getElementById('notes').value,status:'pending',source:'direct',total_price:totalPrice};
-if(!booking.guest_name || !booking.guest_email || !booking.guest_phone){alert('Compila nome, email e telefono.'); return;}
-if(nights <= 0){alert('Seleziona date valide.'); return;}
-if(rangeHasBooked(booking.check_in, booking.check_out)){alert('Le date selezionate risultano già occupate.'); return;}
-const { error } = await supabaseClient.from('bookings').insert([booking]);
-if(error){alert(error.message); return;}
-alert('Richiesta inviata. Riceverai conferma dalla società.'); window.location.reload();
-}
-
-function openMap(lat,lng){window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank');}
-</script>
-
-</body>
-</html>}
-.service i{
-color:#c9a96e;
-font-size:22px;
-width:28px;
-text-align:center;
-}
-.service span{
-color:#f5efe4;
-font-size:15px;
-}
-.extra-note{
-font-family:Arial,sans-serif;
-color:#aaa;
-line-height:1.7;
-margin-bottom:18px;
-}
 .map-preview{height:350px;overflow:hidden;background:#111;cursor:pointer;border:1px solid rgba(201,169,110,.25);}
 .map-preview iframe{width:100%;height:100%;border:0;pointer-events:none;}
 .button{display:inline-block;background:#c9a96e;color:#050505;padding:14px 22px;text-decoration:none;margin-top:15px;border:0;cursor:pointer;font-weight:bold;letter-spacing:1px;text-transform:uppercase;}
@@ -418,8 +159,10 @@ return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 function formatEuro(value){
-const number = Number(value || 0);
-return number.toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+return Number(value || 0).toLocaleString('it-IT',{
+style:'currency',
+currency:'EUR'
+});
 }
 
 function toISODate(date){
@@ -436,57 +179,92 @@ return new Date(y,m,d);
 function dateDiffNights(start,end){
 const startDate = new Date(start + 'T00:00:00');
 const endDate = new Date(end + 'T00:00:00');
-const diff = endDate - startDate;
-return Math.round(diff / (1000 * 60 * 60 * 24));
+return Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
 }
 
 function isBooked(dateString){
-return currentBookings.some(b=> dateString >= b.check_in && dateString < b.check_out);
+return currentBookings.some(b => dateString >= b.check_in && dateString < b.check_out);
 }
 
 function rangeHasBooked(start,end){
-return currentBookings.some(b=> start < b.check_out && end > b.check_in);
+return currentBookings.some(b => start < b.check_out && end > b.check_in);
 }
 
 function getNightPrice(dateString){
-const rate = currentRates.find(r => dateString >= r.date_from && dateString <= r.date_to);
-if(rate){return Number(rate.nightly_price || 0);}
+
+const rate =
+currentRates.find(r =>
+dateString >= r.date_from &&
+dateString <= r.date_to
+);
+
+if(rate){
+return Number(rate.nightly_price || 0);
+}
+
 return Number(currentVilla?.nightly_price || 0);
+
 }
 
 function calculateStayTotal(start,end){
+
 let total = 0;
 let details = [];
-let current = new Date(start + 'T00:00:00');
-const endDate = new Date(end + 'T00:00:00');
+
+let current =
+new Date(start + 'T00:00:00');
+
+const endDate =
+new Date(end + 'T00:00:00');
 
 while(current < endDate){
-const iso = toISODate(current);
-const price = getNightPrice(iso);
+
+const iso =
+toISODate(current);
+
+const price =
+getNightPrice(iso);
+
 total += price;
-details.push({date:iso,price:price});
+
+details.push({
+date:iso,
+price:price
+});
+
 current.setDate(current.getDate()+1);
+
 }
 
-return {total:total,details:details};
+return {
+total:total,
+details:details
+};
+
 }
 
 async function loadVillaPage(){
 
 if(!villaId){
-document.getElementById('page').innerHTML='<div class="empty">Villa non trovata.</div>';
+document.getElementById('page').innerHTML =
+'<div class="empty">Villa non trovata.</div>';
 return;
 }
 
 const { data: villa, error } =
 await supabaseClient
 .from('villas')
-.select(`*,destinations(id,name),towns(id,name)`)
+.select(`
+*,
+destinations(id,name),
+towns(id,name)
+`)
 .eq('id', villaId)
 .single();
 
 if(error || !villa){
-document.getElementById('page').innerHTML='<div class="empty">Villa non trovata.</div>';
+document.getElementById('page').innerHTML =
+'<div class="empty">Villa non trovata.</div>';
 return;
 }
 
@@ -511,12 +289,19 @@ await supabaseClient
 .eq('active', true)
 .order('sort_order');
 
-const { data: bookings } =
+const { data: directBookings } =
 await supabaseClient
 .from('bookings')
 .select('*')
 .eq('villa_id', villaId)
 .in('status',['pending','confirmed'])
+.order('check_in');
+
+const { data: externalBookings } =
+await supabaseClient
+.from('external_bookings')
+.select('*')
+.eq('villa_id', villaId)
 .order('check_in');
 
 const { data: rates } =
@@ -526,7 +311,19 @@ await supabaseClient
 .eq('villa_id', villaId)
 .order('date_from');
 
-currentBookings = bookings || [];
+currentBookings = [
+...(directBookings || []).map(b => ({
+check_in:b.check_in,
+check_out:b.check_out,
+source:'direct'
+})),
+...(externalBookings || []).map(b => ({
+check_in:b.check_in,
+check_out:b.check_out,
+source:b.platform || 'external'
+}))
+];
+
 currentRates = rates || [];
 
 const mainImage =
@@ -534,7 +331,13 @@ images?.find(img => img.image_type === 'main')?.image_url
 || images?.[0]?.image_url
 || '';
 
-renderVilla(villa, images || [], services || [], mainImage, extraServices || fallbackExtraServices);
+renderVilla(
+villa,
+images || [],
+services || [],
+mainImage,
+extraServices || fallbackExtraServices
+);
 
 }
 
@@ -546,8 +349,11 @@ const lng = villa.longitude;
 let mapHtml = '';
 
 if(lat && lng){
+
 const delta = 0.005;
-const bbox = `${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
+
+const bbox =
+`${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
 
 mapHtml = `
 <div class="section">
@@ -555,8 +361,12 @@ mapHtml = `
 <div class="map-preview" onclick="openMap('${lat}','${lng}')">
 <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}"></iframe>
 </div>
-<a class="button" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">Apri su Google Maps</a>
-</div>`;
+<a class="button" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">
+Apri su Google Maps
+</a>
+</div>
+`;
+
 }
 
 document.getElementById('page').innerHTML = `
@@ -570,6 +380,7 @@ ${mainImage ? `<img src="${mainImage}">` : ''}
 </div>
 
 <h1>${villa.title || ''}</h1>
+
 <div class="destination">
 ${villa.towns?.name ? villa.towns.name + ' · ' : ''}${villa.destinations?.name || ''}
 </div>
@@ -648,7 +459,9 @@ ${villa.nightly_price ? `Prezzo base per notte: <strong>${formatEuro(villa.night
 
 <textarea id="notes" placeholder="Note o richieste speciali"></textarea>
 
-<button class="button" onclick="submitBooking()">Invia richiesta di prenotazione</button>
+<button class="button" onclick="submitBooking()">
+Invia richiesta di prenotazione
+</button>
 </div>
 
 ${mapHtml}
@@ -660,16 +473,44 @@ updateSelectionBox();
 }
 
 function changeMonth(direction){
-calendarBaseDate = new Date(calendarBaseDate.getFullYear(),calendarBaseDate.getMonth() + direction,1);
+
+calendarBaseDate =
+new Date(
+calendarBaseDate.getFullYear(),
+calendarBaseDate.getMonth() + direction,
+1
+);
+
 renderCalendars();
+
 }
 
 function renderCalendars(){
-const wrap = document.getElementById('calendarWrap');
+
+const wrap =
+document.getElementById('calendarWrap');
+
 wrap.innerHTML = '';
-renderMonth(calendarBaseDate.getFullYear(), calendarBaseDate.getMonth(), wrap);
-const nextMonth = new Date(calendarBaseDate.getFullYear(), calendarBaseDate.getMonth()+1, 1);
-renderMonth(nextMonth.getFullYear(), nextMonth.getMonth(), wrap);
+
+renderMonth(
+calendarBaseDate.getFullYear(),
+calendarBaseDate.getMonth(),
+wrap
+);
+
+const nextMonth =
+new Date(
+calendarBaseDate.getFullYear(),
+calendarBaseDate.getMonth()+1,
+1
+);
+
+renderMonth(
+nextMonth.getFullYear(),
+nextMonth.getMonth(),
+wrap
+);
+
 }
 
 function renderMonth(year,month,container){
@@ -679,8 +520,11 @@ const monthNames = [
 'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'
 ];
 
-const firstDay = makeDate(year,month,1);
-const lastDay = makeDate(year,month+1,0);
+const firstDay =
+makeDate(year,month,1);
+
+const lastDay =
+makeDate(year,month+1,0);
 
 let html = `
 <div class="month">
@@ -695,8 +539,11 @@ let html = `
 <div class="day-name">D</div>
 `;
 
-let startOffset = firstDay.getDay();
-startOffset = startOffset === 0 ? 6 : startOffset - 1;
+let startOffset =
+firstDay.getDay();
+
+startOffset =
+startOffset === 0 ? 6 : startOffset - 1;
 
 for(let i=0;i<startOffset;i++){
 html += `<div class="day empty-day"></div>`;
@@ -704,16 +551,32 @@ html += `<div class="day empty-day"></div>`;
 
 for(let d=1; d<=lastDay.getDate(); d++){
 
-const date = makeDate(year,month,d);
-const iso = toISODate(date);
-const booked = isBooked(iso);
-const price = getNightPrice(iso);
+const date =
+makeDate(year,month,d);
 
-let classes = 'day';
+const iso =
+toISODate(date);
 
-if(booked) classes += ' booked';
-if(selectedCheckIn === iso || selectedCheckOut === iso) classes += ' selected';
-if(selectedCheckIn && selectedCheckOut && iso > selectedCheckIn && iso < selectedCheckOut){classes += ' in-range';}
+const booked =
+isBooked(iso);
+
+const price =
+getNightPrice(iso);
+
+let classes =
+'day';
+
+if(booked){
+classes += ' booked';
+}
+
+if(selectedCheckIn === iso || selectedCheckOut === iso){
+classes += ' selected';
+}
+
+if(selectedCheckIn && selectedCheckOut && iso > selectedCheckIn && iso < selectedCheckOut){
+classes += ' in-range';
+}
 
 const priceHtml =
 price > 0
@@ -726,6 +589,7 @@ html += `
 ${booked ? '<div class="day-price">occupata</div>' : priceHtml}
 </div>
 `;
+
 }
 
 html += `</div></div>`;
@@ -752,11 +616,14 @@ selectedCheckOut = null;
 }
 
 else{
+
 if(rangeHasBooked(selectedCheckIn, iso)){
 alert('Il periodo selezionato contiene date occupate.');
 return;
 }
+
 selectedCheckOut = iso;
+
 }
 
 updateSelectionBox();
@@ -766,16 +633,26 @@ renderCalendars();
 
 function updateSelectionBox(){
 
-const box = document.getElementById('selectionBox');
-const priceBox = document.getElementById('priceBox');
+const box =
+document.getElementById('selectionBox');
 
-if(!box){return;}
+const priceBox =
+document.getElementById('priceBox');
+
+if(!box){
+return;
+}
 
 if(selectedCheckIn && selectedCheckOut){
 
-const nights = dateDiffNights(selectedCheckIn, selectedCheckOut);
-const calculation = calculateStayTotal(selectedCheckIn, selectedCheckOut);
-const total = calculation.total;
+const nights =
+dateDiffNights(selectedCheckIn, selectedCheckOut);
+
+const calculation =
+calculateStayTotal(selectedCheckIn, selectedCheckOut);
+
+const total =
+calculation.total;
 
 box.innerHTML = `
 Check-in: <strong>${formatDateIT(selectedCheckIn)}</strong><br>
@@ -789,7 +666,9 @@ return `${formatDateIT(item.date)}: ${item.price > 0 ? formatEuro(item.price) : 
 }).join('<br>');
 
 if(priceBox){
-priceBox.innerHTML = total > 0
+
+priceBox.innerHTML =
+total > 0
 ? `
 Totale soggiorno: <strong>${formatEuro(total)}</strong>
 <div class="price-detail">
@@ -797,33 +676,46 @@ ${detailHtml}
 </div>
 `
 : 'Prezzo su richiesta';
+
 }
 
 return;
+
 }
 
 if(selectedCheckIn){
+
 box.innerHTML = `
 Check-in: <strong>${formatDateIT(selectedCheckIn)}</strong><br>
 Ora seleziona la data di check-out.
 `;
 
 if(priceBox){
-const price = getNightPrice(selectedCheckIn);
-priceBox.innerHTML = price > 0
+
+const price =
+getNightPrice(selectedCheckIn);
+
+priceBox.innerHTML =
+price > 0
 ? `Prezzo notte selezionata: <strong>${formatEuro(price)}</strong>`
 : 'Prezzo su richiesta';
+
 }
 
 return;
+
 }
 
-box.innerHTML = 'Seleziona check-in e check-out dal calendario.';
+box.innerHTML =
+'Seleziona check-in e check-out dal calendario.';
 
 if(priceBox){
-priceBox.innerHTML = currentVilla?.nightly_price
+
+priceBox.innerHTML =
+currentVilla?.nightly_price
 ? `Prezzo base per notte: <strong>${formatEuro(currentVilla.nightly_price)}</strong>`
 : 'Prezzo su richiesta';
+
 }
 
 }
@@ -835,9 +727,14 @@ alert('Seleziona check-in e check-out dal calendario.');
 return;
 }
 
-const nights = dateDiffNights(selectedCheckIn, selectedCheckOut);
-const calculation = calculateStayTotal(selectedCheckIn, selectedCheckOut);
-const totalPrice = calculation.total > 0 ? calculation.total : null;
+const nights =
+dateDiffNights(selectedCheckIn, selectedCheckOut);
+
+const calculation =
+calculateStayTotal(selectedCheckIn, selectedCheckOut);
+
+const totalPrice =
+calculation.total > 0 ? calculation.total : null;
 
 const booking = {
 villa_id:villaId,
@@ -863,21 +760,7 @@ alert('Seleziona date valide.');
 return;
 }
 
-const { data: overlaps, error: overlapError } =
-await supabaseClient
-.from('bookings')
-.select('*')
-.eq('villa_id', villaId)
-.in('status',['pending','confirmed'])
-.lt('check_in', booking.check_out)
-.gt('check_out', booking.check_in);
-
-if(overlapError){
-alert(overlapError.message);
-return;
-}
-
-if(overlaps && overlaps.length > 0){
+if(rangeHasBooked(booking.check_in, booking.check_out)){
 alert('Le date selezionate risultano già occupate.');
 return;
 }
@@ -900,7 +783,6 @@ window.location.reload();
 function openMap(lat,lng){
 window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank');
 }
-
 </script>
 
 </body>
