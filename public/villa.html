@@ -329,7 +329,7 @@ return Array.from(array).map(b => b.toString(16).padStart(2,'0')).join('');
 async function submitBooking(){
 if(!selectedCheckIn || !selectedCheckOut){alert('Seleziona check-in e check-out dal calendario.'); return;}
 const nights=dateDiffNights(selectedCheckIn,selectedCheckOut); const calculation=calculateStayTotal(selectedCheckIn,selectedCheckOut); const totalPrice=calculation.total > 0 ? calculation.total : null;
-const booking={villa_id:villaId,guest_name:document.getElementById('guest_name').value.trim(),guest_email:document.getElementById('guest_email').value.trim(),guest_phone:document.getElementById('guest_phone').value.trim(),check_in:selectedCheckIn,check_out:selectedCheckOut,guests:document.getElementById('guests').value || null,notes:document.getElementById('notes').value,status:'pending',source:'direct',total_price:totalPrice,cancellation_token:generateCancellationToken()};
+const booking={villa_id:villaId,guest_name:document.getElementById('guest_name').value.trim(),guest_email:document.getElementById('guest_email').value.trim(),guest_phone:document.getElementById('guest_phone').value.trim(),check_in:selectedCheckIn,check_out:selectedCheckOut,guests:document.getElementById('guests').value || null,notes:document.getElementById('notes').value,status:'confirmed',source:'direct',total_price:totalPrice,cancellation_token:generateCancellationToken()};
 if(!booking.guest_name || !booking.guest_email || !booking.guest_phone){alert('Compila nome, email e telefono.'); return;}
 if(nights <= 0){alert('Seleziona date valide.'); return;}
 if(rangeHasBooked(booking.check_in, booking.check_out)){alert('Le date selezionate risultano già occupate.'); return;}
@@ -368,7 +368,7 @@ window.location.reload();
 return;
 }
 
-alert('Richiesta inviata. Riceverai conferma dalla società.');
+alert('Prenotazione confermata. Riceverai una email con i dettagli e il link per gestire o cancellare il soggiorno.');
 window.location.reload();
 
 }catch(err){
