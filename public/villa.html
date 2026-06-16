@@ -246,6 +246,8 @@ document.getElementById('page').innerHTML = `
 
 <div class="section"><h2>Descrizione</h2><div id="descriptionContent"></div></div>
 
+<div class="section"><h2>Politica di cancellazione</h2><p id="cancellationPolicyText"></p></div>
+
 <div class="section"><h2>Gallery</h2><div class="gallery">${images.map(img => `<img src="${img.image_url}">`).join('')}</div></div>
 
 <div class="section"><h2>Servizi inclusi</h2><div class="services">${renderIncludedServices(services)}</div></div>
@@ -272,6 +274,7 @@ ${mapHtml}
 `;
 
 renderDescriptionTabs();
+document.getElementById('cancellationPolicyText').innerText = villa.cancellation_policy_text || 'Cancellazione gratuita secondo le condizioni indicate da Guest in Town.';
 renderCalendars();
 updateSelectionBox();
 }
@@ -317,10 +320,16 @@ box.innerHTML='Seleziona check-in e check-out dal calendario.';
 if(priceBox){priceBox.innerHTML=currentVilla?.nightly_price ? `Prezzo base per notte: <strong>${formatEuro(currentVilla.nightly_price)}</strong>` : 'Prezzo su richiesta';}
 }
 
+function generateCancellationToken(){
+const array = new Uint8Array(24);
+crypto.getRandomValues(array);
+return Array.from(array).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 async function submitBooking(){
 if(!selectedCheckIn || !selectedCheckOut){alert('Seleziona check-in e check-out dal calendario.'); return;}
 const nights=dateDiffNights(selectedCheckIn,selectedCheckOut); const calculation=calculateStayTotal(selectedCheckIn,selectedCheckOut); const totalPrice=calculation.total > 0 ? calculation.total : null;
-const booking={villa_id:villaId,guest_name:document.getElementById('guest_name').value.trim(),guest_email:document.getElementById('guest_email').value.trim(),guest_phone:document.getElementById('guest_phone').value.trim(),check_in:selectedCheckIn,check_out:selectedCheckOut,guests:document.getElementById('guests').value || null,notes:document.getElementById('notes').value,status:'pending',source:'direct',total_price:totalPrice};
+const booking={villa_id:villaId,guest_name:document.getElementById('guest_name').value.trim(),guest_email:document.getElementById('guest_email').value.trim(),guest_phone:document.getElementById('guest_phone').value.trim(),check_in:selectedCheckIn,check_out:selectedCheckOut,guests:document.getElementById('guests').value || null,notes:document.getElementById('notes').value,status:'pending',source:'direct',total_price:totalPrice,cancellation_token:generateCancellationToken()};
 if(!booking.guest_name || !booking.guest_email || !booking.guest_phone){alert('Compila nome, email e telefono.'); return;}
 if(nights <= 0){alert('Seleziona date valide.'); return;}
 if(rangeHasBooked(booking.check_in, booking.check_out)){alert('Le date selezionate risultano già occupate.'); return;}
