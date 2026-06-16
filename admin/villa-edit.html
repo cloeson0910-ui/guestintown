@@ -52,6 +52,11 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 .export-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
 .export-actions button{background:#c9a96e;color:black;font-weight:bold;padding:10px 14px;border:none;border-radius:6px;cursor:pointer;}
 .export-actions a{background:#222;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;}
+.ai-box{background:#151515;border:1px solid #333;padding:15px;border-radius:10px;margin-top:15px;}
+.ai-box strong{color:#c9a96e;}
+.ai-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.ai-status{background:#111;padding:12px;border-radius:8px;margin-top:12px;color:#ccc;font-size:14px;line-height:1.5;}
+
 </style>
 </head>
 
@@ -129,6 +134,15 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 
 <textarea id="short_description" placeholder="Descrizione breve"></textarea>
 <textarea id="full_description" placeholder="Descrizione completa"></textarea>
+
+<div class="ai-box">
+<strong>IA descrizioni e traduzioni</strong>
+<p class="note">Genera una descrizione luxury in italiano e crea automaticamente le traduzioni per inglese, tedesco, francese e spagnolo.</p>
+<div class="ai-actions">
+<button class="save" onclick="generateVillaTranslations()">Genera descrizione e traduzioni IA</button>
+</div>
+<div class="ai-status" id="aiStatus">Nessuna generazione IA eseguita in questa sessione.</div>
+</div>
 </div>
 
 <div class="section">
@@ -189,16 +203,6 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 
 <div class="gps-status" id="syncStatus">
 Nessuna sincronizzazione eseguita in questa sessione.
-</div>
-
-<div class="export-box">
-<label>Calendario Guest in Town da importare su Airbnb e Booking</label>
-<input id="guestintown_ical_url" readonly>
-<div class="small">Copia questo link e incollalo nei portali come calendario esterno/importato. Bloccherà su Airbnb e Booking le prenotazioni ricevute dal sito Guest in Town.</div>
-<div class="export-actions">
-<button onclick="copyGuestInTownCalendarUrl()">Copia link calendario</button>
-<a id="open_guestintown_ical" href="#" target="_blank">Apri calendario</a>
-</div>
 </div>
 </div>
 
@@ -1015,6 +1019,51 @@ function cancelEdit(){
 if(confirm('Annullare le modifiche e tornare alla lista ville?')){
 window.location.href = 'villas.html';
 }
+}
+
+async function generateVillaTranslations(){
+
+const aiStatus = document.getElementById('aiStatus');
+
+if(!villaId){
+aiStatus.innerHTML = '<span class="gps-bad">ID villa mancante.</span>';
+return;
+}
+
+aiStatus.innerHTML = 'Generazione IA in corso... attendi qualche secondo.';
+
+try{
+
+const { data, error } =
+await supabaseClient.functions.invoke(
+'generate-villa-translations',
+{
+body:{
+villa_id:Number(villaId)
+}
+}
+);
+
+if(error){
+aiStatus.innerHTML = `<span class="gps-bad">Errore IA: ${error.message}</span>`;
+return;
+}
+
+if(!data || data.success === false){
+aiStatus.innerHTML = `<span class="gps-bad">Errore IA: ${data?.error || 'Risposta non valida'}</span>`;
+return;
+}
+
+aiStatus.innerHTML = '<span class="gps-good">Descrizione luxury e traduzioni generate correttamente.</span>';
+
+await loadVilla();
+
+alert('Descrizione e traduzioni generate. Le schede lingua saranno visibili nella pagina pubblica della villa.');
+
+}catch(err){
+aiStatus.innerHTML = `<span class="gps-bad">Errore IA: ${err.message}</span>`;
+}
+
 }
 
 async function logout(){
