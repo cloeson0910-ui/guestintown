@@ -324,9 +324,48 @@ const booking={villa_id:villaId,guest_name:document.getElementById('guest_name')
 if(!booking.guest_name || !booking.guest_email || !booking.guest_phone){alert('Compila nome, email e telefono.'); return;}
 if(nights <= 0){alert('Seleziona date valide.'); return;}
 if(rangeHasBooked(booking.check_in, booking.check_out)){alert('Le date selezionate risultano già occupate.'); return;}
-const { error } = await supabaseClient.from('bookings').insert([booking]);
-if(error){alert(error.message); return;}
-alert('Richiesta inviata. Riceverai conferma dalla società.'); window.location.reload();
+const { data: savedBooking, error } = await supabaseClient
+.from('bookings')
+.insert([booking])
+.select('*')
+.single();
+
+if(error){
+alert(error.message);
+return;
+}
+
+try{
+const { data: mailData, error: mailError } = await supabaseClient.functions.invoke(
+'send-booking-confirmation',
+{
+body:{
+booking_id:savedBooking?.id,
+booking:savedBooking || booking,
+villa:currentVilla
+}
+}
+);
+
+if(mailError){
+alert('Richiesta inviata, ma email NON inviata: ' + mailError.message);
+window.location.reload();
+return;
+}
+
+if(mailData && mailData.success === false){
+alert('Richiesta inviata, ma email NON inviata: ' + (mailData.error || 'Errore invio email'));
+window.location.reload();
+return;
+}
+
+alert('Richiesta inviata. Riceverai conferma dalla società.');
+window.location.reload();
+
+}catch(err){
+alert('Richiesta inviata, ma email NON inviata: ' + err.message);
+window.location.reload();
+}
 }
 
 function openMap(lat,lng){window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank');}
