@@ -47,6 +47,11 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 .rate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
 .rate-list{margin-top:20px;}
 .rate-card{background:#151515;padding:15px;border-radius:10px;margin-bottom:10px;}
+.export-box{background:#151515;padding:15px;border-radius:10px;margin-top:15px;border:1px solid #333;}
+.export-box label{display:block;margin-bottom:8px;color:#ccc;}
+.export-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.export-actions button{background:#c9a96e;color:black;font-weight:bold;padding:10px 14px;border:none;border-radius:6px;cursor:pointer;}
+.export-actions a{background:#222;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;}
 </style>
 </head>
 
@@ -184,6 +189,16 @@ button.delete-photo,button.delete-rate{background:#c0392b;color:white;border:non
 
 <div class="gps-status" id="syncStatus">
 Nessuna sincronizzazione eseguita in questa sessione.
+</div>
+
+<div class="export-box">
+<label>Calendario Guest in Town da importare su Airbnb e Booking</label>
+<input id="guestintown_ical_url" readonly>
+<div class="small">Copia questo link e incollalo nei portali come calendario esterno/importato. Bloccherà su Airbnb e Booking le prenotazioni ricevute dal sito Guest in Town.</div>
+<div class="export-actions">
+<button onclick="copyGuestInTownCalendarUrl()">Copia link calendario</button>
+<a id="open_guestintown_ical" href="#" target="_blank">Apri calendario</a>
+</div>
 </div>
 </div>
 
@@ -389,6 +404,8 @@ updateMapPreview();
 
 document.getElementById('latitude').addEventListener('input', markLocationUnconfirmed);
 document.getElementById('longitude').addEventListener('input', markLocationUnconfirmed);
+
+setGuestInTownCalendarUrl();
 }
 
 function markLocationUnconfirmed(){
@@ -955,6 +972,43 @@ const preview = document.getElementById(previewId);
 
 preview.src = '';
 preview.style.display = 'none';
+}
+
+function setGuestInTownCalendarUrl(){
+
+const url =
+`https://cspzkofhgfrnkhjpfazb.supabase.co/functions/v1/export-villa-calendar?villa_id=${villaId}`;
+
+const input =
+document.getElementById('guestintown_ical_url');
+
+const link =
+document.getElementById('open_guestintown_ical');
+
+if(input){
+input.value = url;
+}
+
+if(link){
+link.href = url;
+}
+
+}
+
+async function copyGuestInTownCalendarUrl(){
+
+const input =
+document.getElementById('guestintown_ical_url');
+
+if(!input || !input.value){
+alert('Link calendario non disponibile');
+return;
+}
+
+await navigator.clipboard.writeText(input.value);
+
+alert('Link calendario copiato');
+
 }
 
 function cancelEdit(){
