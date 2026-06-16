@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancella prenotazione - Guest in Town</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+body{margin:0;background:#050505;color:#f5efe4;font-family:Arial,sans-serif;}
+.container{max-width:760px;margin:auto;padding:60px 24px;}
+.card{background:#0f0f0f;border:1px solid rgba(201,169,110,.3);padding:32px;}
+h1{font-family:Georgia,'Times New Roman',serif;color:#c9a96e;font-weight:400;font-size:44px;margin:0 0 20px;}
+p{line-height:1.7;color:#ddd;}
+.button{background:#c9a96e;color:#050505;border:0;padding:14px 22px;font-weight:bold;text-transform:uppercase;cursor:pointer;margin-top:14px;}
+.button.secondary{background:transparent;color:#c9a96e;border:1px solid #c9a96e;margin-left:10px;}
+.status{background:#151515;border:1px solid rgba(201,169,110,.2);padding:16px;margin-top:20px;line-height:1.7;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+.warn{color:#f1c40f;font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h1>Cancellazione prenotazione</h1>
+<p>Da questa pagina puoi richiedere la cancellazione della prenotazione. Il sistema verificherà automaticamente i termini previsti per la villa.</p>
+<div id="bookingBox" class="status">Caricamento prenotazione...</div>
+<button class="button" onclick="cancelBooking()">Conferma cancellazione</button>
+<a class="button secondary" href="../">Torna alla home</a>
+</div>
+</div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+
+if(!token){
+document.getElementById('bookingBox').innerHTML = '<span class="bad">Token cancellazione mancante.</span>';
+}
+else{
+loadBookingPreview();
+}
+
+async function loadBookingPreview(){
+const box = document.getElementById('bookingBox');
+box.innerHTML = 'Verifica prenotazione in corso...';
+const { data, error } = await supabaseClient.functions.invoke('cancel-booking',{body:{token:token,preview:true}});
+if(error){box.innerHTML = '<span class="bad">'+error.message+'</span>';return;}
+if(!data || data.success === false){box.innerHTML = '<span class="bad">'+(data?.error || 'Prenotazione non trovata')+'</span>';return;}
+box.innerHTML = `
+<strong>${data.villa_title || 'Villa Guest in Town'}</strong><br>
+Cliente: ${data.guest_name}<br>
+Periodo: ${formatDate(data.check_in)} - ${formatDate(data.check_out)}<br>
+Stato: ${data.status}<br>
+Politica: ${data.cancellation_policy_text || '-'}<br><br>
+${data.cancellation_allowed ? '<span class="good">Cancellazione consentita.</span>' : '<span class="warn">Cancellazione fuori termini. Contatta Guest in Town.</span>'}
+`;
+}
+
+async function cancelBooking(){
+if(!token){alert('Token mancante');return;}
+if(!confirm('Confermi di voler cancellare questa prenotazione?')){return;}
+const box = document.getElementById('bookingBox');
+box.innerHTML = 'Cancellazione in corso...';
+const { data, error } = await supabaseClient.functions.invoke('cancel-booking',{body:{token:token,preview:false,reason:'Cancellazione richiesta dall\'ospite'}});
+if(error){box.innerHTML = '<span class="bad">'+error.message+'</span>';return;}
+if(!data || data.success === false){box.innerHTML = '<span class="bad">'+(data?.error || 'Cancellazione non riuscita')+'</span>';return;}
+box.innerHTML = '<span class="good">Prenotazione cancellata correttamente. Abbiamo inviato una mail di conferma.</span><br>Le date sono state liberate sul calendario Guest in Town.';
+}
+
+function formatDate(dateString){
+if(!dateString)return '-';
+const p = dateString.split('-');
+return `${p[2]}/${p[1]}/${p[0]}`;
+}
+</script>
+</body>
+</html>
