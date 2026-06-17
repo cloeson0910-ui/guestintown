@@ -5,12 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Guest in Town - Vacanze di lusso in Salento</title>
+.admin-lock{
+position:fixed;
+right:24px;
+bottom:24px;
+width:42px;
+height:42px;
+display:flex;
+align-items:center;
+justify-content:center;
+color:#c9a96e;
+background:rgba(5,5,5,.88);
+border:1px solid rgba(201,169,110,.38);
+border-radius:50%;
+text-decoration:none;
+z-index:9999;
+transition:.25s;
+backdrop-filter:blur(8px);
+box-shadow:0 10px 28px rgba(0,0,0,.35);
+opacity:.65;
+}
 
+.admin-lock svg{
+width:19px;
+height:19px;
+}
+
+.admin-lock:hover{
+opacity:1;
+transform:scale(1.08);
+border-color:#c9a96e;
+box-shadow:0 0 22px rgba(201,169,110,.28);
+}
+
+.admin-lock:active{
+transform:scale(.96);
+}
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
 html{scroll-behavior:smooth;}
+<a href="admin/login.html"
+   class="admin-lock"
+   title="Area riservata">
 
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.8"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+
+<rect x="5" y="11" width="14" height="10" rx="2"></rect>
+<path d="M8 11V8a4 4 0 1 1 8 0v3"></path>
+<circle cx="12" cy="16" r="1"></circle>
+
+</svg>
+
+</a>
 body{
 font-family:Georgia,"Times New Roman",serif;
 background:#050505;
