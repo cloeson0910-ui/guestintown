@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dati Società - Guest in Town</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1000px;margin:auto;}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
+.menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer;}
+.menu .logout{margin-left:auto;background:#c0392b;}
+.section{background:#1b1b1b;padding:22px;border-radius:10px;margin-bottom:25px;}
+h1{margin-bottom:8px;}
+h2{color:#c9a96e;font-family:Georgia,"Times New Roman",serif;font-weight:400;}
+.subtitle{color:#aaa;margin-bottom:25px;line-height:1.6;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+input,textarea{width:100%;padding:12px;margin-bottom:14px;border:none;border-radius:6px;box-sizing:border-box;}
+textarea{min-height:90px;}
+button.save{background:#c9a96e;color:black;font-weight:bold;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;}
+.status{background:#151515;border:1px solid #333;padding:12px;border-radius:8px;color:#ccc;margin-top:12px;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+.note{color:#aaa;font-size:14px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="bookings.html">Prenotazioni</a>
+<a href="services-admin.html">Servizi</a>
+<a href="service-requests.html">Richieste servizi</a>
+<a href="reports.html">Report</a>
+<a href="company-settings.html">Dati società</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Dati società e pagamenti</h1>
+<div class="subtitle">
+Questi dati vengono usati nelle email di conferma, nelle richieste di pagamento e nei riepiloghi inviati ai clienti.
+</div>
+
+<div class="section">
+<h2>Anagrafica società</h2>
+<div class="grid">
+<input id="company_name" placeholder="Nome commerciale, es. Guest in Town">
+<input id="legal_name" placeholder="Ragione sociale">
+<input id="vat_number" placeholder="Partita IVA">
+<input id="tax_code" placeholder="Codice fiscale">
+<input id="email" placeholder="Email società">
+<input id="phone" placeholder="Telefono">
+</div>
+<textarea id="address" placeholder="Indirizzo completo società"></textarea>
+</div>
+
+<div class="section">
+<h2>Dati bancari</h2>
+<div class="grid">
+<input id="iban" placeholder="IBAN">
+<input id="bank_name" placeholder="Nome banca">
+<input id="bic_swift" placeholder="BIC / SWIFT">
+<input id="payment_reason_prefix" placeholder="Causale base, es. Guest in Town">
+</div>
+<p class="note">
+La causale finale sarà generata dal sistema con riferimento a prenotazione o servizio.
+</p>
+</div>
+
+<div class="section">
+<h2>Pagamento carta</h2>
+<input id="card_payment_url" placeholder="Link pagamento carta / Stripe Payment Link temporaneo">
+<p class="note">
+Questo campo può contenere un link carta temporaneo. La gestione automatica con Stripe Checkout sarà collegata nel passaggio successivo.
+</p>
+</div>
+
+<button class="save" onclick="saveSettings()">Salva dati società</button>
+<div id="status" class="status">Caricamento...</div>
+
+<script>
+checkAuth();
+
+async function checkAuth(){
+const { data } = await supabaseClient.auth.getUser();
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+loadSettings();
+}
+
+async function loadSettings(){
+const { data, error } = await supabaseClient
+.from('company_settings')
+.select('*')
+.eq('id',1)
+.single();
+
+if(error){
+document.getElementById('status').innerHTML = '<span class="bad">'+error.message+'</span>';
+return;
+}
+
+const fields = ['company_name','legal_name','vat_number','tax_code','address','email','phone','iban','bank_name','bic_swift','payment_reason_prefix','card_payment_url'];
+fields.forEach(field=>{
+document.getElementById(field).value = data?.[field] || '';
+});
+
+document.getElementById('status').innerHTML = '<span class="good">Dati caricati.</span>';
+}
+
+async function saveSettings(){
+const fields = ['company_name','legal_name','vat_number','tax_code','address','email','phone','iban','bank_name','bic_swift','payment_reason_prefix','card_payment_url'];
+const payload = {id:1,updated_at:new Date().toISOString()};
+
+fields.forEach(field=>{
+payload[field] = document.getElementById(field).value;
+});
+
+const { error } = await supabaseClient
+.from('company_settings')
+.upsert(payload,{onConflict:'id'});
+
+if(error){
+document.getElementById('status').innerHTML = '<span class="bad">'+error.message+'</span>';
+return;
+}
+
+document.getElementById('status').innerHTML = '<span class="good">Dati società salvati.</span>';
+}
+
+async function logout(){
+await supabaseClient.auth.signOut();
+window.location.href = "login.html";
+}
+</script>
+</body>
+</html>
