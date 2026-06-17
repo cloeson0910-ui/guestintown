@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -89,6 +90,42 @@ Quando un collaboratore non lavora più per Guest in Town, usa “Disattiva”. 
 </table>
 </div>
 
+
+<div class="section">
+<h2>Assegnazione ville ai collaboratori</h2>
+<p class="note">
+Assegna una o più ville a ogni collaboratore. Il sistema userà queste assegnazioni per creare automaticamente pulizie, check-in e check-out dal calendario prenotazioni.
+</p>
+
+<div class="grid">
+<select id="assignment_staff_id"><option value="">Collaboratore attivo</option></select>
+<select id="assignment_villa_id"><option value="">Villa</option></select>
+<select id="assignment_task_type">
+<option value="cleaning">Pulizie</option>
+<option value="checkin">Check-in</option>
+<option value="checkout">Check-out</option>
+</select>
+</div>
+
+<button class="save" onclick="saveAssignment()">Assegna villa</button>
+<button class="small" onclick="generateOperationalTasks()">Genera attività da prenotazioni</button>
+
+<div id="assignmentStatus" class="status">Pronto.</div>
+
+<table>
+<thead>
+<tr>
+<th>Collaboratore</th>
+<th>Villa</th>
+<th>Tipo attività</th>
+<th>Stato</th>
+<th>Azioni</th>
+</tr>
+</thead>
+<tbody id="assignmentsTable"></tbody>
+</table>
+</div>
+
 <div class="section">
 <h2>Nuova attività</h2>
 <div class="grid">
@@ -142,6 +179,7 @@ Quando un collaboratore non lavora più per Guest in Town, usa “Disattiva”. 
 let staff = [];
 let villas = [];
 let tasks = [];
+let assignments = [];
 
 checkAuth();
 
@@ -150,6 +188,7 @@ const { data } = await supabaseClient.auth.getUser();
 if(!data.user){window.location.href='login.html';return;}
 await loadStaff();
 await loadVillas();
+await loadAssignments();
 await loadTasks();
 }
 
@@ -168,9 +207,11 @@ staff = data || [];
 
 const table=document.getElementById('staffTable');
 const select=document.getElementById('task_staff_id');
+const assignmentStaffSelect=document.getElementById('assignment_staff_id');
 
 table.innerHTML='';
 select.innerHTML='<option value="">Collaboratore attivo</option>';
+if(assignmentStaffSelect){assignmentStaffSelect.innerHTML='<option value="">Collaboratore attivo</option>';}
 
 if(staff.length === 0){
 table.innerHTML = '<tr><td colspan="6">Nessun collaboratore inserito.</td></tr>';
@@ -200,6 +241,7 @@ table.innerHTML += `
 
 if(s.active){
 select.innerHTML += `<option value="${s.id}">${s.full_name} · ${roleLabel(s.role)}</option>`;
+if(assignmentStaffSelect){assignmentStaffSelect.innerHTML += `<option value="${s.id}">${s.full_name} · ${roleLabel(s.role)}</option>`;}
 }
 });
 }
@@ -266,9 +308,14 @@ const { data } = await supabaseClient
 villas = data || [];
 
 const select=document.getElementById('task_villa_id');
+const assignmentVillaSelect=document.getElementById('assignment_villa_id');
 select.innerHTML='<option value="">Villa</option>';
+if(assignmentVillaSelect){assignmentVillaSelect.innerHTML='<option value="">Villa</option>';}
 
-villas.forEach(v=>select.innerHTML += `<option value="${v.id}">${v.title}</option>`);
+villas.forEach(v=>{
+select.innerHTML += `<option value="${v.id}">${v.title}</option>`;
+if(assignmentVillaSelect){assignmentVillaSelect.innerHTML += `<option value="${v.id}">${v.title}</option>`;}
+});
 }
 
 async function saveStaff(){
@@ -346,6 +393,118 @@ document.getElementById('staff_name').value='';
 document.getElementById('staff_email').value='';
 document.getElementById('staff_phone').value='';
 document.getElementById('staff_role').value='cleaning';
+}
+
+
+async function loadAssignments(){
+const { data, error } = await supabaseClient
+.from('staff_villa_assignments')
+.select('*, staff_members(full_name,active), villas(title)')
+.order('created_at',{ascending:false});
+
+if(error){
+const box=document.getElementById('assignmentStatus');
+if(box){box.innerHTML='<span class="bad">'+error.message+'</span>';}
+return;
+}
+
+assignments = data || [];
+renderAssignments();
+}
+
+function renderAssignments(){
+const table=document.getElementById('assignmentsTable');
+if(!table){return;}
+
+table.innerHTML='';
+
+if(assignments.length===0){
+table.innerHTML='<tr><td colspan="5">Nessuna assegnazione inserita.</td></tr>';
+return;
+}
+
+assignments.forEach(a=>{
+table.innerHTML += `
+<tr>
+<td>${a.staff_members?.full_name || '-'}</td>
+<td>${a.villas?.title || '-'}</td>
+<td>${typeLabel(a.task_type)}</td>
+<td>${a.active ? '<span class="badge active">Attiva</span>' : '<span class="badge inactive">Non attiva</span>'}</td>
+<td>
+${a.active
+? `<button class="danger" onclick="toggleAssignment(${a.id},false)">Disattiva</button>`
+: `<button class="restore" onclick="toggleAssignment(${a.id},true)">Riattiva</button>`}
+</td>
+</tr>`;
+});
+}
+
+async function saveAssignment(){
+const staffId=document.getElementById('assignment_staff_id').value;
+const villaId=document.getElementById('assignment_villa_id').value;
+const taskType=document.getElementById('assignment_task_type').value;
+
+if(!staffId || !villaId || !taskType){
+alert('Seleziona collaboratore, villa e tipo attività.');
+return;
+}
+
+const { error } = await supabaseClient
+.from('staff_villa_assignments')
+.upsert([{
+staff_id:Number(staffId),
+villa_id:Number(villaId),
+task_type:taskType,
+active:true
+}],{onConflict:'staff_id,villa_id,task_type'});
+
+if(error){
+document.getElementById('assignmentStatus').innerHTML='<span class="bad">'+error.message+'</span>';
+return;
+}
+
+document.getElementById('assignmentStatus').innerHTML='<span class="good">Assegnazione salvata.</span>';
+await loadAssignments();
+}
+
+async function toggleAssignment(id,active){
+const { error } = await supabaseClient
+.from('staff_villa_assignments')
+.update({active})
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+await loadAssignments();
+}
+
+async function generateOperationalTasks(){
+if(!confirm('Generare le attività operative da tutte le prenotazioni attive?')){
+return;
+}
+
+document.getElementById('assignmentStatus').innerHTML='Generazione attività in corso...';
+
+const { data, error } = await supabaseClient.functions.invoke(
+'generate-staff-tasks',
+{body:{}}
+);
+
+if(error){
+document.getElementById('assignmentStatus').innerHTML='<span class="bad">'+error.message+'</span>';
+return;
+}
+
+if(!data || data.success===false){
+document.getElementById('assignmentStatus').innerHTML='<span class="bad">'+(data?.error || 'Errore generazione attività')+'</span>';
+return;
+}
+
+document.getElementById('assignmentStatus').innerHTML='<span class="good">Attività generate. Create: '+(data.created || 0)+'.</span>';
+await loadTasks();
 }
 
 async function saveTask(){
