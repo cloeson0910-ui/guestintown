@@ -77,18 +77,32 @@ let currentUser = null;
 let staffMember = null;
 let tasks = [];
 let currentFilter = 'upcoming';
-
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('service-worker.js').then(()=>{
-console.log('Service worker registrato');
-}).catch(err=>{
-console.error('Service worker non registrato:', err);
-document.getElementById('pushStatus').innerHTML =
-'<span class="bad">Service worker non registrato: '+err.message+'</span>';
-});
-}
+let swRegistration = null;
 
 checkAuth();
+registerStaffServiceWorker();
+
+async function registerStaffServiceWorker(){
+const pushBox = document.getElementById('pushStatus');
+
+try{
+if(!('serviceWorker' in navigator)){
+pushBox.innerHTML = '<span class="bad">Service worker non supportato da questo browser.</span>';
+return;
+}
+
+swRegistration = await navigator.serviceWorker.register('./service-worker.js', {
+scope:'./'
+});
+
+await swRegistration.update();
+
+pushBox.innerHTML = '<span class="good">Staff App pronta. Puoi attivare le notifiche.</span>';
+
+}catch(err){
+pushBox.innerHTML = '<span class="bad">Errore registrazione app: '+err.message+'</span>';
+}
+}
 
 async function checkAuth(){
 const { data } = await supabaseClient.auth.getUser();
@@ -267,10 +281,17 @@ pushBox.innerHTML = '<span class="bad">Notifiche non autorizzate. Stato: '+permi
 return;
 }
 
-pushBox.innerHTML = 'Attendo service worker...';
-const registration = await navigator.serviceWorker.ready;
+pushBox.innerHTML = 'Registro Staff App...';
+
+if(!swRegistration){
+swRegistration = await navigator.serviceWorker.register('./service-worker.js', {
+scope:'./'
+});
+await swRegistration.update();
+}
 
 pushBox.innerHTML = 'Lettura chiave pubblica notifiche...';
+
 const { data, error } = await supabaseClient.functions.invoke(
 'staff-push-config',
 { body:{} }
@@ -288,10 +309,10 @@ return;
 
 pushBox.innerHTML = 'Creazione sottoscrizione push...';
 
-let subscription = await registration.pushManager.getSubscription();
+let subscription = await swRegistration.pushManager.getSubscription();
 
 if(!subscription){
-subscription = await registration.pushManager.subscribe({
+subscription = await swRegistration.pushManager.subscribe({
 userVisibleOnly:true,
 applicationServerKey:urlBase64ToUint8Array(data.publicKey)
 });
