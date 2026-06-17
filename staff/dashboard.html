@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Dashboard - Guest in Town</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050505">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+*{box-sizing:border-box;}
+body{margin:0;background:#050505;color:#f5efe4;font-family:Arial,sans-serif;}
+.container{max-width:900px;margin:auto;padding:22px;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:12px;}
+.logo{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-size:23px;letter-spacing:3px;text-transform:uppercase;}
+button,a.btn{background:#151515;color:#c9a96e;border:1px solid rgba(201,169,110,.35);padding:10px 12px;text-decoration:none;border-radius:6px;cursor:pointer;}
+.logout{background:#6f1d1b!important;color:white!important;border-color:#6f1d1b!important;}
+h1{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;margin:0 0 8px;}
+.subtitle{color:#aaa;line-height:1.6;margin-bottom:22px;}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.kpi{background:#0f0f0f;border:1px solid rgba(201,169,110,.25);padding:15px;border-radius:10px;}
+.kpi .label{font-size:12px;color:#aaa;text-transform:uppercase;}
+.kpi .value{font-size:28px;font-weight:bold;margin-top:8px;}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.tabs button.active{background:#c9a96e;color:#050505;}
+.task{background:#0f0f0f;border:1px solid rgba(201,169,110,.25);border-radius:12px;padding:17px;margin-bottom:13px;}
+.task h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:#f5efe4;margin:0 0 8px;}
+.meta{color:#bbb;line-height:1.7;font-size:14px;}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:12px;margin-bottom:8px;}
+.todo{background:#5f4b28;color:#fff0c2;}
+.in_progress{background:#1f4b5f;color:#dff4ff;}
+.completed{background:#1f5f3a;color:#dfffea;}
+.verified{background:#4d3c82;color:#eee6ff;}
+.actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;}
+.open{background:#c9a96e!important;color:#050505!important;border:0!important;font-weight:bold;}
+.status{background:#151515;border:1px solid #333;padding:12px;color:#ccc;border-radius:8px;}
+@media(max-width:600px){.kpis{grid-template-columns:1fr;}.header{align-items:flex-start;flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="logo">Guest Staff</div>
+<div>
+<a class="btn" href="dashboard.html">Oggi</a>
+<button class="logout" onclick="logout()">Logout</button>
+</div>
+</div>
+
+<h1>Le tue attività</h1>
+<div class="subtitle" id="staffInfo">Caricamento incarichi...</div>
+
+<div class="kpis">
+<div class="kpi"><div class="label">Da fare</div><div class="value" id="todoCount">0</div></div>
+<div class="kpi"><div class="label">In corso</div><div class="value" id="progressCount">0</div></div>
+<div class="kpi"><div class="label">Completate</div><div class="value" id="completedCount">0</div></div>
+</div>
+
+<div class="tabs">
+<button class="active" onclick="setFilter('today',this)">Oggi</button>
+<button onclick="setFilter('tomorrow',this)">Domani</button>
+<button onclick="setFilter('all',this)">Tutte</button>
+</div>
+
+<div id="tasksList" class="status">Caricamento...</div>
+</div>
+
+<script>
+let currentUser = null;
+let staffMember = null;
+let tasks = [];
+let currentFilter = 'today';
+
+checkAuth();
+
+async function checkAuth(){
+const { data } = await supabaseClient.auth.getUser();
+
+if(!data.user){
+window.location.href = 'login.html';
+return;
+}
+
+currentUser = data.user;
+await loadStaffMember();
+await loadTasks();
+}
+
+async function loadStaffMember(){
+const { data, error } = await supabaseClient
+.from('staff_members')
+.select('*')
+.eq('email', currentUser.email)
+.eq('active', true)
+.single();
+
+if(error || !data){
+document.getElementById('staffInfo').innerHTML = 'Utente non associato a un collaboratore attivo. Contatta Guest in Town.';
+return;
+}
+
+staffMember = data;
+document.getElementById('staffInfo').innerHTML = `${staffMember.full_name} · ${staffMember.role}`;
+}
+
+async function loadTasks(){
+if(!staffMember){
+document.getElementById('tasksList').innerHTML = 'Nessun profilo staff attivo.';
+return;
+}
+
+const { data, error } = await supabaseClient
+.from('staff_tasks')
+.select('*, villas(title)')
+.eq('staff_id', staffMember.id)
+.order('task_date',{ascending:true});
+
+if(error){
+document.getElementById('tasksList').innerHTML = error.message;
+return;
+}
+
+tasks = data || [];
+renderTasks();
+}
+
+function setFilter(filter, btn){
+currentFilter = filter;
+document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+renderTasks();
+}
+
+function todayISO(offset=0){
+const d = new Date();
+d.setDate(d.getDate()+offset);
+const y=d.getFullYear();
+const m=String(d.getMonth()+1).padStart(2,'0');
+const day=String(d.getDate()).padStart(2,'0');
+return `${y}-${m}-${day}`;
+}
+
+function formatDate(dateString){
+if(!dateString)return '-';
+const p=dateString.split('-');
+return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+function renderTasks(){
+let filtered = tasks;
+
+if(currentFilter === 'today') filtered = tasks.filter(t=>t.task_date === todayISO());
+if(currentFilter === 'tomorrow') filtered = tasks.filter(t=>t.task_date === todayISO(1));
+
+document.getElementById('todoCount').innerText = filtered.filter(t=>t.status === 'todo').length;
+document.getElementById('progressCount').innerText = filtered.filter(t=>t.status === 'in_progress').length;
+document.getElementById('completedCount').innerText = filtered.filter(t=>['completed','verified'].includes(t.status)).length;
+
+const list = document.getElementById('tasksList');
+
+if(filtered.length === 0){
+list.className = 'status';
+list.innerHTML = 'Nessuna attività trovata.';
+return;
+}
+
+list.className = '';
+list.innerHTML = '';
+
+filtered.forEach(task=>{
+list.innerHTML += `
+<div class="task">
+<span class="badge ${task.status}">${statusLabel(task.status)}</span>
+<h2>${task.title || ''}</h2>
+<div class="meta">
+<strong>Tipo:</strong> ${typeLabel(task.task_type)}<br>
+<strong>Villa:</strong> ${task.villas?.title || '-'}<br>
+<strong>Data:</strong> ${formatDate(task.task_date)} ${task.task_time || ''}<br>
+${task.guest_name ? `<strong>Ospite:</strong> ${task.guest_name}<br>` : ''}
+${task.notes ? `<strong>Note:</strong> ${task.notes}` : ''}
+</div>
+<div class="actions">
+<a class="btn open" href="task.html?id=${task.id}">Apri attività</a>
+</div>
+</div>
+`;
+});
+}
+
+function statusLabel(status){
+const labels = {todo:'Da fare',in_progress:'In corso',completed:'Completata',verified:'Verificata'};
+return labels[status] || status;
+}
+
+function typeLabel(type){
+const labels = {cleaning:'Pulizia',checkin:'Check-in',checkout:'Check-out',maintenance:'Manutenzione',concierge:'Concierge'};
+return labels[type] || type;
+}
+
+async function logout(){
+await supabaseClient.auth.signOut();
+window.location.href = 'login.html';
+}
+</script>
+</body>
+</html>
