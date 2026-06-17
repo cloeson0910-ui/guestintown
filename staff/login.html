@@ -1,1 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Login - Guest in Town</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050505">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+*{box-sizing:border-box;}
+body{margin:0;background:#050505;color:#f5efe4;font-family:Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.card{width:100%;max-width:430px;background:#0f0f0f;border:1px solid rgba(201,169,110,.35);padding:32px;}
+.logo{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-size:28px;letter-spacing:4px;text-transform:uppercase;text-align:center;margin-bottom:12px;}
+h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:#f5efe4;text-align:center;margin:0 0 24px;}
+input{width:100%;padding:14px;background:#151515;color:white;border:1px solid rgba(201,169,110,.25);margin-bottom:14px;border-radius:6px;}
+button{width:100%;background:#c9a96e;color:#050505;border:0;padding:14px;font-weight:bold;text-transform:uppercase;border-radius:6px;cursor:pointer;}
+.status{margin-top:16px;background:#151515;border:1px solid #333;padding:12px;color:#ccc;line-height:1.6;}
+.bad{color:#e74c3c;font-weight:bold;}
+.good{color:#2ecc71;font-weight:bold;}
+.note{color:#aaa;font-size:13px;line-height:1.6;margin-top:18px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="logo">Guest in Town</div>
+<h1>Staff App</h1>
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Accedi</button>
+<div id="status" class="status">Inserisci le credenziali staff.</div>
+<div class="note">Su iPhone o Android puoi aggiungere questa pagina alla schermata Home per usarla come app.</div>
+</div>
 
+<script>
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+}
+
+async function login(){
+const email = document.getElementById('email').value.trim();
+const password = document.getElementById('password').value;
+const status = document.getElementById('status');
+
+if(!email || !password){
+status.innerHTML = '<span class="bad">Inserisci email e password.</span>';
+return;
+}
+
+const { data, error } = await supabaseClient.auth.signInWithPassword({email,password});
+
+if(error){
+status.innerHTML = '<span class="bad">'+error.message+'</span>';
+return;
+}
+
+status.innerHTML = '<span class="good">Accesso riuscito.</span>';
+window.location.href = 'dashboard.html';
+}
+</script>
+</body>
+</html>
