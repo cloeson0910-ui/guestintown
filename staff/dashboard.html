@@ -34,7 +34,10 @@ h1{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;mar
 .verified{background:#4d3c82;color:#eee6ff;}
 .actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;}
 .open{background:#c9a96e!important;color:#050505!important;border:0!important;font-weight:bold;}
-.status{background:#151515;border:1px solid #333;padding:12px;color:#ccc;border-radius:8px;}
+.status{background:#151515;border:1px solid #333;padding:12px;color:#ccc;border-radius:8px;line-height:1.6;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+.warn{color:#f1c40f;font-weight:bold;}
 @media(max-width:600px){.kpis{grid-template-columns:1fr;}.header{align-items:flex-start;flex-direction:column;}}
 </style>
 </head>
@@ -43,7 +46,7 @@ h1{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;mar
 <div class="header">
 <div class="logo">Guest Staff</div>
 <div>
-<a class="btn" href="dashboard.html">Oggi</a>
+<a class="btn" href="dashboard.html">Aggiorna</a>
 <button class="logout" onclick="logout()">Logout</button>
 </div>
 </div>
@@ -58,7 +61,8 @@ h1{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;mar
 </div>
 
 <div class="tabs">
-<button class="active" onclick="setFilter('today',this)">Oggi</button>
+<button class="active" onclick="setFilter('upcoming',this)">Prossime</button>
+<button onclick="setFilter('today',this)">Oggi</button>
 <button onclick="setFilter('tomorrow',this)">Domani</button>
 <button onclick="setFilter('all',this)">Tutte</button>
 </div>
@@ -70,7 +74,7 @@ h1{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;mar
 let currentUser = null;
 let staffMember = null;
 let tasks = [];
-let currentFilter = 'today';
+let currentFilter = 'upcoming';
 
 checkAuth();
 
@@ -91,17 +95,26 @@ async function loadStaffMember(){
 const { data, error } = await supabaseClient
 .from('staff_members')
 .select('*')
-.eq('email', currentUser.email)
+.ilike('email', currentUser.email)
 .eq('active', true)
-.single();
+.maybeSingle();
 
-if(error || !data){
-document.getElementById('staffInfo').innerHTML = 'Utente non associato a un collaboratore attivo. Contatta Guest in Town.';
+if(error){
+document.getElementById('staffInfo').innerHTML = '<span class="bad">Errore profilo staff: '+error.message+'</span>';
+return;
+}
+
+if(!data){
+document.getElementById('staffInfo').innerHTML =
+'<span class="bad">Nessun collaboratore attivo trovato per questa email:</span><br>' +
+currentUser.email +
+'<br><br>Controlla che in admin/operations.html il collaboratore abbia esattamente questa email e sia attivo.';
 return;
 }
 
 staffMember = data;
-document.getElementById('staffInfo').innerHTML = `${staffMember.full_name} · ${staffMember.role}`;
+document.getElementById('staffInfo').innerHTML =
+`${staffMember.full_name} · ${roleLabel(staffMember.role)}<br><span style="color:#777">Email: ${staffMember.email}</span>`;
 }
 
 async function loadTasks(){
@@ -117,7 +130,7 @@ const { data, error } = await supabaseClient
 .order('task_date',{ascending:true});
 
 if(error){
-document.getElementById('tasksList').innerHTML = error.message;
+document.getElementById('tasksList').innerHTML = '<span class="bad">'+error.message+'</span>';
 return;
 }
 
@@ -149,9 +162,19 @@ return `${p[2]}/${p[1]}/${p[0]}`;
 
 function renderTasks(){
 let filtered = tasks;
+const today = todayISO();
 
-if(currentFilter === 'today') filtered = tasks.filter(t=>t.task_date === todayISO());
-if(currentFilter === 'tomorrow') filtered = tasks.filter(t=>t.task_date === todayISO(1));
+if(currentFilter === 'upcoming'){
+filtered = tasks.filter(t=>t.task_date >= today && !['verified'].includes(t.status));
+}
+
+if(currentFilter === 'today'){
+filtered = tasks.filter(t=>t.task_date === todayISO());
+}
+
+if(currentFilter === 'tomorrow'){
+filtered = tasks.filter(t=>t.task_date === todayISO(1));
+}
 
 document.getElementById('todoCount').innerText = filtered.filter(t=>t.status === 'todo').length;
 document.getElementById('progressCount').innerText = filtered.filter(t=>t.status === 'in_progress').length;
@@ -159,9 +182,19 @@ document.getElementById('completedCount').innerText = filtered.filter(t=>['compl
 
 const list = document.getElementById('tasksList');
 
+if(tasks.length === 0){
+list.className = 'status';
+list.innerHTML =
+'<span class="warn">Nessuna attività assegnata a questo collaboratore.</span><br><br>' +
+'Da admin/operations.html devi assegnare la villa al collaboratore e cliccare “Genera attività da prenotazioni”, oppure creare una nuova attività manuale.';
+return;
+}
+
 if(filtered.length === 0){
 list.className = 'status';
-list.innerHTML = 'Nessuna attività trovata.';
+list.innerHTML =
+'Nessuna attività trovata per questo filtro.<br>' +
+'Attività totali assegnate a questo collaboratore: <strong>'+tasks.length+'</strong>. Prova il filtro “Tutte”.';
 return;
 }
 
@@ -196,6 +229,11 @@ return labels[status] || status;
 function typeLabel(type){
 const labels = {cleaning:'Pulizia',checkin:'Check-in',checkout:'Check-out',maintenance:'Manutenzione',concierge:'Concierge'};
 return labels[type] || type;
+}
+
+function roleLabel(role){
+const labels = {cleaning:'Pulizie',checkin:'Check-in',checkout:'Check-out',manager:'Manager',concierge:'Concierge'};
+return labels[role] || role || '-';
 }
 
 async function logout(){
