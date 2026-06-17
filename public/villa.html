@@ -265,7 +265,17 @@ document.getElementById('page').innerHTML = `
 
 <div class="section"><h2>Servizi inclusi</h2><div class="services">${renderIncludedServices(services)}</div></div>
 
-<div class="section"><h2>Servizi extra su richiesta</h2><p class="extra-note">I seguenti servizi non sono inclusi nel soggiorno e possono essere organizzati su richiesta dal team Guest in Town.</p><div class="services">${renderExtraServices(extraServices)}</div></div>
+<div class="section">
+<h2>Servizi extra su richiesta</h2>
+<p class="extra-note">
+I seguenti servizi non sono inclusi nel soggiorno e possono essere organizzati su richiesta dal team Guest in Town.
+Ogni servizio è prenotabile con almeno 24 ore di preavviso.
+</p>
+<div class="services">${renderExtraServices(extraServices)}</div>
+<a class="button" href="services.html?villa_id=${villa.id}">
+Prenota servizi extra
+</a>
+</div>
 
 <div class="section">
 <h2>Disponibilità e tariffe</h2>
