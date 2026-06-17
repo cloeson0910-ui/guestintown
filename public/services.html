@@ -18,6 +18,9 @@
 <div class="grid" id="servicesGrid"></div>
 </div>
 <script>
+const params = new URLSearchParams(window.location.search);
+const villaId = params.get('villa_id') || '';
+
 loadServices();
 async function loadServices(){
 const { data, error } = await supabaseClient.from('concierge_services').select('*').eq('active', true).order('sort_order');
@@ -25,7 +28,7 @@ const grid = document.getElementById('servicesGrid');
 if(error){grid.innerHTML = '<div class="empty">'+error.message+'</div>';return;}
 if(!data || data.length === 0){grid.innerHTML = '<div class="empty">Nessun servizio disponibile al momento.</div>';return;}
 grid.innerHTML = '';
-data.forEach(service=>{grid.innerHTML += `<a class="card" href="service.html?id=${service.id}"><i class="${service.icon_class || 'fa-solid fa-star'}"></i><h2>${service.name || ''}</h2><p>${service.description || 'Servizio extra Guest in Town su richiesta.'}</p></a>`;});
+data.forEach(service=>{grid.innerHTML += `<a class="card" href="service.html?id=${service.id}${villaId ? '&villa_id=' + villaId : ''}"><i class="${service.icon_class || 'fa-solid fa-star'}"></i><h2>${service.name || ''}</h2><p>${service.description || 'Servizio extra Guest in Town su richiesta.'}</p></a>`;});
 }
 </script>
 </body>
