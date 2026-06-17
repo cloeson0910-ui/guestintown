@@ -3,37 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Prenotazioni</title>
+<title>Prenotazioni - Guest in Town</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 
 <style>
-body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1200px;margin:auto;}
-.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;}
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1250px;margin:auto;}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
 .menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer;}
 .menu .logout{margin-left:auto;background:#c0392b;}
 h1{margin-bottom:20px;}
-.filters{background:#1b1b1b;padding:20px;border-radius:10px;margin-bottom:25px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;}
-input,select{padding:12px;border:none;border-radius:6px;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:25px;}
+.stat{background:#1b1b1b;border:1px solid #333;padding:18px;border-radius:10px;}
+.stat strong{display:block;color:#c9a96e;font-size:26px;margin-top:8px;}
+.section{background:#1b1b1b;padding:20px;border-radius:10px;margin-bottom:25px;}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
+input,select,textarea{width:100%;padding:12px;border:none;border-radius:6px;box-sizing:border-box;background:#fff;color:#111;}
+textarea{min-height:110px;}
 table{width:100%;border-collapse:collapse;background:#1b1b1b;}
-th,td{padding:12px;border-bottom:1px solid #333;text-align:left;vertical-align:top;}
-th{background:#222;}
-.status{padding:6px 10px;border-radius:20px;font-size:12px;display:inline-block;}
-.pending{background:orange;color:black;}
-.confirmed{background:green;color:white;}
-.cancelled{background:red;color:white;}
-.completed{background:#555;color:white;}
-button.action,a.action-link{padding:7px 10px;border:none;border-radius:6px;cursor:pointer;margin:3px 0;display:block;width:100%;text-align:center;text-decoration:none;box-sizing:border-box;font-size:13px;}
-.confirm{background:#27ae60;color:white;}
-.cancel{background:#c0392b;color:white;}
-.complete{background:#555;color:white;}
-.open{background:#c9a96e;color:black;}
-.empty{background:#1b1b1b;padding:30px;border-radius:10px;text-align:center;}
-.total-box{background:#1b1b1b;padding:20px;border-radius:10px;margin-bottom:25px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;}
-.total-card{background:#151515;padding:15px;border-radius:8px;}
-.total-card strong{display:block;font-size:24px;margin-top:8px;}
+th,td{padding:12px;border-bottom:1px solid #333;text-align:left;vertical-align:top;font-size:14px;}
+th{background:#222;color:#c9a96e;}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:bold;text-transform:uppercase;}
+.badge.confirmed{background:#1f7a3f;color:white;}
+.badge.pending{background:#b8860b;color:white;}
+.badge.cancelled{background:#922b21;color:white;}
+.badge.other{background:#555;color:white;}
+button.action{background:#c9a96e;color:black;font-weight:bold;padding:9px 12px;border:none;border-radius:6px;cursor:pointer;margin:3px 0;}
+button.danger{background:#c0392b;color:white;}
+button.secondary{background:#333;color:white;}
+.empty{padding:30px;text-align:center;color:#aaa;}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px;}
+.modal-card{background:#151515;border:1px solid rgba(201,169,110,.4);padding:25px;border-radius:12px;max-width:720px;width:100%;max-height:90vh;overflow:auto;}
+.modal-card h2{color:#c9a96e;margin-top:0;}
+.modal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+.note{color:#aaa;font-size:13px;line-height:1.5;margin:8px 0 15px;}
+.preview{background:#0f0f0f;border:1px solid #333;padding:15px;border-radius:8px;line-height:1.6;margin-top:15px;color:#ddd;}
 </style>
 </head>
 
@@ -44,224 +49,155 @@ button.action,a.action-link{padding:7px 10px;border:none;border-radius:6px;curso
 <a href="villas.html">Ville</a>
 <a href="villa-form.html">Nuova Villa</a>
 <a href="destinations.html">Destinazioni</a>
+<a href="towns.html">Paesi</a>
 <a href="bookings.html">Prenotazioni</a>
 <button onclick="logout()" class="logout">Logout</button>
 </div>
 
 <h1>Prenotazioni</h1>
 
-<div class="filters">
-<select id="villaFilter" onchange="loadBookings()">
-<option value="">Tutte le ville</option>
-</select>
+<div class="stats" id="statsGrid"></div>
 
+<div class="section">
+<div class="filters">
 <select id="statusFilter" onchange="loadBookings()">
 <option value="">Tutti gli stati</option>
+<option value="confirmed">Confermate</option>
 <option value="pending">Pending</option>
-<option value="confirmed">Confirmed</option>
-<option value="cancelled">Cancelled</option>
-<option value="completed">Completed</option>
+<option value="cancelled">Cancellate</option>
+</select>
+<input id="searchInput" placeholder="Cerca cliente, email, villa" oninput="loadBookings()">
+</div>
+
+<div id="bookingsContainer" class="empty">Caricamento prenotazioni...</div>
+</div>
+
+<div class="modal" id="cancelModal">
+<div class="modal-card">
+<h2>Cancellazione concordata con lo staff</h2>
+<p class="note">
+Questa procedura cancella la prenotazione lato amministratore e invia al cliente una comunicazione formale con le condizioni pattuite.
+Usala per eccezioni commerciali, penali, voucher o accordi specifici.
+</p>
+
+<div id="cancelBookingInfo" class="preview"></div>
+
+<label>Condizione concordata</label>
+<select id="refund_type" onchange="updateMailPreview()">
+<option value="full_refund">Rimborso totale</option>
+<option value="partial_refund">Rimborso parziale</option>
+<option value="voucher">Voucher / credito soggiorno</option>
+<option value="penalty">Cancellazione con penale</option>
+<option value="no_refund">Nessun rimborso</option>
+<option value="custom">Accordo personalizzato</option>
 </select>
 
-<input id="searchFilter" placeholder="Cerca cliente o email" oninput="loadBookings()">
+<div class="modal-grid">
+<div>
+<label>Importo rimborsato (€)</label>
+<input id="refund_amount" type="number" step="0.01" placeholder="0.00" oninput="updateMailPreview()">
+</div>
+<div>
+<label>Importo trattenuto / penale (€)</label>
+<input id="penalty_amount" type="number" step="0.01" placeholder="0.00" oninput="updateMailPreview()">
+</div>
 </div>
 
-<div class="total-box">
-<div class="total-card">Prenotazioni<strong id="totalBookings">0</strong></div>
-<div class="total-card">Totale valore<strong id="totalRevenue">€0</strong></div>
-<div class="total-card">Confermate<strong id="confirmedBookings">0</strong></div>
-<div class="total-card">In attesa<strong id="pendingBookings">0</strong></div>
-</div>
+<label>Termini pattuiti da comunicare al cliente</label>
+<textarea id="agreed_terms" oninput="updateMailPreview()" placeholder="Es. Come concordato con lo staff Guest in Town, la prenotazione viene cancellata con rimborso parziale di € ... e trattenuta di € ..."></textarea>
 
-<div id="bookingsContainer">
-<div class="empty">Caricamento prenotazioni...</div>
+<label>Note interne</label>
+<textarea id="internal_notes" placeholder="Note interne non necessariamente visibili al cliente"></textarea>
+
+<div class="preview" id="mailPreview"></div>
+
+<button class="action danger" onclick="confirmAdminCancellation()">Conferma cancellazione e invia mail</button>
+<button class="action secondary" onclick="closeCancelModal()">Annulla</button>
+</div>
 </div>
 
 <script>
+let allBookings = [];
+let selectedBooking = null;
 
 checkAuth();
 
 async function checkAuth(){
 const { data } = await supabaseClient.auth.getUser();
-
-if(!data.user){
-window.location.href = "login.html";
-return;
-}
-
-await loadVillas();
+if(!data.user){window.location.href='login.html';return;}
 await loadBookings();
 }
 
-async function loadVillas(){
-const { data, error } =
-await supabaseClient
-.from('villas')
-.select('id,title')
-.order('title');
-
-if(error){
-alert(error.message);
-return;
-}
-
-const select = document.getElementById('villaFilter');
-
-data.forEach(villa=>{
-select.innerHTML += `<option value="${villa.id}">${villa.title}</option>`;
-});
-}
-
-function formatDateIT(dateString){
-if(!dateString)return '-';
-const parts = dateString.split('-');
-return `${parts[2]}/${parts[1]}/${parts[0]}`;
-}
-
-function formatEuro(value){
-const number = Number(value || 0);
-return number.toLocaleString('it-IT',{style:'currency',currency:'EUR'});
-}
-
-function calculateNights(checkIn, checkOut){
-if(!checkIn || !checkOut)return '-';
-
-const start = new Date(checkIn + 'T00:00:00');
-const end = new Date(checkOut + 'T00:00:00');
-const diff = end - start;
-const nights = Math.round(diff / (1000 * 60 * 60 * 24));
-
-return nights > 0 ? nights : '-';
-}
+function formatEuro(value){return Number(value || 0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});}
+function formatDateIT(value){if(!value)return '-'; const p=value.split('-'); return `${p[2]}/${p[1]}/${p[0]}`;}
+function badge(status){return `<span class="badge ${status || 'other'}">${status || '-'}</span>`;}
 
 async function loadBookings(){
-
-let query =
-supabaseClient
+const { data, error } = await supabaseClient
 .from('bookings')
-.select(`
-*,
-villas(title)
-`)
-.order('check_in',{ascending:true});
+.select(`*,villas(id,title)`)
+.order('created_at',{ascending:false});
 
-const villaFilter = document.getElementById('villaFilter').value;
+if(error){document.getElementById('bookingsContainer').innerHTML=error.message;return;}
+allBookings = data || [];
+renderStats(allBookings);
+renderBookings();
+}
+
+function renderStats(bookings){
+const total = bookings.length;
+const active = bookings.filter(b=>['confirmed','pending'].includes(b.status)).length;
+const cancelled = bookings.filter(b=>b.status === 'cancelled').length;
+const activeValue = bookings.filter(b=>['confirmed','pending'].includes(b.status)).reduce((s,b)=>s + Number(b.total_price || b.total_amount || 0),0);
+const cancelledValue = bookings.filter(b=>b.status === 'cancelled').reduce((s,b)=>s + Number(b.total_price || b.total_amount || 0),0);
+const cancellationRate = total ? ((cancelled / total) * 100).toFixed(1) : '0.0';
+
+document.getElementById('statsGrid').innerHTML = `
+<div class="stat">Prenotazioni totali<strong>${total}</strong></div>
+<div class="stat">Prenotazioni attive<strong>${active}</strong></div>
+<div class="stat">Prenotazioni cancellate<strong>${cancelled}</strong></div>
+<div class="stat">Valore attivo<strong>${formatEuro(activeValue)}</strong></div>
+<div class="stat">Valore cancellato<strong>${formatEuro(cancelledValue)}</strong></div>
+<div class="stat">Tasso cancellazione<strong>${cancellationRate}%</strong></div>
+`;
+}
+
+function renderBookings(){
 const statusFilter = document.getElementById('statusFilter').value;
-const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+const search = document.getElementById('searchInput').value.toLowerCase().trim();
 
-if(villaFilter){
-query = query.eq('villa_id', villaFilter);
-}
-
-if(statusFilter){
-query = query.eq('status', statusFilter);
-}
-
-const { data, error } = await query;
-
-if(error){
-document.getElementById('bookingsContainer').innerHTML =
-`<div class="empty">${error.message}</div>`;
-return;
-}
-
-let bookings = data || [];
-
-if(searchFilter){
-bookings = bookings.filter(booking =>
-(booking.guest_name || '').toLowerCase().includes(searchFilter) ||
-(booking.guest_email || '').toLowerCase().includes(searchFilter)
+let rows = [...allBookings];
+if(statusFilter){rows = rows.filter(b=>b.status === statusFilter);}
+if(search){
+rows = rows.filter(b=>
+String(b.guest_name || '').toLowerCase().includes(search) ||
+String(b.guest_email || '').toLowerCase().includes(search) ||
+String(b.villas?.title || '').toLowerCase().includes(search)
 );
 }
 
-renderTotals(bookings);
-renderBookings(bookings);
-}
+if(rows.length === 0){document.getElementById('bookingsContainer').innerHTML='<div class="empty">Nessuna prenotazione trovata.</div>';return;}
 
-function renderTotals(bookings){
-
-const totalRevenue =
-bookings.reduce((sum,b)=> sum + Number(b.total_price || 0),0);
-
-const confirmed =
-bookings.filter(b=>b.status === 'confirmed').length;
-
-const pending =
-bookings.filter(b=>b.status === 'pending').length;
-
-document.getElementById('totalBookings').innerText = bookings.length;
-document.getElementById('totalRevenue').innerText = formatEuro(totalRevenue);
-document.getElementById('confirmedBookings').innerText = confirmed;
-document.getElementById('pendingBookings').innerText = pending;
-}
-
-function renderBookings(bookings){
-
-const container = document.getElementById('bookingsContainer');
-
-if(bookings.length === 0){
-container.innerHTML = '<div class="empty">Nessuna prenotazione trovata.</div>';
-return;
-}
-
-container.innerHTML = `
+document.getElementById('bookingsContainer').innerHTML = `
 <table>
 <thead>
 <tr>
-<th>Villa</th>
-<th>Cliente</th>
-<th>Date</th>
-<th>Notti</th>
-<th>Ospiti</th>
-<th>Totale</th>
-<th>Stato</th>
-<th>Azioni</th>
+<th>ID</th><th>Villa</th><th>Cliente</th><th>Periodo</th><th>Valore</th><th>Stato</th><th>Cancellazione</th><th>Azioni</th>
 </tr>
 </thead>
 <tbody>
-${bookings.map(booking=>`
+${rows.map(b=>`
 <tr>
-<td>${booking.villas?.title || '-'}</td>
-
+<td>${b.id}</td>
+<td>${b.villas?.title || '-'}<br><small>Villa ID ${b.villa_id}</small></td>
+<td>${b.guest_name || '-'}<br><small>${b.guest_email || ''}<br>${b.guest_phone || ''}</small></td>
+<td>${formatDateIT(b.check_in)}<br>${formatDateIT(b.check_out)}</td>
+<td>${formatEuro(b.total_price || b.total_amount || 0)}</td>
+<td>${badge(b.status)}</td>
+<td>${b.cancelled_at ? formatDateIT(String(b.cancelled_at).slice(0,10)) : '-'}<br><small>${b.cancellation_reason || ''}</small></td>
 <td>
-<strong>${booking.guest_name || '-'}</strong><br>
-${booking.guest_email || '-'}<br>
-${booking.guest_phone || ''}
-</td>
-
-<td>
-Check-in: ${formatDateIT(booking.check_in)}<br>
-Check-out: ${formatDateIT(booking.check_out)}
-</td>
-
-<td><strong>${calculateNights(booking.check_in, booking.check_out)}</strong></td>
-
-<td>${booking.guests || '-'}</td>
-
-<td>${formatEuro(booking.total_price)}</td>
-
-<td>
-<span class="status ${booking.status}">
-${booking.status}
-</span>
-</td>
-
-<td>
-<a class="action-link open" href="booking-edit.html?id=${booking.id}">
-Apri
-</a>
-
-<button class="action confirm" onclick="updateBookingStatus(${booking.id},'confirmed')">
-Conferma
-</button>
-
-<button class="action cancel" onclick="updateBookingStatus(${booking.id},'cancelled')">
-Cancella
-</button>
-
-<button class="action complete" onclick="updateBookingStatus(${booking.id},'completed')">
-Completa
-</button>
+<a class="action" href="villa-edit.html?id=${b.villa_id}" style="display:inline-block;text-decoration:none;">Apri villa</a><br>
+${b.status !== 'cancelled' ? `<button class="action danger" onclick="openCancelModal(${b.id})">Cancella</button>` : ''}
 </td>
 </tr>
 `).join('')}
@@ -270,95 +206,74 @@ Completa
 `;
 }
 
-function buildEmailPayload(booking){
-return {
-id:booking.id,
-guest_name:booking.guest_name,
-guest_email:booking.guest_email,
-guest_phone:booking.guest_phone,
-villa_title:booking.villas?.title || '',
-check_in:booking.check_in,
-check_out:booking.check_out,
-guests:booking.guests,
-total_price:booking.total_price
-};
+function openCancelModal(id){
+selectedBooking = allBookings.find(b=>Number(b.id) === Number(id));
+if(!selectedBooking){alert('Prenotazione non trovata');return;}
+
+document.getElementById('cancelBookingInfo').innerHTML = `
+<strong>${selectedBooking.villas?.title || 'Villa Guest in Town'}</strong><br>
+Cliente: ${selectedBooking.guest_name || '-'}<br>
+Email: ${selectedBooking.guest_email || '-'}<br>
+Periodo: ${formatDateIT(selectedBooking.check_in)} - ${formatDateIT(selectedBooking.check_out)}<br>
+Valore prenotazione: ${formatEuro(selectedBooking.total_price || selectedBooking.total_amount || 0)}
+`;
+
+document.getElementById('refund_type').value = 'full_refund';
+document.getElementById('refund_amount').value = selectedBooking.total_price || selectedBooking.total_amount || '';
+document.getElementById('penalty_amount').value = '';
+document.getElementById('agreed_terms').value = 'Come concordato con lo staff Guest in Town, la prenotazione viene annullata. Le condizioni economiche applicate sono quelle indicate nella presente comunicazione.';
+document.getElementById('internal_notes').value = '';
+updateMailPreview();
+document.getElementById('cancelModal').style.display = 'flex';
 }
 
-async function sendConfirmationEmail(booking){
+function closeCancelModal(){document.getElementById('cancelModal').style.display='none'; selectedBooking=null;}
 
-const { data, error } =
-await supabaseClient.functions.invoke(
-'send-booking-confirmation',
-{
-body:{
-booking:buildEmailPayload(booking)
-}
-}
-);
+function updateMailPreview(){
+if(!selectedBooking){return;}
+const refundType = document.getElementById('refund_type').value;
+const refundAmount = document.getElementById('refund_amount').value;
+const penaltyAmount = document.getElementById('penalty_amount').value;
+const terms = document.getElementById('agreed_terms').value;
 
-if(error){
-alert('Prenotazione confermata, ma email NON inviata: ' + error.message);
-return;
-}
-
-if(data && data.success === false){
-alert('Prenotazione confermata, ma email NON inviata: ' + data.error);
-return;
-}
-
-alert('Prenotazione confermata ed email inviata.');
+document.getElementById('mailPreview').innerHTML = `
+<strong>Anteprima comunicazione al cliente</strong><br><br>
+Gentile ${selectedBooking.guest_name || 'Cliente'},<br>
+confermiamo l'annullamento della prenotazione per ${selectedBooking.villas?.title || 'Guest in Town'} dal ${formatDateIT(selectedBooking.check_in)} al ${formatDateIT(selectedBooking.check_out)}.<br><br>
+<strong>Condizioni concordate:</strong><br>
+${terms || '-'}<br><br>
+Tipo accordo: ${refundType}<br>
+Importo rimborsato: ${refundAmount ? formatEuro(refundAmount) : '-'}<br>
+Importo trattenuto / penale: ${penaltyAmount ? formatEuro(penaltyAmount) : '-'}
+`;
 }
 
-async function updateBookingStatus(id,status){
+async function confirmAdminCancellation(){
+if(!selectedBooking){return;}
+if(!confirm('Confermi la cancellazione amministrativa e l\'invio della mail al cliente?')){return;}
 
-if(!confirm('Aggiornare lo stato della prenotazione?')){
-return;
-}
-
-const { data: bookingBefore, error: readError } =
-await supabaseClient
-.from('bookings')
-.select(`
-*,
-villas(title)
-`)
-.eq('id', id)
-.single();
-
-if(readError){
-alert(readError.message);
-return;
-}
-
-const { error } =
-await supabaseClient
-.from('bookings')
-.update({status:status})
-.eq('id', id);
-
-if(error){
-alert(error.message);
-return;
-}
-
-if(status === 'confirmed'){
-const confirmedBooking = {
-...bookingBefore,
-status:'confirmed'
+const payload = {
+booking_id:selectedBooking.id,
+refund_type:document.getElementById('refund_type').value,
+refund_amount:document.getElementById('refund_amount').value || null,
+penalty_amount:document.getElementById('penalty_amount').value || null,
+agreed_terms:document.getElementById('agreed_terms').value.trim(),
+internal_notes:document.getElementById('internal_notes').value.trim()
 };
 
-await sendConfirmationEmail(confirmedBooking);
+if(!payload.agreed_terms){alert('Inserisci i termini pattuiti da comunicare al cliente.');return;}
+
+const { data, error } = await supabaseClient.functions.invoke('admin-cancel-booking',{body:payload});
+
+if(error){alert(error.message);return;}
+if(!data || data.success === false){alert(data?.error || 'Errore cancellazione');return;}
+
+alert('Prenotazione cancellata e comunicazione inviata al cliente.');
+closeCancelModal();
+await loadBookings();
 }
 
-loadBookings();
-}
-
-async function logout(){
-await supabaseClient.auth.signOut();
-window.location.href = "login.html";
-}
-
+async function logout(){await supabaseClient.auth.signOut(); window.location.href='login.html';}
 </script>
-
 </body>
 </html>
