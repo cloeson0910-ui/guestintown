@@ -47,6 +47,7 @@ textarea{min-height:100px;margin-top:15px;}
 .day{background:#151515;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid #222;}
 .day.empty-day{background:transparent;cursor:default;border:0;}
 .day.booked{background:#6f1d1b;color:white;cursor:not-allowed;}
+.day.sanitation{background:#1f7fa6;color:white;cursor:not-allowed;}
 .day.selected{background:#c9a96e;color:#050505;}
 .day.in-range{background:#5f4b28;color:white;}
 .day-price{font-size:11px;margin-top:4px;opacity:.85;}
@@ -54,6 +55,7 @@ textarea{min-height:100px;margin-top:15px;}
 .legend span{display:inline-flex;align-items:center;gap:6px;}
 .dot{width:14px;height:14px;background:#151515;border:1px solid #333;display:inline-block;}
 .dot.booked{background:#6f1d1b;}
+.dot.sanitation{background:#1f7fa6;}
 .dot.selected{background:#c9a96e;}
 .selection-box{background:#151515;border:1px solid rgba(201,169,110,.25);padding:15px;margin-top:20px;line-height:1.7;}
 .price-box{background:#c9a96e;color:#050505;padding:18px;margin-top:20px;line-height:1.8;}
@@ -166,7 +168,18 @@ function toISODate(date){const y=date.getFullYear(); const m=String(date.getMont
 function makeDate(y,m,d){return new Date(y,m,d);}
 function dateDiffNights(start,end){const startDate=new Date(start+'T00:00:00'); const endDate=new Date(end+'T00:00:00'); return Math.round((endDate-startDate)/(1000*60*60*24));}
 function isBooked(dateString){return currentBookings.some(b => dateString >= b.check_in && dateString < b.check_out);}
-function rangeHasBooked(start,end){return currentBookings.some(b => start < b.check_out && end > b.check_in);}
+function isSanitation(dateString){return currentBookings.some(b => dateString === b.check_out);}
+function isUnavailable(dateString){return isBooked(dateString) || isSanitation(dateString);}
+function rangeHasBooked(start,end){
+let current = new Date(start + 'T00:00:00');
+const endDate = new Date(end + 'T00:00:00');
+while(current <= endDate){
+const iso = toISODate(current);
+if(isUnavailable(iso)){return true;}
+current.setDate(current.getDate()+1);
+}
+return false;
+}
 function getNightPrice(dateString){const rate=currentRates.find(r => dateString >= r.date_from && dateString <= r.date_to); if(rate){return Number(rate.nightly_price || 0);} return Number(currentVilla?.nightly_price || 0);}
 
 function calculateStayTotal(start,end){
@@ -258,7 +271,7 @@ document.getElementById('page').innerHTML = `
 <h2>Disponibilità e tariffe</h2>
 <div class="calendar-header"><button onclick="changeMonth(-1)">← Mese precedente</button><button onclick="changeMonth(1)">Mese successivo →</button></div>
 <div class="calendar-wrap" id="calendarWrap"></div>
-<div class="legend"><span><i class="dot"></i>Disponibile</span><span><i class="dot booked"></i>Occupata</span><span><i class="dot selected"></i>Selezionata</span></div>
+<div class="legend"><span><i class="dot"></i>Disponibile</span><span><i class="dot booked"></i>Occupata</span><span><i class="dot sanitation"></i>Sanificazione</span><span><i class="dot selected"></i>Selezionata</span></div>
 <div class="selection-box" id="selectionBox">Seleziona check-in e check-out dal calendario.</div>
 </div>
 
@@ -289,17 +302,18 @@ let html=`<div class="month"><h3>${monthNames[month]} ${year}</h3><div class="ca
 let startOffset=firstDay.getDay(); startOffset=startOffset===0?6:startOffset-1;
 for(let i=0;i<startOffset;i++){html += `<div class="day empty-day"></div>`;}
 for(let d=1; d<=lastDay.getDate(); d++){
-const date=makeDate(year,month,d); const iso=toISODate(date); const booked=isBooked(iso); const price=getNightPrice(iso);
-let classes='day'; if(booked) classes += ' booked'; if(selectedCheckIn===iso || selectedCheckOut===iso) classes += ' selected'; if(selectedCheckIn && selectedCheckOut && iso > selectedCheckIn && iso < selectedCheckOut){classes += ' in-range';}
+const date=makeDate(year,month,d); const iso=toISODate(date); const booked=isBooked(iso); const sanitation=isSanitation(iso); const unavailable=booked || sanitation; const price=getNightPrice(iso);
+let classes='day'; if(booked) classes += ' booked'; if(sanitation && !booked) classes += ' sanitation'; if(selectedCheckIn===iso || selectedCheckOut===iso) classes += ' selected'; if(selectedCheckIn && selectedCheckOut && iso > selectedCheckIn && iso < selectedCheckOut){classes += ' in-range';}
 const priceHtml = price > 0 ? `<div class="day-price">${formatEuro(price).replace(',00','')}</div>` : `<div class="day-price">su richiesta</div>`;
-html += `<div class="${classes}" onclick="selectDate('${iso}', ${booked})"><div>${d}</div>${booked ? '<div class="day-price">occupata</div>' : priceHtml}</div>`;
+const statusHtml = booked ? '<div class="day-price">occupata</div>' : sanitation ? '<div class="day-price">sanificazione</div>' : priceHtml;
+html += `<div class="${classes}" onclick="selectDate('${iso}', ${unavailable})"><div>${d}</div>${statusHtml}</div>`;
 }
 html += `</div></div>`;
 container.innerHTML += html;
 }
 
 function selectDate(iso,booked){
-if(booked){alert('Questa data risulta occupata.'); return;}
+if(booked){alert('Questa data non è disponibile: la villa risulta occupata o in fase di sanificazione.'); return;}
 if(!selectedCheckIn || selectedCheckOut){selectedCheckIn=iso; selectedCheckOut=null;}
 else if(iso <= selectedCheckIn){selectedCheckIn=iso; selectedCheckOut=null;}
 else{if(rangeHasBooked(selectedCheckIn, iso)){alert('Il periodo selezionato contiene date occupate.'); return;} selectedCheckOut=iso;}
