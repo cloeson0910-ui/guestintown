@@ -1,0 +1,292 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attività Staff - Guest in Town</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050505">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+*{box-sizing:border-box;}
+body{margin:0;background:#050505;color:#f5efe4;font-family:Arial,sans-serif;}
+.container{max-width:850px;margin:auto;padding:22px;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+.logo{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-size:23px;letter-spacing:3px;text-transform:uppercase;}
+a.btn,button{background:#151515;color:#c9a96e;border:1px solid rgba(201,169,110,.35);padding:10px 12px;text-decoration:none;border-radius:6px;cursor:pointer;}
+.primary{background:#c9a96e!important;color:#050505!important;border:0!important;font-weight:bold;}
+.danger{background:#6f1d1b!important;color:white!important;border-color:#6f1d1b!important;}
+.card{background:#0f0f0f;border:1px solid rgba(201,169,110,.25);padding:20px;border-radius:12px;margin-bottom:18px;}
+h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:#c9a96e;}
+h1{margin:0 0 10px;}
+.meta{color:#bbb;line-height:1.8;}
+.check{display:flex;gap:10px;align-items:center;background:#151515;border:1px solid #333;padding:12px;border-radius:8px;margin-bottom:8px;}
+.check input{width:22px;height:22px;}
+textarea{width:100%;min-height:100px;background:#151515;color:white;border:1px solid rgba(201,169,110,.25);padding:12px;border-radius:8px;}
+input[type=file]{width:100%;background:#151515;color:#ccc;border:1px solid rgba(201,169,110,.25);padding:12px;border-radius:8px;margin-bottom:12px;}
+.status{background:#151515;border:1px solid #333;padding:12px;color:#ccc;border-radius:8px;margin-top:12px;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+.photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px;}
+.photos img{width:100%;height:130px;object-fit:cover;border-radius:8px;border:1px solid #333;}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="logo">Guest Staff</div>
+<a class="btn" href="dashboard.html">← Dashboard</a>
+</div>
+
+<div id="content" class="status">Caricamento attività...</div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const taskId = params.get('id');
+let currentTask = null;
+let checklistState = [];
+
+checkAuth();
+
+async function checkAuth(){
+const { data } = await supabaseClient.auth.getUser();
+if(!data.user){
+window.location.href = 'login.html';
+return;
+}
+loadTask();
+}
+
+async function loadTask(){
+const { data, error } = await supabaseClient
+.from('staff_tasks')
+.select('*, villas(title,address)')
+.eq('id', taskId)
+.single();
+
+if(error || !data){
+document.getElementById('content').innerHTML = 'Attività non trovata.';
+return;
+}
+
+currentTask = data;
+checklistState = Array.isArray(data.checklist) ? data.checklist : defaultChecklist(data.task_type);
+renderTask();
+loadPhotos();
+}
+
+function defaultChecklist(type){
+if(type === 'cleaning'){
+return [
+{text:'Bagni puliti e sanificati',done:false},
+{text:'Camere preparate',done:false},
+{text:'Cucina pulita',done:false},
+{text:'Biancheria sostituita',done:false},
+{text:'Asciugamani sostituiti',done:false},
+{text:'Esterni controllati',done:false},
+{text:'Foto finali caricate',done:false}
+];
+}
+if(type === 'checkin'){
+return [
+{text:'Accoglienza ospite',done:false},
+{text:'Documenti verificati',done:false},
+{text:'Consegna chiavi',done:false},
+{text:'Spiegazione casa e regole',done:false},
+{text:'Verifica eventuali richieste speciali',done:false}
+];
+}
+if(type === 'checkout'){
+return [
+{text:'Ritiro chiavi',done:false},
+{text:'Controllo danni evidenti',done:false},
+{text:'Verifica oggetti dimenticati',done:false},
+{text:'Segnalazione pulizia necessaria',done:false}
+];
+}
+return [{text:'Attività eseguita',done:false}];
+}
+
+function formatDate(dateString){
+if(!dateString)return '-';
+const p=dateString.split('-');
+return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+function renderTask(){
+document.getElementById('content').className = '';
+document.getElementById('content').innerHTML = `
+<div class="card">
+<h1>${currentTask.title}</h1>
+<div class="meta">
+<strong>Villa:</strong> ${currentTask.villas?.title || '-'}<br>
+<strong>Data:</strong> ${formatDate(currentTask.task_date)} ${currentTask.task_time || ''}<br>
+<strong>Stato:</strong> ${currentTask.status}<br>
+${currentTask.guest_name ? `<strong>Ospite:</strong> ${currentTask.guest_name}<br>` : ''}
+${currentTask.guest_phone ? `<strong>Telefono:</strong> ${currentTask.guest_phone}<br>` : ''}
+${currentTask.notes ? `<strong>Note:</strong> ${currentTask.notes}` : ''}
+</div>
+
+<div class="actions">
+<button class="primary" onclick="startTask()">Inizia</button>
+<button class="primary" onclick="completeTask()">Completa</button>
+</div>
+</div>
+
+<div class="card">
+<h2>Checklist</h2>
+<div id="checklist"></div>
+<button onclick="saveChecklist()">Salva checklist</button>
+</div>
+
+<div class="card">
+<h2>Note operative</h2>
+<textarea id="staff_notes" placeholder="Scrivi eventuali note operative">${currentTask.notes || ''}</textarea>
+<button onclick="saveNotes()">Salva note</button>
+</div>
+
+<div class="card">
+<h2>Foto attività</h2>
+<input id="photo_file" type="file" accept="image/*" capture="environment">
+<select id="photo_type" style="width:100%;padding:12px;background:#151515;color:white;border:1px solid #333;border-radius:8px;margin-bottom:12px;">
+<option value="before">Prima</option>
+<option value="after">Dopo</option>
+<option value="issue">Problema</option>
+</select>
+<button class="primary" onclick="uploadPhoto()">Carica foto</button>
+<div id="photoStatus" class="status">Nessuna foto caricata in questa sessione.</div>
+<div class="photos" id="photos"></div>
+</div>
+`;
+
+renderChecklist();
+}
+
+function renderChecklist(){
+const box = document.getElementById('checklist');
+box.innerHTML = '';
+checklistState.forEach((item,index)=>{
+box.innerHTML += `
+<label class="check">
+<input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${index},this.checked)">
+<span>${item.text}</span>
+</label>
+`;
+});
+}
+
+function toggleCheck(index,value){
+checklistState[index].done = value;
+}
+
+async function saveChecklist(){
+const { error } = await supabaseClient
+.from('staff_tasks')
+.update({checklist:checklistState,updated_at:new Date().toISOString()})
+.eq('id',currentTask.id);
+
+if(error){alert(error.message);return;}
+alert('Checklist salvata.');
+}
+
+async function saveNotes(){
+const notes = document.getElementById('staff_notes').value;
+const { error } = await supabaseClient
+.from('staff_tasks')
+.update({notes:notes,updated_at:new Date().toISOString()})
+.eq('id',currentTask.id);
+
+if(error){alert(error.message);return;}
+alert('Note salvate.');
+}
+
+async function startTask(){
+const { error } = await supabaseClient
+.from('staff_tasks')
+.update({status:'in_progress',started_at:new Date().toISOString(),updated_at:new Date().toISOString()})
+.eq('id',currentTask.id);
+
+if(error){alert(error.message);return;}
+loadTask();
+}
+
+async function completeTask(){
+const missing = checklistState.filter(item=>!item.done);
+if(missing.length > 0){
+if(!confirm('Checklist non completa. Vuoi segnare comunque come completata?')){
+return;
+}
+}
+
+const { error } = await supabaseClient
+.from('staff_tasks')
+.update({status:'completed',completed_at:new Date().toISOString(),checklist:checklistState,updated_at:new Date().toISOString()})
+.eq('id',currentTask.id);
+
+if(error){alert(error.message);return;}
+loadTask();
+}
+
+async function uploadPhoto(){
+const file = document.getElementById('photo_file').files[0];
+const type = document.getElementById('photo_type').value;
+const status = document.getElementById('photoStatus');
+
+if(!file){
+status.innerHTML = '<span class="bad">Seleziona una foto.</span>';
+return;
+}
+
+const safeName = file.name.replace(/[^a-zA-Z0-9\\.\\-_]/g,'-');
+const path = `${currentTask.id}/${Date.now()}-${safeName}`;
+
+const upload = await supabaseClient.storage
+.from('staff-task-photos')
+.upload(path,file);
+
+if(upload.error){
+status.innerHTML = '<span class="bad">'+upload.error.message+'</span>';
+return;
+}
+
+const url = supabaseClient.storage
+.from('staff-task-photos')
+.getPublicUrl(path)
+.data.publicUrl;
+
+const { error } = await supabaseClient
+.from('staff_task_photos')
+.insert([{task_id:currentTask.id,photo_url:url,photo_type:type}]);
+
+if(error){
+status.innerHTML = '<span class="bad">'+error.message+'</span>';
+return;
+}
+
+status.innerHTML = '<span class="good">Foto caricata.</span>';
+document.getElementById('photo_file').value = '';
+loadPhotos();
+}
+
+async function loadPhotos(){
+const { data } = await supabaseClient
+.from('staff_task_photos')
+.select('*')
+.eq('task_id',taskId)
+.order('created_at',{ascending:false});
+
+const box = document.getElementById('photos');
+if(!box)return;
+
+box.innerHTML = '';
+(data || []).forEach(photo=>{
+box.innerHTML += `<img src="${photo.photo_url}" title="${photo.photo_type}">`;
+});
+}
+</script>
+</body>
+</html>
