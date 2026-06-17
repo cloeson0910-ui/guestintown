@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Richieste Servizi Extra - Guest in Town</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1250px;margin:auto;}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
+.menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer;}
+.menu .logout{margin-left:auto;background:#c0392b;}
+h1{margin-bottom:8px;}
+.subtitle{color:#aaa;margin-bottom:25px;line-height:1.6;}
+.filters{display:flex;gap:12px;flex-wrap:wrap;background:#1b1b1b;padding:16px;border-radius:10px;margin-bottom:20px;}
+select,input,textarea{padding:11px;border:none;border-radius:6px;}
+textarea{width:100%;min-height:80px;margin-top:10px;}
+.card{background:#1b1b1b;border:1px solid #333;border-radius:10px;padding:18px;margin-bottom:16px;}
+.card h2{color:#c9a96e;font-family:Georgia,"Times New Roman",serif;font-weight:400;margin:0 0 12px;}
+.meta{color:#ccc;line-height:1.7;}
+.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:12px;}
+.pending{background:#5f4b28;color:#fff0c2;}
+.confirmed{background:#1f5f3a;color:#dfffea;}
+.cancelled{background:#5f1f1f;color:#ffe1e1;}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+button.confirm{background:#27ae60;color:white;border:0;padding:10px 14px;border-radius:6px;cursor:pointer;font-weight:bold;}
+button.cancel{background:#c0392b;color:white;border:0;padding:10px 14px;border-radius:6px;cursor:pointer;font-weight:bold;}
+button.reload{background:#c9a96e;color:#111;border:0;padding:10px 14px;border-radius:6px;cursor:pointer;font-weight:bold;}
+.status{background:#151515;border:1px solid #333;padding:12px;border-radius:8px;color:#ccc;margin-bottom:15px;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px;}
+</style>
+</head>
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="bookings.html">Prenotazioni</a>
+<a href="services-admin.html">Servizi</a>
+<a href="service-requests.html">Richieste servizi</a>
+<a href="company-settings.html">Dati società</a>
+<a href="reports.html">Report</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Richieste servizi extra</h1>
+<div class="subtitle">
+Gestisci le richieste ricevute dagli ospiti. Le richieste entrano come pending; quando confermi, il cliente riceve mail con riepilogo e dati pagamento.
+</div>
+
+<div class="filters">
+<select id="statusFilter" onchange="loadRequests()">
+<option value="">Tutti gli stati</option>
+<option value="pending">Pending</option>
+<option value="confirmed">Confirmed</option>
+<option value="cancelled">Cancelled</option>
+</select>
+<button class="reload" onclick="loadRequests()">Aggiorna</button>
+</div>
+
+<div id="statusBox" class="status">Caricamento...</div>
+<div id="requestsList"></div>
+
+<script>
+checkAuth();
+
+async function checkAuth(){
+const { data } = await supabaseClient.auth.getUser();
+if(!data.user){
+window.location.href = "login.html";
+return;
+}
+loadRequests();
+}
+
+function formatDate(dateString){
+if(!dateString)return '-';
+const p = dateString.split('-');
+return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+function formatEuro(value){
+if(!value)return '-';
+return Number(value).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+}
+
+async function loadRequests(){
+const filter = document.getElementById('statusFilter').value;
+let query = supabaseClient
+.from('concierge_provider_bookings')
+.select(`
+*,
+concierge_services(name),
+concierge_providers(name,email,phone),
+villas(title)
+`)
+.order('created_at',{ascending:false});
+
+if(filter){
+query = query.eq('status',filter);
+}
+
+const { data, error } = await query;
+
+if(error){
+document.getElementById('statusBox').innerHTML = '<span class="bad">'+error.message+'</span>';
+return;
+}
+
+renderRequests(data || []);
+}
+
+function renderRequests(rows){
+const list = document.getElementById('requestsList');
+document.getElementById('statusBox').innerHTML = '<span class="good">Richieste caricate: '+rows.length+'</span>';
+
+if(rows.length === 0){
+list.innerHTML = '<div class="status">Nessuna richiesta trovata.</div>';
+return;
+}
+
+list.innerHTML = '';
+
+rows.forEach(row=>{
+const statusClass = row.status === 'confirmed' ? 'confirmed' : row.status === 'cancelled' ? 'cancelled' : 'pending';
+
+list.innerHTML += `
+<div class="card">
+<h2>${row.concierge_services?.name || 'Servizio'} · ${row.concierge_providers?.name || 'Professionista'}</h2>
+<div class="meta">
+<span class="badge ${statusClass}">${row.status}</span><br><br>
+<strong>Cliente:</strong> ${row.guest_name || '-'}<br>
+<strong>Email:</strong> ${row.guest_email || '-'}<br>
+<strong>Telefono:</strong> ${row.guest_phone || '-'}<br>
+<strong>Villa:</strong> ${row.villas?.title || '-'}<br>
+<strong>Data richiesta:</strong> ${formatDate(row.requested_date)}<br>
+<strong>Orario:</strong> ${row.requested_time || 'Da concordare'}<br>
+<strong>Ospiti:</strong> ${row.guests || '-'}<br>
+<strong>Valore:</strong> ${formatEuro(row.price_amount)}<br>
+<strong>Pagamento:</strong> ${row.payment_status || 'unpaid'}<br>
+<strong>Note ospite:</strong> ${row.notes || '-'}
+</div>
+
+<div class="grid">
+<input id="price-${row.id}" type="number" step="0.01" placeholder="Importo da pagare €" value="${row.price_amount || ''}">
+<input id="payment_reference-${row.id}" placeholder="Riferimento pagamento" value="${row.payment_reference || ''}">
+</div>
+<textarea id="staff_notes-${row.id}" placeholder="Note staff / condizioni confermate">${row.staff_notes || ''}</textarea>
+
+<div class="actions">
+<button class="confirm" onclick="confirmRequest(${row.id})">Conferma e invia mail pagamento</button>
+<button class="cancel" onclick="cancelRequest(${row.id})">Annulla richiesta</button>
+</div>
+</div>
+`;
+});
+}
+
+async function confirmRequest(id){
+const price = document.getElementById('price-'+id).value;
+const paymentReference = document.getElementById('payment_reference-'+id).value;
+const staffNotes = document.getElementById('staff_notes-'+id).value;
+
+if(!price){
+alert('Inserisci l’importo da pagare.');
+return;
+}
+
+if(!confirm('Confermare il servizio e inviare la mail con i dati di pagamento al cliente?')){
+return;
+}
+
+const { data, error } = await supabaseClient.functions.invoke(
+'confirm-concierge-service',
+{
+body:{
+booking_id:id,
+price_amount:Number(price),
+payment_reference:paymentReference,
+staff_notes:staffNotes
+}
+}
+);
+
+if(error){
+alert(error.message);
+return;
+}
+
+if(!data || data.success === false){
+alert(data?.error || 'Errore conferma servizio');
+return;
+}
+
+alert('Servizio confermato e mail inviata.');
+loadRequests();
+}
+
+async function cancelRequest(id){
+if(!confirm('Annullare questa richiesta servizio?')){
+return;
+}
+
+const { error } = await supabaseClient
+.from('concierge_provider_bookings')
+.update({
+status:'cancelled',
+cancelled_at:new Date().toISOString()
+})
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+loadRequests();
+}
+
+async function logout(){
+await supabaseClient.auth.signOut();
+window.location.href = "login.html";
+}
+</script>
+</body>
+</html>
