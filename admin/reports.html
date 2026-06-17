@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Report Stagione - Guest in Town</title>
+<title>Report - Guest in Town</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
@@ -14,27 +14,36 @@
 <style>
 *{box-sizing:border-box;}
 body{margin:0;background:#050505;color:#f5efe4;font-family:Arial,sans-serif;}
-.container{max-width:1400px;margin:auto;padding:30px;}
+.container{max-width:1420px;margin:auto;padding:30px;}
 .menu{display:flex;gap:12px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
 .menu a,.menu button{background:#151515;color:#c9a96e;border:1px solid rgba(201,169,110,.35);padding:11px 15px;text-decoration:none;border-radius:6px;cursor:pointer;}
 .menu .logout{margin-left:auto;background:#6f1d1b;color:white;border-color:#6f1d1b;}
 h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:#c9a96e;}
-h1{font-size:44px;margin:0 0 12px;}
-.subtitle{color:#aaa;line-height:1.7;margin-bottom:28px;}
+h1{font-size:46px;margin:0 0 12px;}
+.subtitle{color:#aaa;line-height:1.7;margin-bottom:24px;}
 .panel{background:#0f0f0f;border:1px solid rgba(201,169,110,.25);padding:22px;margin-bottom:22px;}
-.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;align-items:end;}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:15px;align-items:end;}
 label{display:block;color:#bbb;font-size:13px;margin-bottom:8px;}
 input,select{width:100%;padding:12px;background:#151515;color:white;border:1px solid rgba(201,169,110,.25);border-radius:6px;}
 button.primary{background:#c9a96e;color:#050505;border:none;padding:13px 18px;border-radius:6px;font-weight:bold;cursor:pointer;text-transform:uppercase;}
 button.secondary{background:#151515;color:#c9a96e;border:1px solid rgba(201,169,110,.45);padding:13px 18px;border-radius:6px;font-weight:bold;cursor:pointer;text-transform:uppercase;}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px;}
-.kpi{background:#111;border:1px solid rgba(201,169,110,.25);padding:18px;min-height:115px;}
-.kpi .label{color:#aaa;font-size:13px;text-transform:uppercase;letter-spacing:1px;}
-.kpi .value{font-size:30px;color:#f5efe4;margin-top:12px;font-weight:bold;}
+.status-box{background:#151515;border:1px solid #333;padding:14px;margin-top:15px;color:#ccc;line-height:1.6;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+.warn{color:#f1c40f;font-weight:bold;}
+.report-header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:20px;}
+.report-logo{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-size:28px;letter-spacing:4px;text-transform:uppercase;}
+.report-meta{color:#aaa;text-align:right;line-height:1.6;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;}
+.kpi{background:#111;border:1px solid rgba(201,169,110,.25);padding:18px;min-height:112px;}
+.kpi .label{color:#aaa;font-size:12px;text-transform:uppercase;letter-spacing:1px;}
+.kpi .value{font-size:28px;color:#f5efe4;margin-top:12px;font-weight:bold;}
 .kpi .note{color:#888;font-size:12px;margin-top:8px;line-height:1.5;}
 .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:20px;margin-top:20px;}
-.chart-box{background:#0f0f0f;border:1px solid rgba(201,169,110,.22);padding:18px;min-height:360px;}
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:20px;}
+.chart-box{background:#0f0f0f;border:1px solid rgba(201,169,110,.22);padding:18px;height:390px;}
+.chart-box canvas{width:100%!important;height:300px!important;}
+.ai-comment{background:#151515;border-left:4px solid #c9a96e;padding:18px;line-height:1.8;color:#ddd;}
 .table-wrap{overflow:auto;margin-top:15px;}
 table{width:100%;border-collapse:collapse;background:#0f0f0f;}
 th,td{padding:12px;border-bottom:1px solid #222;text-align:left;white-space:nowrap;}
@@ -44,18 +53,13 @@ td{color:#ddd;}
 .badge.active{background:rgba(46,204,113,.15);color:#2ecc71;border:1px solid rgba(46,204,113,.3);}
 .badge.cancelled{background:rgba(231,76,60,.13);color:#e74c3c;border:1px solid rgba(231,76,60,.3);}
 .badge.pending{background:rgba(241,196,15,.13);color:#f1c40f;border:1px solid rgba(241,196,15,.3);}
-.report-header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:20px;}
-.report-logo{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-size:28px;letter-spacing:4px;text-transform:uppercase;}
-.report-meta{color:#aaa;text-align:right;line-height:1.6;}
-.ai-comment{background:#151515;border-left:4px solid #c9a96e;padding:18px;line-height:1.8;color:#ddd;}
 .hidden-print-note{color:#777;font-size:12px;margin-top:10px;}
 @media(max-width:900px){.compare-grid{grid-template-columns:1fr;}.chart-grid{grid-template-columns:1fr;}.report-header{flex-direction:column;}.report-meta{text-align:left;}.menu .logout{margin-left:0;}}
-@media print{.menu,.filters-actions,.hidden-print-note{display:none!important;}body{background:white;color:#111;}.panel,.kpi,.chart-box{break-inside:avoid;}}
+@media print{.menu,.filters-actions,.hidden-print-note,#statusBox{display:none!important;}body{background:white;color:#111;}.panel,.kpi,.chart-box{break-inside:avoid;}}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
 <div class="menu">
@@ -74,19 +78,16 @@ td{color:#ddd;}
 <div class="report-logo">Guest in Town</div>
 <h1>Report andamento stagione</h1>
 <div class="subtitle">
-Analisi prenotazioni, cancellazioni, fatturato concluso e fatturato perso. 
-Puoi filtrare tutte le ville o una villa singola, scegliere anno solare, stagione personalizzata e confrontare due stagioni.
+Analisi economica e gestionale di prenotazioni, cancellazioni, fatturato concluso, fatturato perso e confronto tra stagioni.
 </div>
 </div>
-<div class="report-meta" id="reportMeta">
-Report generato in tempo reale
-</div>
+<div class="report-meta" id="reportMeta">Report generato in tempo reale</div>
 </div>
 
 <div class="panel">
 <h2>Filtri report</h2>
-<div class="filters">
 
+<div class="filters">
 <div>
 <label>Villa</label>
 <select id="villaFilter">
@@ -104,7 +105,7 @@ Report generato in tempo reale
 
 <div>
 <label>Anno A</label>
-<input id="yearA" type="number" value="2026">
+<input id="yearA" type="number">
 </div>
 
 <div>
@@ -118,10 +119,10 @@ Report generato in tempo reale
 </div>
 
 <div>
-<label>Confronta con</label>
+<label>Confronto</label>
 <select id="compareEnabled" onchange="toggleCompare()">
-<option value="yes">Stagione precedente / altro periodo</option>
-<option value="no">Nessun confronto</option>
+<option value="yes">Confronta con altra stagione</option>
+<option value="no">Non confrontare</option>
 </select>
 </div>
 
@@ -135,7 +136,7 @@ Report generato in tempo reale
 
 <div class="compareOnly">
 <label>Anno B</label>
-<input id="yearB" type="number" value="2025">
+<input id="yearB" type="number">
 </div>
 
 <div class="compareOnly">
@@ -147,7 +148,6 @@ Report generato in tempo reale
 <label>A B</label>
 <input id="dateToB" type="date">
 </div>
-
 </div>
 
 <div class="filters-actions" style="margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;">
@@ -155,8 +155,12 @@ Report generato in tempo reale
 <button class="secondary" onclick="downloadPDF()">Scarica PDF</button>
 </div>
 
+<div id="statusBox" class="status-box">
+Caricamento report...
+</div>
+
 <div class="hidden-print-note">
-Il PDF scaricato rispetta i filtri selezionati: tutte le ville oppure villa singola, stagione A e confronto stagione B.
+Il PDF usa i filtri selezionati: tutte le ville o villa singola, periodo A e confronto periodo B.
 </div>
 </div>
 
@@ -174,9 +178,7 @@ Il PDF scaricato rispetta i filtri selezionati: tutte le ville oppure villa sing
 
 <div class="panel">
 <h2>Commento gestionale</h2>
-<div class="ai-comment" id="commentBox">
-Caricamento analisi...
-</div>
+<div class="ai-comment" id="commentBox">Caricamento analisi...</div>
 </div>
 
 <div class="chart-grid">
@@ -236,6 +238,7 @@ let chartVilla = null;
 checkAuth();
 
 async function checkAuth(){
+try{
 const { data } = await supabaseClient.auth.getUser();
 if(!data.user){
 window.location.href = "login.html";
@@ -243,18 +246,26 @@ return;
 }
 setDefaultDates();
 await loadVillas();
+toggleCompare();
 await loadReport();
+}catch(err){
+showStatus('Errore iniziale: ' + err.message, 'bad');
+}
 }
 
 function setDefaultDates(){
-const currentYear = new Date().getFullYear();
-document.getElementById('yearA').value = currentYear;
-document.getElementById('yearB').value = currentYear - 1;
+const y = new Date().getFullYear();
+document.getElementById('yearA').value = y;
+document.getElementById('yearB').value = y - 1;
+document.getElementById('dateFromA').value = `${y}-04-01`;
+document.getElementById('dateToA').value = `${y}-10-31`;
+document.getElementById('dateFromB').value = `${y-1}-04-01`;
+document.getElementById('dateToB').value = `${y-1}-10-31`;
+}
 
-document.getElementById('dateFromA').value = `${currentYear}-04-01`;
-document.getElementById('dateToA').value = `${currentYear}-10-31`;
-document.getElementById('dateFromB').value = `${currentYear-1}-04-01`;
-document.getElementById('dateToB').value = `${currentYear-1}-10-31`;
+function showStatus(message, type=''){
+const box = document.getElementById('statusBox');
+box.innerHTML = `<span class="${type}">${message}</span>`;
 }
 
 async function loadVillas(){
@@ -264,12 +275,13 @@ const { data, error } = await supabaseClient
 .order('title');
 
 if(error){
-alert(error.message);
+showStatus('Errore ville: ' + error.message, 'bad');
 return;
 }
 
 allVillas = data || [];
 const select = document.getElementById('villaFilter');
+select.innerHTML = '<option value="">Tutte le ville</option>';
 
 allVillas.forEach(villa=>{
 select.innerHTML += `<option value="${villa.id}">${villa.title || 'Villa ' + villa.id}</option>`;
@@ -278,7 +290,7 @@ select.innerHTML += `<option value="${villa.id}">${villa.title || 'Villa ' + vil
 
 function handlePeriodType(label){
 const type = document.getElementById(`periodType${label}`).value;
-const year = document.getElementById(`year${label}`).value;
+const year = document.getElementById(`year${label}`).value || new Date().getFullYear();
 
 if(type === 'year'){
 document.getElementById(`dateFrom${label}`).value = `${year}-01-01`;
@@ -323,7 +335,7 @@ query = query.eq('villa_id', villaId);
 const { data, error } = await query;
 
 if(error){
-alert(error.message);
+showStatus('Errore prenotazioni: ' + error.message, 'bad');
 return [];
 }
 
@@ -350,37 +362,22 @@ const active = bookings.filter(b=>isActive(b.status)).length;
 const cancelled = bookings.filter(b=>isCancelled(b.status)).length;
 const pendingCancellation = bookings.filter(b=>b.status === 'pending_cancellation').length;
 
-const activeRevenue = bookings
-.filter(b=>isActive(b.status))
+const activeRevenue = bookings.filter(b=>isActive(b.status))
 .reduce((sum,b)=>sum + Number(b.total_price || b.total_amount || 0),0);
 
-const lostRevenue = bookings
-.filter(b=>isCancelled(b.status))
+const lostRevenue = bookings.filter(b=>isCancelled(b.status))
 .reduce((sum,b)=>sum + Number(b.total_price || b.total_amount || 0),0);
 
-const pendingCancellationValue = bookings
-.filter(b=>b.status === 'pending_cancellation')
+const pendingCancellationValue = bookings.filter(b=>b.status === 'pending_cancellation')
 .reduce((sum,b)=>sum + Number(b.total_price || b.total_amount || 0),0);
 
-const activeNights = bookings
-.filter(b=>isActive(b.status))
+const activeNights = bookings.filter(b=>isActive(b.status))
 .reduce((sum,b)=>sum + getNights(b),0);
 
 const averageStay = active > 0 ? activeNights / active : 0;
 const cancellationRate = total > 0 ? (cancelled / total) * 100 : 0;
 
-return {
-total,
-active,
-cancelled,
-pendingCancellation,
-activeRevenue,
-lostRevenue,
-pendingCancellationValue,
-activeNights,
-averageStay,
-cancellationRate
-};
+return {total,active,cancelled,pendingCancellation,activeRevenue,lostRevenue,pendingCancellationValue,activeNights,averageStay,cancellationRate};
 }
 
 function formatEuro(value){
@@ -404,7 +401,7 @@ return `${p[2]}/${p[1]}/${p[0]}`;
 function renderKpis(targetId, summary){
 document.getElementById(targetId).innerHTML = `
 <div class="kpi"><div class="label">Prenotazioni totali</div><div class="value">${formatNumber(summary.total)}</div><div class="note">Tutte le richieste ricevute</div></div>
-<div class="kpi"><div class="label">Prenotazioni attive</div><div class="value">${formatNumber(summary.active)}</div><div class="note">Confirmed, pending e richieste cancellazione aperte</div></div>
+<div class="kpi"><div class="label">Prenotazioni attive</div><div class="value">${formatNumber(summary.active)}</div><div class="note">Confirmed, pending e pending cancellation</div></div>
 <div class="kpi"><div class="label">Prenotazioni cancellate</div><div class="value">${formatNumber(summary.cancelled)}</div><div class="note">Pratiche chiuse come cancelled</div></div>
 <div class="kpi"><div class="label">Richieste cancellazione</div><div class="value">${formatNumber(summary.pendingCancellation)}</div><div class="note">Da gestire commercialmente</div></div>
 <div class="kpi"><div class="label">Fatturato attivo</div><div class="value">${formatEuro(summary.activeRevenue)}</div><div class="note">Valore economico ancora valido</div></div>
@@ -429,39 +426,34 @@ return `${names[Number(m)-1]} ${y}`;
 
 function buildMonthlyData(bookingsA, bookingsB){
 const map = {};
-
 bookingsA.forEach(b=>{
 const key = monthKey(b.check_in);
 if(!map[key]) map[key] = {month:monthLabel(key), activeA:0, cancelledA:0, activeB:0, cancelledB:0};
 if(isCancelled(b.status)) map[key].cancelledA++;
 else map[key].activeA++;
 });
-
 bookingsB.forEach(b=>{
 const key = monthKey(b.check_in);
 if(!map[key]) map[key] = {month:monthLabel(key), activeA:0, cancelledA:0, activeB:0, cancelledB:0};
 if(isCancelled(b.status)) map[key].cancelledB++;
 else map[key].activeB++;
 });
-
 return Object.keys(map).sort().map(k=>map[k]);
 }
 
 function buildRevenueData(summaryA, summaryB, compare){
 const rows = [
-{label:'Fatturato attivo A', value:summaryA.activeRevenue},
-{label:'Fatturato perso A', value:summaryA.lostRevenue},
+{label:'Attivo A', value:summaryA.activeRevenue},
+{label:'Perso A', value:summaryA.lostRevenue},
 {label:'Contestazione A', value:summaryA.pendingCancellationValue}
 ];
-
 if(compare){
 rows.push(
-{label:'Fatturato attivo B', value:summaryB.activeRevenue},
-{label:'Fatturato perso B', value:summaryB.lostRevenue},
+{label:'Attivo B', value:summaryB.activeRevenue},
+{label:'Perso B', value:summaryB.lostRevenue},
 {label:'Contestazione B', value:summaryB.pendingCancellationValue}
 );
 }
-
 return rows;
 }
 
@@ -479,11 +471,7 @@ bookings.filter(b=>isActive(b.status)).forEach(b=>{
 const name = b.villas?.title || 'Villa ' + b.villa_id;
 map[name] = (map[name] || 0) + Number(b.total_price || b.total_amount || 0);
 });
-
-return Object.keys(map)
-.map(name=>({label:name,value:map[name]}))
-.sort((a,b)=>b.value-a.value)
-.slice(0,10);
+return Object.keys(map).map(name=>({label:name,value:map[name]})).sort((a,b)=>b.value-a.value).slice(0,10);
 }
 
 function destroyCharts(){
@@ -493,6 +481,11 @@ chartTrend = chartRevenue = chartStatus = chartVilla = null;
 
 function renderCharts(bookingsA, bookingsB, summaryA, summaryB, compare){
 destroyCharts();
+
+if(typeof Chart === 'undefined'){
+showStatus('Chart.js non caricato: grafici non disponibili.', 'bad');
+return;
+}
 
 const monthly = buildMonthlyData(bookingsA, compare ? bookingsB : []);
 const revenueData = buildRevenueData(summaryA, summaryB, compare);
@@ -517,28 +510,19 @@ options:chartOptions()
 
 chartRevenue = new Chart(document.getElementById('revenueChart'),{
 type:'bar',
-data:{
-labels:revenueData.map(r=>r.label),
-datasets:[{label:'Valore',data:revenueData.map(r=>r.value)}]
-},
+data:{labels:revenueData.map(r=>r.label),datasets:[{label:'Valore',data:revenueData.map(r=>r.value)}]},
 options:chartOptionsEuro()
 });
 
 chartStatus = new Chart(document.getElementById('statusChart'),{
 type:'doughnut',
-data:{
-labels:statusData.map(r=>r.label),
-datasets:[{data:statusData.map(r=>r.value)}]
-},
+data:{labels:statusData.map(r=>r.label),datasets:[{data:statusData.map(r=>r.value)}]},
 options:chartOptions(false)
 });
 
 chartVilla = new Chart(document.getElementById('villaChart'),{
 type:'bar',
-data:{
-labels:villaRevenue.map(r=>r.label),
-datasets:[{label:'Fatturato attivo',data:villaRevenue.map(r=>r.value)}]
-},
+data:{labels:villaRevenue.map(r=>r.label),datasets:[{label:'Fatturato attivo',data:villaRevenue.map(r=>r.value)}]},
 options:chartOptionsEuro()
 });
 }
@@ -547,14 +531,8 @@ function chartOptions(showLegend=true){
 return {
 responsive:true,
 maintainAspectRatio:false,
-plugins:{
-legend:{display:showLegend,labels:{color:'#ddd'}},
-tooltip:{enabled:true}
-},
-scales:{
-x:{ticks:{color:'#bbb'},grid:{color:'rgba(255,255,255,.06)'}},
-y:{ticks:{color:'#bbb'},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
-}
+plugins:{legend:{display:showLegend,labels:{color:'#ddd'}},tooltip:{enabled:true}},
+scales:{x:{ticks:{color:'#bbb'},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#bbb'},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}}
 };
 }
 
@@ -562,31 +540,22 @@ function chartOptionsEuro(){
 return {
 responsive:true,
 maintainAspectRatio:false,
-plugins:{
-legend:{labels:{color:'#ddd'}},
-tooltip:{callbacks:{label:(ctx)=>formatEuro(ctx.raw)}}
-},
-scales:{
-x:{ticks:{color:'#bbb'},grid:{color:'rgba(255,255,255,.06)'}},
-y:{ticks:{color:'#bbb',callback:(value)=>formatEuro(value)},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
-}
+plugins:{legend:{labels:{color:'#ddd'}},tooltip:{callbacks:{label:(ctx)=>formatEuro(ctx.raw)}}},
+scales:{x:{ticks:{color:'#bbb'},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#bbb',callback:(value)=>formatEuro(value)},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}}
 };
 }
 
 function renderTable(bookings){
 const tbody = document.getElementById('bookingsTable');
 tbody.innerHTML = '';
-
 if(bookings.length === 0){
 tbody.innerHTML = `<tr><td colspan="9">Nessuna prenotazione nel periodo selezionato.</td></tr>`;
 return;
 }
-
 bookings.forEach(b=>{
 let badgeClass = 'pending';
 if(isActive(b.status)) badgeClass = 'active';
 if(isCancelled(b.status)) badgeClass = 'cancelled';
-
 tbody.innerHTML += `
 <tr>
 <td>${b.id}</td>
@@ -598,19 +567,16 @@ tbody.innerHTML += `
 <td>${b.guests || '-'}</td>
 <td>${formatEuro(b.total_price || b.total_amount || 0)}</td>
 <td>${b.created_at ? new Date(b.created_at).toLocaleDateString('it-IT') : '-'}</td>
-</tr>
-`;
+</tr>`;
 });
 }
 
 function renderComment(summaryA, summaryB, compare){
 let text = '';
-
 if(compare){
 const revenueDiff = summaryA.activeRevenue - summaryB.activeRevenue;
 const revenueSign = revenueDiff >= 0 ? 'superiore' : 'inferiore';
 const revenuePercent = summaryB.activeRevenue > 0 ? Math.abs(revenueDiff / summaryB.activeRevenue * 100) : 0;
-
 text += `Nel periodo A il fatturato attivo è ${revenueSign} rispetto al periodo B di ${formatEuro(Math.abs(revenueDiff))}, pari a circa ${formatPercent(revenuePercent)}. `;
 text += `Le prenotazioni attive passano da ${summaryB.active} a ${summaryA.active}. `;
 text += `Il tasso di cancellazione del periodo A è ${formatPercent(summaryA.cancellationRate)}, contro ${formatPercent(summaryB.cancellationRate)} del periodo B. `;
@@ -619,21 +585,20 @@ text += `Nel periodo selezionato risultano ${summaryA.active} prenotazioni attiv
 text += `Il fatturato attivo è pari a ${formatEuro(summaryA.activeRevenue)}, mentre il fatturato perso da cancellazioni è pari a ${formatEuro(summaryA.lostRevenue)}. `;
 text += `Il tasso di cancellazione è ${formatPercent(summaryA.cancellationRate)}. `;
 }
-
 if(summaryA.pendingCancellation > 0){
 text += `Sono presenti ${summaryA.pendingCancellation} richieste di cancellazione fuori termini da gestire, per un valore potenziale di ${formatEuro(summaryA.pendingCancellationValue)}. `;
 }
-
 if(summaryA.cancellationRate > 20){
 text += `Il tasso di cancellazione è elevato e merita un controllo sulle condizioni applicate, sui periodi più critici e sulla qualità delle richieste ricevute.`;
 }else{
 text += `L'andamento appare sotto controllo, con dati utili per monitorare performance, cancellazioni e qualità del portafoglio ville.`;
 }
-
 document.getElementById('commentBox').innerText = text;
 }
 
 async function loadReport(){
+showStatus('Caricamento dati...', 'warn');
+
 const periodA = getFilters('A');
 const periodB = getFilters('B');
 const compare = document.getElementById('compareEnabled').value === 'yes';
@@ -656,34 +621,35 @@ const summaryA = summarize(bookingsA);
 const summaryB = compare ? summarize(bookingsB) : summarize([]);
 
 renderKpis('kpisA', summaryA);
-if(compare){
-renderKpis('kpisB', summaryB);
-}else{
-document.getElementById('kpisB').innerHTML = '';
-}
+if(compare){renderKpis('kpisB', summaryB);}else{document.getElementById('kpisB').innerHTML = '';}
 
 renderCharts(bookingsA, bookingsB, summaryA, summaryB, compare);
 renderTable(bookingsA);
 renderComment(summaryA, summaryB, compare);
 toggleCompare();
+
+showStatus(`Report aggiornato. Prenotazioni periodo A: ${bookingsA.length}${compare ? ', periodo B: ' + bookingsB.length : ''}.`, 'good');
 }
 
 async function downloadPDF(){
+try{
+showStatus('Generazione PDF in corso...', 'warn');
+
+if(!window.jspdf || typeof html2canvas === 'undefined'){
+alert('Librerie PDF non caricate. Verifica connessione internet o ricarica la pagina.');
+showStatus('Errore: librerie PDF non caricate.', 'bad');
+return;
+}
+
 const { jsPDF } = window.jspdf;
 const report = document.getElementById('reportArea');
 
-const canvas = await html2canvas(report,{
-scale:2,
-backgroundColor:'#050505',
-useCORS:true
-});
-
+const canvas = await html2canvas(report,{scale:2,backgroundColor:'#050505',useCORS:true});
 const imgData = canvas.toDataURL('image/png');
 const pdf = new jsPDF('p','mm','a4');
 
 const pageWidth = pdf.internal.pageSize.getWidth();
 const pageHeight = pdf.internal.pageSize.getHeight();
-
 const imgWidth = pageWidth;
 const imgHeight = canvas.height * imgWidth / canvas.width;
 
@@ -702,8 +668,13 @@ heightLeft -= pageHeight;
 
 const villaId = document.getElementById('villaFilter').value;
 const name = villaId ? 'villa' : 'tutte-ville';
-
 pdf.save(`guest-in-town-report-${name}-${new Date().toISOString().slice(0,10)}.pdf`);
+showStatus('PDF scaricato correttamente.', 'good');
+
+}catch(err){
+alert('Errore generazione PDF: ' + err.message);
+showStatus('Errore PDF: ' + err.message, 'bad');
+}
 }
 
 async function logout(){
