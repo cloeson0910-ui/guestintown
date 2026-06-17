@@ -19,8 +19,9 @@ h2{color:#c9a96e;font-family:Georgia,"Times New Roman",serif;font-weight:400;mar
 input,select,textarea{width:100%;padding:12px;margin-bottom:12px;border:none;border-radius:6px;box-sizing:border-box;}
 textarea{min-height:90px;}
 button.save{background:#c9a96e;color:black;font-weight:bold;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;}
-button.small{background:#333;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;margin-right:6px;}
-button.danger{background:#c0392b;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;}
+button.small{background:#333;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;margin-right:6px;margin-top:5px;}
+button.danger{background:#c0392b;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;margin-right:6px;margin-top:5px;}
+button.restore{background:#27ae60;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;margin-right:6px;margin-top:5px;}
 table{width:100%;border-collapse:collapse;background:#151515;margin-top:12px;}
 th,td{padding:12px;border-bottom:1px solid #333;text-align:left;vertical-align:top;}
 th{background:#222;color:#c9a96e;}
@@ -29,9 +30,12 @@ th{background:#222;color:#c9a96e;}
 .in_progress{background:#1f4b5f;color:#dff4ff;}
 .completed{background:#1f5f3a;color:#dfffea;}
 .verified{background:#4d3c82;color:#eee6ff;}
+.active{background:#1f5f3a;color:#dfffea;}
+.inactive{background:#5f1f1f;color:#ffe1e1;}
 .status{background:#151515;border:1px solid #333;padding:12px;border-radius:8px;color:#ccc;margin-top:12px;}
 .good{color:#2ecc71;font-weight:bold;}
 .bad{color:#e74c3c;font-weight:bold;}
+.note{color:#aaa;font-size:13px;line-height:1.6;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -65,8 +69,20 @@ Gestione collaboratori, pulizie, check-in, check-out e attività operative.
 </div>
 <button class="save" onclick="saveStaff()">Salva collaboratore</button>
 <div id="staffStatus" class="status">Pronto.</div>
+<div class="note">
+Quando un collaboratore non lavora più per Guest in Town, usa “Disattiva”. Non viene cancellato lo storico delle attività svolte.
+</div>
 <table>
-<thead><tr><th>Nome</th><th>Email</th><th>Telefono</th><th>Ruolo</th><th>Stato</th></tr></thead>
+<thead>
+<tr>
+<th>Nome</th>
+<th>Email</th>
+<th>Telefono</th>
+<th>Ruolo</th>
+<th>Stato</th>
+<th>Azioni</th>
+</tr>
+</thead>
 <tbody id="staffTable"></tbody>
 </table>
 </div>
@@ -82,7 +98,7 @@ Gestione collaboratori, pulizie, check-in, check-out e attività operative.
 <option value="concierge">Concierge</option>
 </select>
 <select id="task_villa_id"><option value="">Villa</option></select>
-<select id="task_staff_id"><option value="">Collaboratore</option></select>
+<select id="task_staff_id"><option value="">Collaboratore attivo</option></select>
 <input id="task_date" type="date">
 <input id="task_time" placeholder="Ora, es. 15:00">
 <input id="task_title" placeholder="Titolo attività">
@@ -136,45 +152,164 @@ await loadTasks();
 }
 
 async function loadStaff(){
-const { data, error } = await supabaseClient.from('staff_members').select('*').order('full_name');
-if(error){document.getElementById('staffStatus').innerHTML='<span class="bad">'+error.message+'</span>';return;}
+const { data, error } = await supabaseClient
+.from('staff_members')
+.select('*')
+.order('full_name');
+
+if(error){
+document.getElementById('staffStatus').innerHTML='<span class="bad">'+error.message+'</span>';
+return;
+}
+
 staff = data || [];
+
 const table=document.getElementById('staffTable');
 const select=document.getElementById('task_staff_id');
+
 table.innerHTML='';
-select.innerHTML='<option value="">Collaboratore</option>';
+select.innerHTML='<option value="">Collaboratore attivo</option>';
+
+if(staff.length === 0){
+table.innerHTML = '<tr><td colspan="6">Nessun collaboratore inserito.</td></tr>';
+return;
+}
+
 staff.forEach(s=>{
-table.innerHTML += `<tr><td>${s.full_name}</td><td>${s.email}</td><td>${s.phone||'-'}</td><td>${s.role}</td><td>${s.active?'Attivo':'Non attivo'}</td></tr>`;
-select.innerHTML += `<option value="${s.id}">${s.full_name} · ${s.role}</option>`;
+const state = s.active ? '<span class="badge active">Attivo</span>' : '<span class="badge inactive">Disattivato</span>';
+
+const actions = s.active
+? `<button class="danger" onclick="deactivateStaff(${s.id})">Disattiva</button>`
+: `<button class="restore" onclick="reactivateStaff(${s.id})">Riattiva</button>`;
+
+table.innerHTML += `
+<tr>
+<td>${s.full_name || '-'}</td>
+<td>${s.email || '-'}</td>
+<td>${s.phone || '-'}</td>
+<td>${roleLabel(s.role)}</td>
+<td>${state}</td>
+<td>${actions}</td>
+</tr>
+`;
+
+if(s.active){
+select.innerHTML += `<option value="${s.id}">${s.full_name} · ${roleLabel(s.role)}</option>`;
+}
 });
 }
 
+function roleLabel(role){
+const labels={
+cleaning:'Pulizie',
+checkin:'Check-in',
+checkout:'Check-out',
+manager:'Manager',
+concierge:'Concierge'
+};
+return labels[role] || role || '-';
+}
+
+async function deactivateStaff(id){
+const person = staff.find(s=>s.id === id);
+if(!person){return;}
+
+if(!confirm('Disattivare '+person.full_name+'? Non comparirà più tra i collaboratori assegnabili, ma lo storico resterà salvato.')){
+return;
+}
+
+const { error } = await supabaseClient
+.from('staff_members')
+.update({active:false})
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+await loadStaff();
+}
+
+async function reactivateStaff(id){
+const person = staff.find(s=>s.id === id);
+if(!person){return;}
+
+if(!confirm('Riattivare '+person.full_name+'?')){
+return;
+}
+
+const { error } = await supabaseClient
+.from('staff_members')
+.update({active:true})
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+await loadStaff();
+}
+
 async function loadVillas(){
-const { data } = await supabaseClient.from('villas').select('id,title').order('title');
+const { data } = await supabaseClient
+.from('villas')
+.select('id,title')
+.order('title');
+
 villas = data || [];
+
 const select=document.getElementById('task_villa_id');
 select.innerHTML='<option value="">Villa</option>';
+
 villas.forEach(v=>select.innerHTML += `<option value="${v.id}">${v.title}</option>`);
 }
 
 async function saveStaff(){
 const full_name=document.getElementById('staff_name').value.trim();
 const email=document.getElementById('staff_email').value.trim();
-if(!full_name || !email){alert('Nome ed email sono obbligatori');return;}
-const payload={full_name,email,phone:document.getElementById('staff_phone').value,role:document.getElementById('staff_role').value,active:true};
-const { error } = await supabaseClient.from('staff_members').insert([payload]);
-if(error){document.getElementById('staffStatus').innerHTML='<span class="bad">'+error.message+'</span>';return;}
+
+if(!full_name || !email){
+alert('Nome ed email sono obbligatori');
+return;
+}
+
+const payload={
+full_name,
+email,
+phone:document.getElementById('staff_phone').value,
+role:document.getElementById('staff_role').value,
+active:true
+};
+
+const { error } = await supabaseClient
+.from('staff_members')
+.insert([payload]);
+
+if(error){
+document.getElementById('staffStatus').innerHTML='<span class="bad">'+error.message+'</span>';
+return;
+}
+
 document.getElementById('staffStatus').innerHTML='<span class="good">Collaboratore salvato. Ora crea lo stesso utente in Authentication con questa email.</span>';
+
 document.getElementById('staff_name').value='';
 document.getElementById('staff_email').value='';
 document.getElementById('staff_phone').value='';
+
 loadStaff();
 }
 
 async function saveTask(){
 const title=document.getElementById('task_title').value.trim();
 const task_date=document.getElementById('task_date').value;
-if(!title || !task_date){alert('Titolo e data sono obbligatori');return;}
+
+if(!title || !task_date){
+alert('Titolo e data sono obbligatori');
+return;
+}
+
 const payload={
 task_type:document.getElementById('task_type').value,
 villa_id:document.getElementById('task_villa_id').value || null,
@@ -185,8 +320,16 @@ task_time:document.getElementById('task_time').value,
 notes:document.getElementById('task_notes').value,
 status:'todo'
 };
-const { error } = await supabaseClient.from('staff_tasks').insert([payload]);
-if(error){document.getElementById('taskStatus').innerHTML='<span class="bad">'+error.message+'</span>';return;}
+
+const { error } = await supabaseClient
+.from('staff_tasks')
+.insert([payload]);
+
+if(error){
+document.getElementById('taskStatus').innerHTML='<span class="bad">'+error.message+'</span>';
+return;
+}
+
 document.getElementById('taskStatus').innerHTML='<span class="good">Attività creata.</span>';
 document.getElementById('task_title').value='';
 document.getElementById('task_notes').value='';
@@ -194,13 +337,24 @@ loadTasks();
 }
 
 async function loadTasks(){
-let query = supabaseClient.from('staff_tasks').select('*, villas(title), staff_members(full_name)').order('task_date',{ascending:true});
+let query = supabaseClient
+.from('staff_tasks')
+.select('*, villas(title), staff_members(full_name)')
+.order('task_date',{ascending:true});
+
 const status=document.getElementById('statusFilter').value;
 const date=document.getElementById('dateFilter').value;
-if(status) query=query.eq('status',status);
-if(date) query=query.eq('task_date',date);
+
+if(status){query=query.eq('status',status);}
+if(date){query=query.eq('task_date',date);}
+
 const { data, error } = await query;
-if(error){alert(error.message);return;}
+
+if(error){
+alert(error.message);
+return;
+}
+
 tasks=data || [];
 renderTasks();
 }
@@ -208,16 +362,21 @@ renderTasks();
 function renderTasks(){
 const table=document.getElementById('tasksTable');
 table.innerHTML='';
-if(tasks.length===0){table.innerHTML='<tr><td colspan="7">Nessuna attività.</td></tr>';return;}
+
+if(tasks.length===0){
+table.innerHTML='<tr><td colspan="7">Nessuna attività.</td></tr>';
+return;
+}
+
 tasks.forEach(t=>{
 table.innerHTML += `
 <tr>
 <td>${formatDate(t.task_date)} ${t.task_time||''}</td>
-<td>${t.task_type}</td>
+<td>${typeLabel(t.task_type)}</td>
 <td>${t.villas?.title||'-'}</td>
 <td>${t.staff_members?.full_name||'-'}</td>
 <td>${t.title}</td>
-<td><span class="badge ${t.status}">${t.status}</span></td>
+<td><span class="badge ${t.status}">${statusLabel(t.status)}</span></td>
 <td>
 <button class="small" onclick="verifyTask(${t.id})">Verifica</button>
 <button class="danger" onclick="deleteTask(${t.id})">Elimina</button>
@@ -226,16 +385,43 @@ table.innerHTML += `
 });
 }
 
+function typeLabel(type){
+const labels={cleaning:'Pulizia',checkin:'Check-in',checkout:'Check-out',maintenance:'Manutenzione',concierge:'Concierge'};
+return labels[type] || type || '-';
+}
+
+function statusLabel(status){
+const labels={todo:'Da fare',in_progress:'In corso',completed:'Completata',verified:'Verificata'};
+return labels[status] || status || '-';
+}
+
 async function verifyTask(id){
-const { error } = await supabaseClient.from('staff_tasks').update({status:'verified',verified_at:new Date().toISOString()}).eq('id',id);
-if(error){alert(error.message);return;}
+const { error } = await supabaseClient
+.from('staff_tasks')
+.update({status:'verified',verified_at:new Date().toISOString()})
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
 loadTasks();
 }
 
 async function deleteTask(id){
 if(!confirm('Eliminare attività?'))return;
-const { error } = await supabaseClient.from('staff_tasks').delete().eq('id',id);
-if(error){alert(error.message);return;}
+
+const { error } = await supabaseClient
+.from('staff_tasks')
+.delete()
+.eq('id',id);
+
+if(error){
+alert(error.message);
+return;
+}
+
 loadTasks();
 }
 
