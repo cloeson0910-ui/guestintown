@@ -12,7 +12,7 @@
 *{box-sizing:border-box;}
 body{margin:0;background:#050505;color:#f5efe4;font-family:Arial,sans-serif;}
 .container{max-width:900px;margin:auto;padding:22px;}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:12px;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:12px;flex-wrap:wrap;}
 .logo{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-size:23px;letter-spacing:3px;text-transform:uppercase;}
 button,a.btn{background:#151515;color:#c9a96e;border:1px solid rgba(201,169,110,.35);padding:10px 12px;text-decoration:none;border-radius:6px;cursor:pointer;}
 .logout{background:#6f1d1b!important;color:white!important;border-color:#6f1d1b!important;}
@@ -34,7 +34,7 @@ h1{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;mar
 .verified{background:#4d3c82;color:#eee6ff;}
 .actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;}
 .open{background:#c9a96e!important;color:#050505!important;border:0!important;font-weight:bold;}
-.status{background:#151515;border:1px solid #333;padding:12px;color:#ccc;border-radius:8px;line-height:1.6;}
+.status{background:#151515;border:1px solid #333;padding:12px;color:#ccc;border-radius:8px;line-height:1.6;margin-bottom:15px;}
 .good{color:#2ecc71;font-weight:bold;}
 .bad{color:#e74c3c;font-weight:bold;}
 .warn{color:#f1c40f;font-weight:bold;}
@@ -54,6 +54,7 @@ h1{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;mar
 
 <h1>Le tue attività</h1>
 <div class="subtitle" id="staffInfo">Caricamento incarichi...</div>
+<div id="pushStatus" class="status">Notifiche non ancora attivate su questo dispositivo.</div>
 
 <div class="kpis">
 <div class="kpi"><div class="label">Da fare</div><div class="value" id="todoCount">0</div></div>
@@ -78,8 +79,12 @@ let tasks = [];
 let currentFilter = 'upcoming';
 
 if('serviceWorker' in navigator){
-navigator.serviceWorker.register('service-worker.js').catch(err=>{
+navigator.serviceWorker.register('service-worker.js').then(()=>{
+console.log('Service worker registrato');
+}).catch(err=>{
 console.error('Service worker non registrato:', err);
+document.getElementById('pushStatus').innerHTML =
+'<span class="bad">Service worker non registrato: '+err.message+'</span>';
 });
 }
 
@@ -228,57 +233,60 @@ ${task.notes ? `<strong>Note:</strong> ${task.notes}` : ''}
 });
 }
 
-function statusLabel(status){
-const labels = {todo:'Da fare',in_progress:'In corso',completed:'Completata',verified:'Verificata'};
-return labels[status] || status;
-}
-
-function typeLabel(type){
-const labels = {cleaning:'Pulizia',checkin:'Check-in',checkout:'Check-out',maintenance:'Manutenzione',concierge:'Concierge'};
-return labels[type] || type;
-}
-
-function roleLabel(role){
-const labels = {cleaning:'Pulizie',checkin:'Check-in',checkout:'Check-out',manager:'Manager',concierge:'Concierge'};
-return labels[role] || role || '-';
-}
-
-
 async function enablePushNotifications(){
+const pushBox = document.getElementById('pushStatus');
+
 try{
+pushBox.innerHTML = 'Avvio attivazione notifiche...';
+
 if(!staffMember){
-alert('Profilo staff non caricato.');
+pushBox.innerHTML = '<span class="bad">Profilo staff non caricato.</span>';
 return;
 }
 
 if(!('serviceWorker' in navigator)){
-alert('Questo browser non supporta le notifiche PWA.');
+pushBox.innerHTML = '<span class="bad">Questo browser non supporta i service worker.</span>';
 return;
 }
 
 if(!('PushManager' in window)){
-alert('Questo dispositivo/browser non supporta le notifiche push.');
+pushBox.innerHTML = '<span class="bad">Questo dispositivo/browser non supporta le notifiche push PWA.</span>';
 return;
 }
 
+if(typeof Notification === 'undefined'){
+pushBox.innerHTML = '<span class="bad">Notification API non disponibile su questo dispositivo.</span>';
+return;
+}
+
+pushBox.innerHTML = 'Richiesta autorizzazione notifiche...';
 const permission = await Notification.requestPermission();
 
 if(permission !== 'granted'){
-alert('Notifiche non autorizzate. Abilita le notifiche dal browser.');
+pushBox.innerHTML = '<span class="bad">Notifiche non autorizzate. Stato: '+permission+'</span>';
 return;
 }
 
+pushBox.innerHTML = 'Attendo service worker...';
 const registration = await navigator.serviceWorker.ready;
 
+pushBox.innerHTML = 'Lettura chiave pubblica notifiche...';
 const { data, error } = await supabaseClient.functions.invoke(
 'staff-push-config',
 { body:{} }
 );
 
-if(error || !data || !data.publicKey){
-alert('Impossibile leggere la chiave notifiche.');
+if(error){
+pushBox.innerHTML = '<span class="bad">Errore staff-push-config: '+error.message+'</span>';
 return;
 }
+
+if(!data || !data.publicKey){
+pushBox.innerHTML = '<span class="bad">Chiave pubblica VAPID mancante.</span>';
+return;
+}
+
+pushBox.innerHTML = 'Creazione sottoscrizione push...';
 
 let subscription = await registration.pushManager.getSubscription();
 
@@ -289,7 +297,19 @@ applicationServerKey:urlBase64ToUint8Array(data.publicKey)
 });
 }
 
+if(!subscription){
+pushBox.innerHTML = '<span class="bad">Sottoscrizione push non creata.</span>';
+return;
+}
+
 const json = subscription.toJSON();
+
+if(!json.keys || !json.keys.p256dh || !json.keys.auth){
+pushBox.innerHTML = '<span class="bad">Chiavi subscription mancanti.</span>';
+return;
+}
+
+pushBox.innerHTML = 'Salvataggio telefono in Supabase...';
 
 const { error: saveError } = await supabaseClient
 .from('staff_push_subscriptions')
@@ -304,23 +324,20 @@ updated_at:new Date().toISOString()
 }],{onConflict:'endpoint'});
 
 if(saveError){
-alert('Errore salvataggio notifiche: ' + saveError.message);
+pushBox.innerHTML = '<span class="bad">Errore salvataggio notifiche: '+saveError.message+'</span>';
 return;
 }
 
-alert('Notifiche attivate su questo dispositivo.');
+pushBox.innerHTML = '<span class="good">Notifiche attivate su questo dispositivo.</span>';
 
 }catch(err){
-alert('Errore notifiche: ' + err.message);
+pushBox.innerHTML = '<span class="bad">Errore notifiche: '+err.message+'</span>';
 }
 }
 
 function urlBase64ToUint8Array(base64String){
 const padding = '='.repeat((4 - base64String.length % 4) % 4);
-const base64 = (base64String + padding)
-.replace(/-/g, '+')
-.replace(/_/g, '/');
-
+const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 const rawData = window.atob(base64);
 const outputArray = new Uint8Array(rawData.length);
 
@@ -331,6 +348,20 @@ outputArray[i] = rawData.charCodeAt(i);
 return outputArray;
 }
 
+function statusLabel(status){
+const labels = {todo:'Da fare',in_progress:'In corso',completed:'Completata',verified:'Verificata'};
+return labels[status] || status;
+}
+
+function typeLabel(type){
+const labels = {cleaning:'Pulizia',checkin:'Check-in',checkout:'Check-out',maintenance:'Manutenzione',concierge:'Concierge'};
+return labels[type] || type;
+}
+
+function roleLabel(role){
+const labels = {cleaning:'Pulizie',checkin:'Check-in',checkout:'Check-out',manager:'Manager',concierge:'Concierge'};
+return labels[role] || role || '-';
+}
 
 async function logout(){
 await supabaseClient.auth.signOut();
