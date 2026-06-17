@@ -55,6 +55,7 @@ Gestione collaboratori, pulizie, check-in, check-out e attività operative.
 
 <div class="section">
 <h2>Collaboratori</h2>
+<input type="hidden" id="staff_id">
 <div class="grid">
 <input id="staff_name" placeholder="Nome collaboratore">
 <input id="staff_email" placeholder="Email collaboratore">
@@ -68,6 +69,7 @@ Gestione collaboratori, pulizie, check-in, check-out e attività operative.
 </select>
 </div>
 <button class="save" onclick="saveStaff()">Salva collaboratore</button>
+<button class="small" onclick="resetStaffForm()">Nuovo collaboratore</button>
 <div id="staffStatus" class="status">Pronto.</div>
 <div class="note">
 Quando un collaboratore non lavora più per Guest in Town, usa “Disattiva”. Non viene cancellato lo storico delle attività svolte.
@@ -178,9 +180,12 @@ return;
 staff.forEach(s=>{
 const state = s.active ? '<span class="badge active">Attivo</span>' : '<span class="badge inactive">Disattivato</span>';
 
-const actions = s.active
+const actions = `
+<button class="small" onclick="editStaff(${s.id})">Modifica</button>
+${s.active
 ? `<button class="danger" onclick="deactivateStaff(${s.id})">Disattiva</button>`
-: `<button class="restore" onclick="reactivateStaff(${s.id})">Riattiva</button>`;
+: `<button class="restore" onclick="reactivateStaff(${s.id})">Riattiva</button>`}
+`;
 
 table.innerHTML += `
 <tr>
@@ -267,6 +272,7 @@ villas.forEach(v=>select.innerHTML += `<option value="${v.id}">${v.title}</optio
 }
 
 async function saveStaff(){
+const id=document.getElementById('staff_id').value;
 const full_name=document.getElementById('staff_name').value.trim();
 const email=document.getElementById('staff_email').value.trim();
 
@@ -283,22 +289,63 @@ role:document.getElementById('staff_role').value,
 active:true
 };
 
-const { error } = await supabaseClient
+let error;
+
+if(id){
+const result = await supabaseClient
+.from('staff_members')
+.update({
+full_name:payload.full_name,
+email:payload.email,
+phone:payload.phone,
+role:payload.role
+})
+.eq('id',id);
+
+error = result.error;
+}else{
+const result = await supabaseClient
 .from('staff_members')
 .insert([payload]);
+
+error = result.error;
+}
 
 if(error){
 document.getElementById('staffStatus').innerHTML='<span class="bad">'+error.message+'</span>';
 return;
 }
 
-document.getElementById('staffStatus').innerHTML='<span class="good">Collaboratore salvato. Ora crea lo stesso utente in Authentication con questa email.</span>';
+document.getElementById('staffStatus').innerHTML = id
+? '<span class="good">Collaboratore aggiornato.</span>'
+: '<span class="good">Collaboratore salvato. Ora crea lo stesso utente in Authentication con questa email.</span>';
 
+resetStaffForm();
+loadStaff();
+}
+
+function editStaff(id){
+const person = staff.find(s=>s.id === id);
+if(!person){return;}
+
+document.getElementById('staff_id').value = person.id;
+document.getElementById('staff_name').value = person.full_name || '';
+document.getElementById('staff_email').value = person.email || '';
+document.getElementById('staff_phone').value = person.phone || '';
+document.getElementById('staff_role').value = person.role || 'cleaning';
+
+document.getElementById('staffStatus').innerHTML =
+'<span class="good">Modifica collaboratore selezionato. Salva per confermare.</span>';
+
+window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetStaffForm(){
+document.getElementById('staff_id').value='';
 document.getElementById('staff_name').value='';
 document.getElementById('staff_email').value='';
 document.getElementById('staff_phone').value='';
-
-loadStaff();
+document.getElementById('staff_role').value='cleaning';
 }
 
 async function saveTask(){
