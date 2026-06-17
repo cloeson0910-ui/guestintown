@@ -3,222 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Guest In Town Admin</title>
+<title>Dashboard - Guest in Town</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial, sans-serif;
-}
-
-body{
-display:flex;
-height:100vh;
-background:#111;
-color:white;
-}
-
-.sidebar{
-width:250px;
-background:#1a1a1a;
-padding:20px;
-}
-
-.sidebar h2{
-margin-bottom:30px;
-}
-
-.sidebar a{
-display:block;
-padding:12px;
-margin-bottom:10px;
-text-decoration:none;
-color:white;
-background:#222;
-border-radius:8px;
-}
-
-.sidebar a:hover{
-background:#333;
-}
-
-.main{
-flex:1;
-padding:30px;
-overflow:auto;
-}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
-margin-top:20px;
-}
-
-.card{
-background:#1e1e1e;
-padding:20px;
-border-radius:12px;
-}
-
-.card h3{
-margin-bottom:10px;
-}
-
-.card p{
-font-size:28px;
-font-weight:bold;
-margin-bottom:15px;
-}
-
-.card a{
-display:inline-block;
-background:#c9a96e;
-color:black;
-padding:10px 14px;
-text-decoration:none;
-border-radius:6px;
-font-weight:bold;
-}
-
-.logout{
-margin-top:30px;
-background:#c0392b !important;
-}
-
-.highlight{
-border:1px solid #c9a96e;
-}
+*{box-sizing:border-box;}
+body{margin:0;background:#050505;color:#f5efe4;font-family:Arial,sans-serif;}
+.container{max-width:1250px;margin:auto;padding:30px;}
+.menu{display:flex;gap:12px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
+.menu a,.menu button{background:#151515;color:#c9a96e;border:1px solid rgba(201,169,110,.35);padding:11px 15px;text-decoration:none;border-radius:6px;cursor:pointer;}
+.menu .logout{margin-left:auto;background:#6f1d1b;color:white;border-color:#6f1d1b;}
+h1,h2{font-family:Georgia,"Times New Roman",serif;color:#c9a96e;font-weight:400;}
+h1{font-size:46px;margin:0 0 12px;}
+.subtitle{color:#aaa;line-height:1.7;margin-bottom:30px;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-bottom:30px;}
+.card{background:#0f0f0f;border:1px solid rgba(201,169,110,.25);padding:24px;text-decoration:none;color:#f5efe4;min-height:150px;display:block;}
+.card:hover{border-color:#c9a96e;}
+.card h2{font-size:24px;margin:0 0 12px;}
+.card p{color:#aaa;line-height:1.6;margin:0;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:30px;}
+.kpi{background:#111;border:1px solid rgba(201,169,110,.25);padding:18px;min-height:112px;}
+.kpi .label{color:#aaa;font-size:12px;text-transform:uppercase;letter-spacing:1px;}
+.kpi .value{font-size:28px;color:#f5efe4;margin-top:12px;font-weight:bold;}
+.status{background:#151515;border:1px solid #333;padding:14px;color:#ccc;line-height:1.6;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+@media(max-width:800px){.menu .logout{margin-left:0;}}
 </style>
 </head>
 
 <body>
+<div class="container">
 
-<div class="sidebar">
-
-<h2>Guest In Town</h2>
-
+<div class="menu">
 <a href="dashboard.html">Dashboard</a>
+<a href="bookings.html">Prenotazioni</a>
 <a href="villas.html">Ville</a>
 <a href="villa-form.html">Nuova Villa</a>
 <a href="destinations.html">Destinazioni</a>
-<a href="bookings.html">Prenotazioni</a>
-
-<a href="#" onclick="logout()" class="logout">Logout</a>
-
+<a href="reports.html">Report</a>
+<button onclick="logout()" class="logout">Logout</button>
 </div>
 
-<div class="main">
+<h1>Dashboard</h1>
+<div class="subtitle">
+Pannello amministrativo Guest in Town. Gestisci ville, prenotazioni, calendari, destinazioni e report economici della stagione.
+</div>
 
-<h1>Pannello Amministrazione</h1>
+<div class="kpis" id="kpis">
+<div class="status">Caricamento indicatori...</div>
+</div>
 
 <div class="cards">
+<a class="card" href="villas.html">
+<h2>Ville</h2>
+<p>Gestisci l'elenco ville, modifica dati, foto, calendari e descrizioni.</p>
+</a>
 
-<div class="card">
-<h3>Ville</h3>
-<p id="villaCount">0</p>
-<a href="villas.html">Gestisci ville</a>
+<a class="card" href="villa-form.html">
+<h2>Nuova Villa</h2>
+<p>Inserisci una nuova proprietà nel sistema Guest in Town.</p>
+</a>
+
+<a class="card" href="bookings.html">
+<h2>Prenotazioni</h2>
+<p>Controlla richieste, conferme, cancellazioni e pratiche aperte.</p>
+</a>
+
+<a class="card" href="reports.html">
+<h2>Report</h2>
+<p>Analizza stagione, fatturato, cancellazioni, confronto anni e scarica PDF.</p>
+</a>
+
+<a class="card" href="destinations.html">
+<h2>Destinazioni</h2>
+<p>Gestisci province, destinazioni e immagini principali.</p>
+</a>
+
+<a class="card" href="towns.html">
+<h2>Paesi</h2>
+<p>Gestisci i paesi collegati alle destinazioni.</p>
+</a>
 </div>
 
-<div class="card">
-<h3>Destinazioni</h3>
-<p id="destinationCount">0</p>
-<a href="destinations.html">Gestisci destinazioni</a>
-</div>
-
-<div class="card highlight">
-<h3>Prenotazioni</h3>
-<p id="bookingCount">0</p>
-<a href="bookings.html">Apri prenotazioni</a>
-</div>
-
-<div class="card">
-<h3>Prenotazioni in attesa</h3>
-<p id="pendingBookingCount">0</p>
-<a href="bookings.html">Gestisci richieste</a>
-</div>
-
-<div class="card">
-<h3>Staff</h3>
-<p id="staffCount">0</p>
-</div>
-
-<div class="card">
-<h3>Pulizie</h3>
-<p id="taskCount">0</p>
-</div>
-
-</div>
+<div id="statusBox" class="status"></div>
 
 </div>
 
 <script>
-
 checkAuth();
-loadDashboardCounts();
 
 async function checkAuth(){
-
-const { data } =
-await supabaseClient.auth.getUser();
-
+const { data } = await supabaseClient.auth.getUser();
 if(!data.user){
 window.location.href = "login.html";
+return;
+}
+loadDashboard();
 }
 
+function formatEuro(value){
+return Number(value || 0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
 }
 
-async function loadDashboardCounts(){
+function isActive(status){
+return ['confirmed','pending','pending_cancellation'].includes(status);
+}
 
-const villas =
-await supabaseClient
-.from('villas')
-.select('*', { count:'exact', head:true });
+async function loadDashboard(){
+const box = document.getElementById('statusBox');
 
-const destinations =
-await supabaseClient
-.from('destinations')
-.select('*', { count:'exact', head:true });
-
-const bookings =
-await supabaseClient
+const { data: bookings, error } = await supabaseClient
 .from('bookings')
-.select('*', { count:'exact', head:true });
+.select('*');
 
-const pendingBookings =
-await supabaseClient
-.from('bookings')
-.select('*', { count:'exact', head:true })
-.eq('status','pending');
+if(error){
+box.innerHTML = '<span class="bad">'+error.message+'</span>';
+return;
+}
 
-document.getElementById('villaCount').innerText =
-villas.count || 0;
+const list = bookings || [];
 
-document.getElementById('destinationCount').innerText =
-destinations.count || 0;
+const total = list.length;
+const active = list.filter(b=>isActive(b.status)).length;
+const cancelled = list.filter(b=>b.status === 'cancelled').length;
+const pendingCancellation = list.filter(b=>b.status === 'pending_cancellation').length;
 
-document.getElementById('bookingCount').innerText =
-bookings.count || 0;
+const activeRevenue = list
+.filter(b=>isActive(b.status))
+.reduce((sum,b)=>sum+Number(b.total_price || b.total_amount || 0),0);
 
-document.getElementById('pendingBookingCount').innerText =
-pendingBookings.count || 0;
+const lostRevenue = list
+.filter(b=>b.status === 'cancelled')
+.reduce((sum,b)=>sum+Number(b.total_price || b.total_amount || 0),0);
 
+document.getElementById('kpis').innerHTML = `
+<div class="kpi"><div class="label">Prenotazioni totali</div><div class="value">${total}</div></div>
+<div class="kpi"><div class="label">Prenotazioni attive</div><div class="value">${active}</div></div>
+<div class="kpi"><div class="label">Richieste cancellazione</div><div class="value">${pendingCancellation}</div></div>
+<div class="kpi"><div class="label">Prenotazioni cancellate</div><div class="value">${cancelled}</div></div>
+<div class="kpi"><div class="label">Fatturato attivo</div><div class="value">${formatEuro(activeRevenue)}</div></div>
+<div class="kpi"><div class="label">Fatturato perso</div><div class="value">${formatEuro(lostRevenue)}</div></div>
+`;
+
+box.innerHTML = '<span class="good">Dashboard aggiornata.</span>';
 }
 
 async function logout(){
-
 await supabaseClient.auth.signOut();
-
 window.location.href = "login.html";
-
 }
-
 </script>
 
 </body>
