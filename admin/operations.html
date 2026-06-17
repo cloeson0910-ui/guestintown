@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -33,7 +32,7 @@ th{background:#222;color:#c9a96e;}
 .verified{background:#4d3c82;color:#eee6ff;}
 .active{background:#1f5f3a;color:#dfffea;}
 .inactive{background:#5f1f1f;color:#ffe1e1;}
-.status{background:#151515;border:1px solid #333;padding:12px;border-radius:8px;color:#ccc;margin-top:12px;}
+.status{background:#151515;border:1px solid #333;padding:12px;border-radius:8px;color:#ccc;margin-top:12px;line-height:1.5;}
 .good{color:#2ecc71;font-weight:bold;}
 .bad{color:#e74c3c;font-weight:bold;}
 .note{color:#aaa;font-size:13px;line-height:1.6;margin-top:8px;}
@@ -90,7 +89,6 @@ Quando un collaboratore non lavora più per Guest in Town, usa “Disattiva”. 
 </table>
 </div>
 
-
 <div class="section">
 <h2>Assegnazione ville ai collaboratori</h2>
 <p class="note">
@@ -99,7 +97,7 @@ Assegna una o più ville a ogni collaboratore. Il sistema userà queste assegnaz
 
 <div class="grid">
 <select id="assignment_staff_id"><option value="">Collaboratore attivo</option></select>
-<select id="assignment_villa_id"><option value="">Villa</option></select>
+<select id="assignment_villa_id"><option value="">Caricamento ville...</option></select>
 <select id="assignment_task_type">
 <option value="cleaning">Pulizie</option>
 <option value="checkin">Check-in</option>
@@ -136,7 +134,7 @@ Assegna una o più ville a ogni collaboratore. Il sistema userà queste assegnaz
 <option value="maintenance">Manutenzione</option>
 <option value="concierge">Concierge</option>
 </select>
-<select id="task_villa_id"><option value="">Villa</option></select>
+<select id="task_villa_id"><option value="">Caricamento ville...</option></select>
 <select id="task_staff_id"><option value="">Collaboratore attivo</option></select>
 <input id="task_date" type="date">
 <input id="task_time" placeholder="Ora, es. 15:00">
@@ -186,6 +184,7 @@ checkAuth();
 async function checkAuth(){
 const { data } = await supabaseClient.auth.getUser();
 if(!data.user){window.location.href='login.html';return;}
+
 await loadStaff();
 await loadVillas();
 await loadAssignments();
@@ -206,12 +205,12 @@ return;
 staff = data || [];
 
 const table=document.getElementById('staffTable');
-const select=document.getElementById('task_staff_id');
+const taskStaffSelect=document.getElementById('task_staff_id');
 const assignmentStaffSelect=document.getElementById('assignment_staff_id');
 
 table.innerHTML='';
-select.innerHTML='<option value="">Collaboratore attivo</option>';
-if(assignmentStaffSelect){assignmentStaffSelect.innerHTML='<option value="">Collaboratore attivo</option>';}
+taskStaffSelect.innerHTML='<option value="">Collaboratore attivo</option>';
+assignmentStaffSelect.innerHTML='<option value="">Collaboratore attivo</option>';
 
 if(staff.length === 0){
 table.innerHTML = '<tr><td colspan="6">Nessun collaboratore inserito.</td></tr>';
@@ -240,82 +239,55 @@ table.innerHTML += `
 `;
 
 if(s.active){
-select.innerHTML += `<option value="${s.id}">${s.full_name} · ${roleLabel(s.role)}</option>`;
-if(assignmentStaffSelect){assignmentStaffSelect.innerHTML += `<option value="${s.id}">${s.full_name} · ${roleLabel(s.role)}</option>`;}
+taskStaffSelect.innerHTML += `<option value="${s.id}">${s.full_name} · ${roleLabel(s.role)}</option>`;
+assignmentStaffSelect.innerHTML += `<option value="${s.id}">${s.full_name} · ${roleLabel(s.role)}</option>`;
 }
 });
 }
 
 function roleLabel(role){
-const labels={
-cleaning:'Pulizie',
-checkin:'Check-in',
-checkout:'Check-out',
-manager:'Manager',
-concierge:'Concierge'
-};
+const labels={cleaning:'Pulizie',checkin:'Check-in',checkout:'Check-out',manager:'Manager',concierge:'Concierge'};
 return labels[role] || role || '-';
 }
 
-async function deactivateStaff(id){
-const person = staff.find(s=>s.id === id);
-if(!person){return;}
-
-if(!confirm('Disattivare '+person.full_name+'? Non comparirà più tra i collaboratori assegnabili, ma lo storico resterà salvato.')){
-return;
-}
-
-const { error } = await supabaseClient
-.from('staff_members')
-.update({active:false})
-.eq('id',id);
-
-if(error){
-alert(error.message);
-return;
-}
-
-await loadStaff();
-}
-
-async function reactivateStaff(id){
-const person = staff.find(s=>s.id === id);
-if(!person){return;}
-
-if(!confirm('Riattivare '+person.full_name+'?')){
-return;
-}
-
-const { error } = await supabaseClient
-.from('staff_members')
-.update({active:true})
-.eq('id',id);
-
-if(error){
-alert(error.message);
-return;
-}
-
-await loadStaff();
-}
-
 async function loadVillas(){
-const { data } = await supabaseClient
+const taskVillaSelect=document.getElementById('task_villa_id');
+const assignmentVillaSelect=document.getElementById('assignment_villa_id');
+
+taskVillaSelect.innerHTML='<option value="">Caricamento ville...</option>';
+assignmentVillaSelect.innerHTML='<option value="">Caricamento ville...</option>';
+
+const { data, error } = await supabaseClient
 .from('villas')
-.select('id,title')
-.order('title');
+.select('*')
+.order('title',{ascending:true});
+
+if(error){
+taskVillaSelect.innerHTML='<option value="">Errore caricamento ville</option>';
+assignmentVillaSelect.innerHTML='<option value="">Errore caricamento ville</option>';
+document.getElementById('assignmentStatus').innerHTML='<span class="bad">Errore ville: '+error.message+'</span>';
+return;
+}
 
 villas = data || [];
 
-const select=document.getElementById('task_villa_id');
-const assignmentVillaSelect=document.getElementById('assignment_villa_id');
-select.innerHTML='<option value="">Villa</option>';
-if(assignmentVillaSelect){assignmentVillaSelect.innerHTML='<option value="">Villa</option>';}
+taskVillaSelect.innerHTML='<option value="">Villa</option>';
+assignmentVillaSelect.innerHTML='<option value="">Villa</option>';
+
+if(villas.length === 0){
+taskVillaSelect.innerHTML='<option value="">Nessuna villa trovata</option>';
+assignmentVillaSelect.innerHTML='<option value="">Nessuna villa trovata</option>';
+document.getElementById('assignmentStatus').innerHTML='<span class="bad">Nessuna villa trovata nella tabella villas.</span>';
+return;
+}
 
 villas.forEach(v=>{
-select.innerHTML += `<option value="${v.id}">${v.title}</option>`;
-if(assignmentVillaSelect){assignmentVillaSelect.innerHTML += `<option value="${v.id}">${v.title}</option>`;}
+const title = v.title || v.name || ('Villa ' + v.id);
+taskVillaSelect.innerHTML += `<option value="${v.id}">${title}</option>`;
+assignmentVillaSelect.innerHTML += `<option value="${v.id}">${title}</option>`;
 });
+
+document.getElementById('assignmentStatus').innerHTML='<span class="good">Ville caricate: '+villas.length+'</span>';
 }
 
 async function saveStaff(){
@@ -395,6 +367,37 @@ document.getElementById('staff_phone').value='';
 document.getElementById('staff_role').value='cleaning';
 }
 
+async function deactivateStaff(id){
+const person = staff.find(s=>s.id === id);
+if(!person){return;}
+
+if(!confirm('Disattivare '+person.full_name+'? Non comparirà più tra i collaboratori assegnabili, ma lo storico resterà salvato.')){
+return;
+}
+
+const { error } = await supabaseClient
+.from('staff_members')
+.update({active:false})
+.eq('id',id);
+
+if(error){alert(error.message);return;}
+await loadStaff();
+}
+
+async function reactivateStaff(id){
+const person = staff.find(s=>s.id === id);
+if(!person){return;}
+
+if(!confirm('Riattivare '+person.full_name+'?')){return;}
+
+const { error } = await supabaseClient
+.from('staff_members')
+.update({active:true})
+.eq('id',id);
+
+if(error){alert(error.message);return;}
+await loadStaff();
+}
 
 async function loadAssignments(){
 const { data, error } = await supabaseClient
@@ -403,8 +406,7 @@ const { data, error } = await supabaseClient
 .order('created_at',{ascending:false});
 
 if(error){
-const box=document.getElementById('assignmentStatus');
-if(box){box.innerHTML='<span class="bad">'+error.message+'</span>';}
+document.getElementById('assignmentStatus').innerHTML='<span class="bad">'+error.message+'</span>';
 return;
 }
 
@@ -414,8 +416,6 @@ renderAssignments();
 
 function renderAssignments(){
 const table=document.getElementById('assignmentsTable');
-if(!table){return;}
-
 table.innerHTML='';
 
 if(assignments.length===0){
@@ -473,11 +473,7 @@ const { error } = await supabaseClient
 .update({active})
 .eq('id',id);
 
-if(error){
-alert(error.message);
-return;
-}
-
+if(error){alert(error.message);return;}
 await loadAssignments();
 }
 
@@ -556,10 +552,7 @@ if(date){query=query.eq('task_date',date);}
 
 const { data, error } = await query;
 
-if(error){
-alert(error.message);
-return;
-}
+if(error){alert(error.message);return;}
 
 tasks=data || [];
 renderTasks();
@@ -607,11 +600,7 @@ const { error } = await supabaseClient
 .update({status:'verified',verified_at:new Date().toISOString()})
 .eq('id',id);
 
-if(error){
-alert(error.message);
-return;
-}
-
+if(error){alert(error.message);return;}
 loadTasks();
 }
 
@@ -623,11 +612,7 @@ const { error } = await supabaseClient
 .delete()
 .eq('id',id);
 
-if(error){
-alert(error.message);
-return;
-}
-
+if(error){alert(error.message);return;}
 loadTasks();
 }
 
