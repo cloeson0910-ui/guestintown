@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations - Guest in Town</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1250px;margin:auto;}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
+.menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer;}
+.menu .logout{margin-left:auto;background:#c0392b;}
+h1{margin-bottom:8px;}
+.subtitle{color:#aaa;margin-bottom:25px;line-height:1.6;}
+.section{background:#1b1b1b;padding:22px;border-radius:10px;margin-bottom:25px;}
+h2{color:#c9a96e;font-family:Georgia,"Times New Roman",serif;font-weight:400;margin-top:0;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+input,select,textarea{width:100%;padding:12px;margin-bottom:12px;border:none;border-radius:6px;box-sizing:border-box;}
+textarea{min-height:90px;}
+button.save{background:#c9a96e;color:black;font-weight:bold;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;}
+button.small{background:#333;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;margin-right:6px;}
+button.danger{background:#c0392b;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;}
+table{width:100%;border-collapse:collapse;background:#151515;margin-top:12px;}
+th,td{padding:12px;border-bottom:1px solid #333;text-align:left;vertical-align:top;}
+th{background:#222;color:#c9a96e;}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:12px;}
+.todo{background:#5f4b28;color:#fff0c2;}
+.in_progress{background:#1f4b5f;color:#dff4ff;}
+.completed{background:#1f5f3a;color:#dfffea;}
+.verified{background:#4d3c82;color:#eee6ff;}
+.status{background:#151515;border:1px solid #333;padding:12px;border-radius:8px;color:#ccc;margin-top:12px;}
+.good{color:#2ecc71;font-weight:bold;}
+.bad{color:#e74c3c;font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="bookings.html">Prenotazioni</a>
+<a href="villas.html">Ville</a>
+<a href="operations.html">Operations</a>
+<a href="reports.html">Report</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Operations</h1>
+<div class="subtitle">
+Gestione collaboratori, pulizie, check-in, check-out e attività operative.
+</div>
+
+<div class="section">
+<h2>Collaboratori</h2>
+<div class="grid">
+<input id="staff_name" placeholder="Nome collaboratore">
+<input id="staff_email" placeholder="Email collaboratore">
+<input id="staff_phone" placeholder="Telefono">
+<select id="staff_role">
+<option value="cleaning">Pulizie</option>
+<option value="checkin">Check-in</option>
+<option value="checkout">Check-out</option>
+<option value="manager">Manager</option>
+<option value="concierge">Concierge</option>
+</select>
+</div>
+<button class="save" onclick="saveStaff()">Salva collaboratore</button>
+<div id="staffStatus" class="status">Pronto.</div>
+<table>
+<thead><tr><th>Nome</th><th>Email</th><th>Telefono</th><th>Ruolo</th><th>Stato</th></tr></thead>
+<tbody id="staffTable"></tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>Nuova attività</h2>
+<div class="grid">
+<select id="task_type">
+<option value="cleaning">Pulizia</option>
+<option value="checkin">Check-in</option>
+<option value="checkout">Check-out</option>
+<option value="maintenance">Manutenzione</option>
+<option value="concierge">Concierge</option>
+</select>
+<select id="task_villa_id"><option value="">Villa</option></select>
+<select id="task_staff_id"><option value="">Collaboratore</option></select>
+<input id="task_date" type="date">
+<input id="task_time" placeholder="Ora, es. 15:00">
+<input id="task_title" placeholder="Titolo attività">
+</div>
+<textarea id="task_notes" placeholder="Note operative"></textarea>
+<button class="save" onclick="saveTask()">Crea attività</button>
+<div id="taskStatus" class="status">Pronto.</div>
+</div>
+
+<div class="section">
+<h2>Attività operative</h2>
+<div class="grid">
+<select id="statusFilter" onchange="loadTasks()">
+<option value="">Tutti gli stati</option>
+<option value="todo">Da fare</option>
+<option value="in_progress">In corso</option>
+<option value="completed">Completate</option>
+<option value="verified">Verificate</option>
+</select>
+<input id="dateFilter" type="date" onchange="loadTasks()">
+</div>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Tipo</th>
+<th>Villa</th>
+<th>Collaboratore</th>
+<th>Titolo</th>
+<th>Stato</th>
+<th>Azioni</th>
+</tr>
+</thead>
+<tbody id="tasksTable"></tbody>
+</table>
+</div>
+
+<script>
+let staff = [];
+let villas = [];
+let tasks = [];
+
+checkAuth();
+
+async function checkAuth(){
+const { data } = await supabaseClient.auth.getUser();
+if(!data.user){window.location.href='login.html';return;}
+await loadStaff();
+await loadVillas();
+await loadTasks();
+}
+
+async function loadStaff(){
+const { data, error } = await supabaseClient.from('staff_members').select('*').order('full_name');
+if(error){document.getElementById('staffStatus').innerHTML='<span class="bad">'+error.message+'</span>';return;}
+staff = data || [];
+const table=document.getElementById('staffTable');
+const select=document.getElementById('task_staff_id');
+table.innerHTML='';
+select.innerHTML='<option value="">Collaboratore</option>';
+staff.forEach(s=>{
+table.innerHTML += `<tr><td>${s.full_name}</td><td>${s.email}</td><td>${s.phone||'-'}</td><td>${s.role}</td><td>${s.active?'Attivo':'Non attivo'}</td></tr>`;
+select.innerHTML += `<option value="${s.id}">${s.full_name} · ${s.role}</option>`;
+});
+}
+
+async function loadVillas(){
+const { data } = await supabaseClient.from('villas').select('id,title').order('title');
+villas = data || [];
+const select=document.getElementById('task_villa_id');
+select.innerHTML='<option value="">Villa</option>';
+villas.forEach(v=>select.innerHTML += `<option value="${v.id}">${v.title}</option>`);
+}
+
+async function saveStaff(){
+const full_name=document.getElementById('staff_name').value.trim();
+const email=document.getElementById('staff_email').value.trim();
+if(!full_name || !email){alert('Nome ed email sono obbligatori');return;}
+const payload={full_name,email,phone:document.getElementById('staff_phone').value,role:document.getElementById('staff_role').value,active:true};
+const { error } = await supabaseClient.from('staff_members').insert([payload]);
+if(error){document.getElementById('staffStatus').innerHTML='<span class="bad">'+error.message+'</span>';return;}
+document.getElementById('staffStatus').innerHTML='<span class="good">Collaboratore salvato. Ora crea lo stesso utente in Authentication con questa email.</span>';
+document.getElementById('staff_name').value='';
+document.getElementById('staff_email').value='';
+document.getElementById('staff_phone').value='';
+loadStaff();
+}
+
+async function saveTask(){
+const title=document.getElementById('task_title').value.trim();
+const task_date=document.getElementById('task_date').value;
+if(!title || !task_date){alert('Titolo e data sono obbligatori');return;}
+const payload={
+task_type:document.getElementById('task_type').value,
+villa_id:document.getElementById('task_villa_id').value || null,
+staff_id:document.getElementById('task_staff_id').value || null,
+title,
+task_date,
+task_time:document.getElementById('task_time').value,
+notes:document.getElementById('task_notes').value,
+status:'todo'
+};
+const { error } = await supabaseClient.from('staff_tasks').insert([payload]);
+if(error){document.getElementById('taskStatus').innerHTML='<span class="bad">'+error.message+'</span>';return;}
+document.getElementById('taskStatus').innerHTML='<span class="good">Attività creata.</span>';
+document.getElementById('task_title').value='';
+document.getElementById('task_notes').value='';
+loadTasks();
+}
+
+async function loadTasks(){
+let query = supabaseClient.from('staff_tasks').select('*, villas(title), staff_members(full_name)').order('task_date',{ascending:true});
+const status=document.getElementById('statusFilter').value;
+const date=document.getElementById('dateFilter').value;
+if(status) query=query.eq('status',status);
+if(date) query=query.eq('task_date',date);
+const { data, error } = await query;
+if(error){alert(error.message);return;}
+tasks=data || [];
+renderTasks();
+}
+
+function renderTasks(){
+const table=document.getElementById('tasksTable');
+table.innerHTML='';
+if(tasks.length===0){table.innerHTML='<tr><td colspan="7">Nessuna attività.</td></tr>';return;}
+tasks.forEach(t=>{
+table.innerHTML += `
+<tr>
+<td>${formatDate(t.task_date)} ${t.task_time||''}</td>
+<td>${t.task_type}</td>
+<td>${t.villas?.title||'-'}</td>
+<td>${t.staff_members?.full_name||'-'}</td>
+<td>${t.title}</td>
+<td><span class="badge ${t.status}">${t.status}</span></td>
+<td>
+<button class="small" onclick="verifyTask(${t.id})">Verifica</button>
+<button class="danger" onclick="deleteTask(${t.id})">Elimina</button>
+</td>
+</tr>`;
+});
+}
+
+async function verifyTask(id){
+const { error } = await supabaseClient.from('staff_tasks').update({status:'verified',verified_at:new Date().toISOString()}).eq('id',id);
+if(error){alert(error.message);return;}
+loadTasks();
+}
+
+async function deleteTask(id){
+if(!confirm('Eliminare attività?'))return;
+const { error } = await supabaseClient.from('staff_tasks').delete().eq('id',id);
+if(error){alert(error.message);return;}
+loadTasks();
+}
+
+function formatDate(dateString){
+if(!dateString)return '-';
+const p=dateString.split('-');
+return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+async function logout(){
+await supabaseClient.auth.signOut();
+window.location.href='login.html';
+}
+</script>
+</body>
+</html>
