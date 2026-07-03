@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blocchi calendario - Guest in Town</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#111;color:white;font-family:Arial,sans-serif;padding:30px;max-width:1250px;margin:auto}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;flex-wrap:wrap}
+.menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer}
+.menu .logout{margin-left:auto;background:#c0392b}
+h1{margin-bottom:8px}.subtitle{color:#aaa;margin-bottom:25px;line-height:1.6}
+.section{background:#1b1b1b;padding:22px;border-radius:10px;margin-bottom:25px}
+h2{color:#c9a96e;font-family:Georgia,"Times New Roman",serif;font-weight:400;margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+input,select,textarea{width:100%;padding:12px;margin-bottom:12px;border:none;border-radius:6px;box-sizing:border-box}
+textarea{min-height:80px}
+button.save{background:#c9a96e;color:black;font-weight:bold;padding:12px 20px;border:none;border-radius:6px;cursor:pointer}
+button.small{background:#333;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;margin-right:6px;margin-top:5px}
+button.danger{background:#c0392b;color:white;padding:8px 11px;border:none;border-radius:6px;cursor:pointer;margin-right:6px;margin-top:5px}
+table{width:100%;border-collapse:collapse;background:#151515;margin-top:12px}
+th,td{padding:12px;border-bottom:1px solid #333;text-align:left;vertical-align:top}
+th{background:#222;color:#c9a96e}.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:12px}
+.confirmed,.pending,.pending_payment,.pending_cancellation{background:#5f4b28;color:#fff0c2}
+.cancelled{background:#5f1f1f;color:#ffe1e1}.manual{background:#1f4b5f;color:#dff4ff}.external{background:#4d3c82;color:#eee6ff}
+.status{background:#151515;border:1px solid #333;padding:12px;border-radius:8px;color:#ccc;margin-top:12px;line-height:1.5}
+.good{color:#2ecc71;font-weight:bold}.bad{color:#e74c3c;font-weight:bold}.note{color:#aaa;font-size:13px;line-height:1.6;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="bookings.html">Prenotazioni</a>
+<a href="villas.html">Ville</a>
+<a href="operations.html">Operations</a>
+<a href="calendar-blocks.html">Blocchi calendario</a>
+<a href="reports.html">Report</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Blocchi calendario</h1>
+<div class="subtitle">Controlla e riapri manualmente date bloccate per errore. Le prenotazioni dirette vengono riaperte impostando lo stato su cancellata. I blocchi manuali vengono disattivati.</div>
+
+<div class="section">
+<h2>Filtri</h2>
+<div class="grid">
+<select id="villaFilter" onchange="loadAll()"><option value="">Tutte le ville</option></select>
+<input id="fromFilter" type="date" onchange="loadAll()">
+<input id="toFilter" type="date" onchange="loadAll()">
+</div>
+<button class="small" onclick="loadAll()">Aggiorna</button>
+<div id="statusBox" class="status">Caricamento...</div>
+</div>
+
+<div class="section">
+<h2>Nuovo blocco manuale</h2>
+<p class="note">Usalo per chiudere date manualmente: manutenzione, lavori, uso proprietario o indisponibilità straordinaria.</p>
+<div class="grid">
+<select id="manual_villa_id"><option value="">Villa</option></select>
+<input id="manual_start" type="date">
+<input id="manual_end" type="date">
+</div>
+<textarea id="manual_reason" placeholder="Motivo del blocco manuale"></textarea>
+<button class="save" onclick="createManualBlock()">Crea blocco manuale</button>
+<div id="manualStatus" class="status">Pronto.</div>
+</div>
+
+<div class="section">
+<h2>Prenotazioni dirette che bloccano date</h2>
+<table><thead><tr><th>ID</th><th>Villa</th><th>Cliente</th><th>Periodo</th><th>Stato</th><th>Valore</th><th>Azioni</th></tr></thead><tbody id="bookingsTable"></tbody></table>
+</div>
+
+<div class="section">
+<h2>Blocchi manuali</h2>
+<table><thead><tr><th>ID</th><th>Villa</th><th>Periodo</th><th>Motivo</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="manualBlocksTable"></tbody></table>
+</div>
+
+<div class="section">
+<h2>Blocchi esterni iCal</h2>
+<p class="note">La pagina prova a rilevare automaticamente la tabella eventi esterni tra i nomi più probabili.</p>
+<table><thead><tr><th>ID</th><th>Villa</th><th>Portale</th><th>Periodo</th><th>Riepilogo</th><th>Azioni</th></tr></thead><tbody id="externalTable"></tbody></table>
+</div>
+
+<script>
+let villas=[],bookings=[],manualBlocks=[],externalBlocks=[];
+checkAuth();
+
+async function checkAuth(){
+const {data}=await supabaseClient.auth.getUser();
+if(!data.user){window.location.href='login.html';return;}
+setDefaultDates(); await loadVillas(); await loadAll();
+}
+
+function setDefaultDates(){const t=new Date(), a=new Date(); a.setMonth(a.getMonth()+12); document.getElementById('fromFilter').value=toISODate(t); document.getElementById('toFilter').value=toISODate(a);}
+function toISODate(date){const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`;}
+function formatDate(s){if(!s)return '-'; const p=s.split('-'); return `${p[2]}/${p[1]}/${p[0]}`;}
+function formatEuro(v){return Number(v||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});}
+function currentVillaFilter(){return document.getElementById('villaFilter').value}
+function currentFrom(){return document.getElementById('fromFilter').value}
+function currentTo(){return document.getElementById('toFilter').value}
+
+async function loadVillas(){
+const {data,error}=await supabaseClient.from('villas').select('*').order('title');
+if(error){document.getElementById('statusBox').innerHTML='<span class="bad">Errore ville: '+error.message+'</span>';return;}
+villas=data||[];
+const f=document.getElementById('villaFilter'), m=document.getElementById('manual_villa_id');
+f.innerHTML='<option value="">Tutte le ville</option>'; m.innerHTML='<option value="">Villa</option>';
+villas.forEach(v=>{const title=v.title||v.name||('Villa '+v.id); f.innerHTML+=`<option value="${v.id}">${title}</option>`; m.innerHTML+=`<option value="${v.id}">${title}</option>`;});
+}
+
+async function loadAll(){document.getElementById('statusBox').innerHTML='Caricamento blocchi...'; await loadBookings(); await loadManualBlocks(); await loadExternalBlocks(); document.getElementById('statusBox').innerHTML='<span class="good">Dati aggiornati.</span>';}
+
+async function loadBookings(){
+let q=supabaseClient.from('bookings').select('*, villas(title)').gte('check_out',currentFrom()).lte('check_in',currentTo()).in('status',['confirmed','pending','pending_payment','pending_cancellation']).order('check_in',{ascending:true});
+if(currentVillaFilter()) q=q.eq('villa_id',currentVillaFilter());
+const {data,error}=await q;
+if(error){document.getElementById('bookingsTable').innerHTML='<tr><td colspan="7">'+error.message+'</td></tr>';return;}
+bookings=data||[]; renderBookings();
+}
+function renderBookings(){
+const table=document.getElementById('bookingsTable'); table.innerHTML='';
+if(bookings.length===0){table.innerHTML='<tr><td colspan="7">Nessuna prenotazione diretta bloccante nel periodo.</td></tr>';return;}
+bookings.forEach(b=>{table.innerHTML+=`<tr><td>${b.id}</td><td>${b.villas?.title||'Villa '+b.villa_id}</td><td>${b.guest_name||'-'}</td><td>${formatDate(b.check_in)} - ${formatDate(b.check_out)}</td><td><span class="badge ${b.status}">${b.status}</span></td><td>${formatEuro(b.total_price||b.total_amount||0)}</td><td><button class="danger" onclick="reopenBooking(${b.id})">Riapri date</button></td></tr>`;});
+}
+async function reopenBooking(id){
+const booking=bookings.find(b=>b.id===id); if(!booking)return;
+const reason=prompt('Motivo riapertura date:','Riapertura manuale da admin'); if(reason===null)return;
+if(!confirm('Confermi riapertura date per la prenotazione '+id+'? Lo stato passerà a cancelled.'))return;
+const {error}=await supabaseClient.from('bookings').update({status:'cancelled',cancelled_at:new Date().toISOString(),notes:(booking.notes||'')+'\n[ADMIN RIAPERTURA DATE] '+reason}).eq('id',id);
+if(error){alert(error.message);return;} await loadAll();
+}
+
+async function loadManualBlocks(){
+let q=supabaseClient.from('calendar_manual_blocks').select('*, villas(title)').gte('block_end',currentFrom()).lte('block_start',currentTo()).order('block_start',{ascending:true});
+if(currentVillaFilter()) q=q.eq('villa_id',currentVillaFilter());
+const {data,error}=await q;
+if(error){document.getElementById('manualBlocksTable').innerHTML='<tr><td colspan="6">'+error.message+'</td></tr>';return;}
+manualBlocks=data||[]; renderManualBlocks();
+}
+function renderManualBlocks(){
+const table=document.getElementById('manualBlocksTable'); table.innerHTML='';
+if(manualBlocks.length===0){table.innerHTML='<tr><td colspan="6">Nessun blocco manuale nel periodo.</td></tr>';return;}
+manualBlocks.forEach(b=>{table.innerHTML+=`<tr><td>${b.id}</td><td>${b.villas?.title||'Villa '+b.villa_id}</td><td>${formatDate(b.block_start)} - ${formatDate(b.block_end)}</td><td>${b.reason||'-'}</td><td>${b.active?'<span class="badge manual">Attivo</span>':'<span class="badge cancelled">Disattivato</span>'}</td><td>${b.active?`<button class="danger" onclick="disableManualBlock(${b.id})">Sblocca</button>`:'-'}</td></tr>`;});
+}
+async function createManualBlock(){
+const villaId=document.getElementById('manual_villa_id').value,start=document.getElementById('manual_start').value,end=document.getElementById('manual_end').value,reason=document.getElementById('manual_reason').value;
+if(!villaId||!start||!end){alert('Seleziona villa, data inizio e data fine.');return;} if(end<start){alert('La data fine non può essere precedente alla data inizio.');return;}
+const {data:userData}=await supabaseClient.auth.getUser();
+const {error}=await supabaseClient.from('calendar_manual_blocks').insert([{villa_id:Number(villaId),block_start:start,block_end:end,reason,created_by:userData?.user?.id||null,active:true}]);
+if(error){document.getElementById('manualStatus').innerHTML='<span class="bad">'+error.message+'</span>';return;}
+document.getElementById('manualStatus').innerHTML='<span class="good">Blocco manuale creato.</span>'; document.getElementById('manual_reason').value=''; await loadAll();
+}
+async function disableManualBlock(id){
+const reason=prompt('Motivo sblocco:','Sblocco manuale da admin'); if(reason===null)return;
+const {data:userData}=await supabaseClient.auth.getUser();
+const {error}=await supabaseClient.from('calendar_manual_blocks').update({active:false,removed_at:new Date().toISOString(),removed_by:userData?.user?.id||null,removed_reason:reason}).eq('id',id);
+if(error){alert(error.message);return;} await loadAll();
+}
+
+async function loadExternalBlocks(){
+const table=document.getElementById('externalTable'); table.innerHTML='<tr><td colspan="6">Ricerca blocchi esterni...</td></tr>';
+const candidateTables=['external_bookings','villa_calendar_events','calendar_events','ical_events','external_calendar_events'];
+for(const tableName of candidateTables){
+let q=supabaseClient.from(tableName).select('*, villas(title)').gte('check_out',currentFrom()).lte('check_in',currentTo()).order('check_in',{ascending:true});
+if(currentVillaFilter()) q=q.eq('villa_id',currentVillaFilter());
+const {data,error}=await q;
+if(!error){externalBlocks=(data||[]).map(item=>({...item,__table:tableName})); renderExternalBlocks(tableName); return;}
+}
+table.innerHTML='<tr><td colspan="6">Nessuna tabella eventi esterni rilevata tra quelle previste.</td></tr>';
+}
+function renderExternalBlocks(tableName){
+const table=document.getElementById('externalTable'); table.innerHTML='';
+if(externalBlocks.length===0){table.innerHTML='<tr><td colspan="6">Nessun blocco esterno nel periodo. Tabella rilevata: '+tableName+'</td></tr>';return;}
+externalBlocks.forEach(b=>{const platform=String(b.platform||b.source||'').replaceAll("'",""); table.innerHTML+=`<tr><td>${b.id}</td><td>${b.villas?.title||'Villa '+b.villa_id}</td><td><span class="badge external">${platform||'-'}</span></td><td>${formatDate(b.check_in)} - ${formatDate(b.check_out)}</td><td>${b.summary||b.title||b.external_uid||'-'}</td><td><button class="danger" onclick="createExternalOverride('${b.__table}',${b.id},${b.villa_id},'${b.check_in}','${b.check_out}','${platform}')">Ignora/Sblocca</button></td></tr>`;});
+}
+async function createExternalOverride(tableName,id,villaId,start,end,platform){
+const reason=prompt('Motivo sblocco blocco esterno:','Sblocco manuale blocco iCal da admin'); if(reason===null)return;
+const {data:userData}=await supabaseClient.auth.getUser();
+const {error}=await supabaseClient.from('calendar_unblock_overrides').insert([{villa_id:Number(villaId),source_type:tableName,source_id:String(id),platform:platform||null,block_start:start,block_end:end,reason,active:true,created_by:userData?.user?.id||null}]);
+if(error){alert(error.message);return;}
+alert('Override creato. Per renderlo effettivo il calendario pubblico/export deve leggere calendar_unblock_overrides.'); await loadAll();
+}
+async function logout(){await supabaseClient.auth.signOut(); window.location.href='login.html';}
+</script>
+</body>
+</html>
