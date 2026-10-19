@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amministratori — Guest In Town</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#050505;
+    --card:#0f0f0f;
+    --border: rgba(201,169,110,.25);
+    --gold:#c9a96e;
+    --text:#f5efe4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Arial, Helvetica, sans-serif;
+    min-height:100vh;
+  }
+  h1{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-weight:400;
+    letter-spacing:.03em;
+    margin:0;
+  }
+  header{
+    padding:24px 32px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  nav.menu{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  nav.menu a{
+    color:var(--text);
+    text-decoration:none;
+    padding:8px 14px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    font-size:14px;
+    transition:border-color .2s, color .2s;
+  }
+  nav.menu a:hover, nav.menu a.active{
+    border-color:var(--gold);
+    color:var(--gold);
+  }
+  .logout{
+    background:#6f1d1b;
+    color:#fff;
+    border:none;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+  }
+  main{
+    max-width:960px;
+    margin:0 auto;
+    padding:32px 20px 80px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:24px;
+    margin-bottom:28px;
+  }
+  .card h2{
+    font-family:Georgia, serif;
+    font-weight:400;
+    color:var(--gold);
+    margin:0 0 18px;
+    font-size:20px;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    color:#bdb3a0;
+    margin:14px 0 6px;
+  }
+  input[type=text], input[type=email], input[type=password]{
+    width:100%;
+    background:#161616;
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:6px;
+    font-size:14px;
+  }
+  input:focus{
+    outline:none;
+    border-color:var(--gold);
+  }
+  .pw-row{
+    display:flex;
+    gap:8px;
+  }
+  .pw-row input{flex:1}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--gold);
+    padding:0 14px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:13px;
+    white-space:nowrap;
+  }
+  .btn-ghost:hover{border-color:var(--gold)}
+  .btn-primary{
+    margin-top:20px;
+    background:var(--gold);
+    color:#1a1407;
+    border:none;
+    padding:11px 22px;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:14px;
+  }
+  .btn-primary:disabled{opacity:.5;cursor:default}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  th, td{
+    text-align:left;
+    padding:10px 8px;
+    border-bottom:1px solid var(--border);
+  }
+  th{
+    color:#bdb3a0;
+    font-weight:normal;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .badge{
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:20px;
+    font-size:12px;
+  }
+  .badge.active{background:rgba(80,160,100,.18);color:#7fd79a}
+  .badge.inactive{background:rgba(160,80,80,.18);color:#e38c8c}
+  .row-btn{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:5px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:12px;
+  }
+  .row-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .row-btn.danger:hover{border-color:#e38c8c;color:#e38c8c}
+  .msg{
+    margin-top:14px;
+    font-size:14px;
+    padding:10px 12px;
+    border-radius:6px;
+    display:none;
+  }
+  .msg.success{display:block;background:rgba(80,160,100,.15);color:#8fe3a8}
+  .msg.error{display:block;background:rgba(160,80,80,.15);color:#f0a0a0}
+  .empty{color:#8a8070;font-size:14px}
+  .hint{color:#8a8070;font-size:12px;margin-top:6px}
+  .you-tag{color:#8a8070;font-size:12px;margin-left:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Amministratori</h1>
+  <nav class="menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="admin-users.html" class="active">Amministratori</a>
+    <button class="logout" onclick="logout()">Esci</button>
+  </nav>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>Nuovo amministratore</h2>
+    <label for="f-name">Nome completo</label>
+    <input type="text" id="f-name" placeholder="Es. Mario Rossi">
+
+    <label for="f-email">Email</label>
+    <input type="email" id="f-email" placeholder="mario@esempio.it">
+
+    <label for="f-password">Password</label>
+    <div class="pw-row">
+      <input type="text" id="f-password" placeholder="Minimo 8 caratteri">
+      <button type="button" class="btn-ghost" onclick="generatePassword()">Genera</button>
+    </div>
+    <div class="hint">L'amministratore dovrà cambiarla al primo accesso.</div>
+
+    <button class="btn-primary" id="create-btn" onclick="createAdmin()">Crea amministratore</button>
+    <div class="msg" id="create-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Amministratori esistenti</h2>
+    <div id="list-wrap"><span class="empty">Caricamento...</span></div>
+    <div class="msg" id="list-msg"></div>
+  </div>
+
+</main>
+
+<script>
+  const SUPABASE_URL = "https://cspzkofhgfrnkhjpfazb.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_oYbR_A78f8SRKdJbkeZegQ_4gAx-567";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUserId = null;
+
+  async function requireAuth(){
+    const { data } = await sb.auth.getSession();
+    if(!data.session){
+      window.location.href = "login.html";
+      return null;
+    }
+    currentUserId = data.session.user.id;
+    return data.session;
+  }
+
+  async function logout(){
+    await sb.auth.signOut();
+    window.location.href = "login.html";
+  }
+
+  function showMsg(id, text, type){
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = "msg " + type;
+  }
+
+  function clearMsg(id){
+    const el = document.getElementById(id);
+    el.className = "msg";
+    el.textContent = "";
+  }
+
+  function generatePassword(){
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$";
+    let pw = "";
+    for(let i=0;i<12;i++) pw += chars[Math.floor(Math.random()*chars.length)];
+    document.getElementById("f-password").value = pw;
+  }
+
+  async function callFn(action, payload){
+    const session = await sb.auth.getSession();
+    const token = session.data.session ? session.data.session.access_token : SUPABASE_ANON_KEY;
+    const res = await fetch(SUPABASE_URL + "/functions/v1/create-admin-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+        "apikey": SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify(Object.assign({ action }, payload || {}))
+    });
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok || !body.success){
+      throw new Error((body && body.error) || ("Errore HTTP " + res.status));
+    }
+    return body;
+  }
+
+  async function createAdmin(){
+    clearMsg("create-msg");
+    const name = document.getElementById("f-name").value.trim();
+    const email = document.getElementById("f-email").value.trim();
+    const password = document.getElementById("f-password").value;
+    const btn = document.getElementById("create-btn");
+
+    if(!name || !email || !password){
+      showMsg("create-msg", "Compila nome, email e password.", "error");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Creazione in corso...";
+    try{
+      await callFn("create", { full_name: name, email, password });
+      showMsg("create-msg", "Amministratore creato con successo.", "success");
+      document.getElementById("f-name").value = "";
+      document.getElementById("f-email").value = "";
+      document.getElementById("f-password").value = "";
+      await loadAdmins();
+    }catch(e){
+      showMsg("create-msg", e.message || String(e), "error");
+    }finally{
+      btn.disabled = false;
+      btn.textContent = "Crea amministratore";
+    }
+  }
+
+  async function toggleActive(userId, makeActive){
+    clearMsg("list-msg");
+    try{
+      await callFn("set_active", { user_id: userId, active: makeActive });
+      await loadAdmins();
+    }catch(e){
+      showMsg("list-msg", e.message || String(e), "error");
+    }
+  }
+
+  function fmtDate(iso){
+    try{
+      return new Date(iso).toLocaleDateString("it-IT", { year:"numeric", month:"short", day:"numeric" });
+    }catch(e){ return iso || "-"; }
+  }
+
+  async function loadAdmins(){
+    const wrap = document.getElementById("list-wrap");
+    try{
+      const body = await callFn("list");
+      const admins = body.admins || [];
+      if(admins.length === 0){
+        wrap.innerHTML = '<span class="empty">Nessun amministratore trovato.</span>';
+        return;
+      }
+      let html = '<table><thead><tr><th>Nome</th><th>Email</th><th>Stato</th><th>Creato</th><th></th></tr></thead><tbody>';
+      admins.forEach(function(a){
+        const isYou = a.id === currentUserId;
+        const badge = a.active
+          ? '<span class="badge active">Attivo</span>'
+          : '<span class="badge inactive">Disattivato</span>';
+        let actionBtn = '';
+        if(isYou){
+          actionBtn = '<span class="you-tag">tu</span>';
+        }else if(a.active){
+          actionBtn = '<button class="row-btn danger" onclick="toggleActive(\'' + a.id + '\', false)">Disattiva</button>';
+        }else{
+          actionBtn = '<button class="row-btn" onclick="toggleActive(\'' + a.id + '\', true)">Riattiva</button>';
+        }
+        html += '<tr><td>' + escapeHTML(a.full_name || "-") + '</td><td>' + escapeHTML(a.email || "-") + '</td><td>' + badge + '</td><td>' + fmtDate(a.created_at) + '</td><td>' + actionBtn + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }catch(e){
+      wrap.innerHTML = '<span class="empty">Impossibile caricare la lista.</span>';
+      showMsg("list-msg", e.message || String(e), "error");
+    }
+  }
+
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c];
+    });
+  }
+
+  (async function init(){
+    const session = await requireAuth();
+    if(!session) return;
+    await loadAdmins();
+  })();
+</script>
+
+</body>
+</html>
