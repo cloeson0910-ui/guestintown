@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amministratori — Guest In Town</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
 <style>
   :root{
     --bg:#050505;
@@ -222,22 +223,21 @@
 <script>
   const SUPABASE_URL = "https://cspzkofhgfrnkhjpfazb.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_oYbR_A78f8SRKdJbkeZegQ_4gAx-567";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let currentUserId = null;
 
   async function requireAuth(){
-    const { data } = await sb.auth.getSession();
-    if(!data.session){
+    const { data } = await supabaseClient.auth.getUser();
+    if(!data.user){
       window.location.href = "login.html";
       return null;
     }
-    currentUserId = data.session.user.id;
-    return data.session;
+    currentUserId = data.user.id;
+    return data.user;
   }
 
   async function logout(){
-    await sb.auth.signOut();
+    await supabaseClient.auth.signOut();
     window.location.href = "login.html";
   }
 
@@ -261,7 +261,7 @@
   }
 
   async function callFn(action, payload){
-    const session = await sb.auth.getSession();
+    const session = await supabaseClient.auth.getSession();
     const token = session.data.session ? session.data.session.access_token : SUPABASE_ANON_KEY;
     const res = await fetch(SUPABASE_URL + "/functions/v1/create-admin-user", {
       method: "POST",
