@@ -202,11 +202,7 @@
     <input type="email" id="f-email" placeholder="mario@esempio.it">
 
     <label for="f-password">Password</label>
-    <div class="pw-row">
-      <input type="text" id="f-password" placeholder="Minimo 8 caratteri">
-      <button type="button" class="btn-ghost" onclick="generatePassword()">Genera</button>
-    </div>
-    <div class="hint">L'amministratore dovrà cambiarla al primo accesso.</div>
+    <input type="text" id="f-password" placeholder="Minimo 8 caratteri">
 
     <button class="btn-primary" id="create-btn" onclick="createAdmin()">Crea amministratore</button>
     <div class="msg" id="create-msg"></div>
@@ -221,8 +217,9 @@
 </main>
 
 <script>
-  const SUPABASE_URL = "https://cspzkofhgfrnkhjpfazb.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_oYbR_A78f8SRKdJbkeZegQ_4gAx-567";
+  /* SUPABASE_URL, SUPABASE_ANON_KEY e supabaseClient sono già definiti globalmente
+     da ../js/supabase.js (incluso sopra) -- non vanno ridichiarati qui, altrimenti
+     tutto lo script si blocca con un SyntaxError silenzioso. */
 
   let currentUserId = null;
 
@@ -251,13 +248,6 @@
     const el = document.getElementById(id);
     el.className = "msg";
     el.textContent = "";
-  }
-
-  function generatePassword(){
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$";
-    let pw = "";
-    for(let i=0;i<12;i++) pw += chars[Math.floor(Math.random()*chars.length)];
-    document.getElementById("f-password").value = pw;
   }
 
   async function callFn(action, payload){
