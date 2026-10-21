@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<link rel="stylesheet" href="css/immonova-text-theme.css">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Videochiamata | IMMONOVA</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%}
+
+body{
+background:#1c1710;
+font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif;
+color:var(--c-f4ecdf);
+display:flex;
+flex-direction:column;
+min-height:100vh;
+}
+
+.top-bar{
+padding:16px 24px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:rgba(0,0,0,.25);
+flex-wrap:wrap;
+gap:10px;
+}
+
+.logo{font-size:14px;font-weight:600;letter-spacing:.3em;color:var(--c-d8b36a)}
+.call-title{font-size:13px;color:var(--c-cbb58a);opacity:.85}
+.call-timer{font-size:13px;color:var(--c-f4ecdf);font-variant-numeric:tabular-nums;letter-spacing:.05em;background:rgba(216,179,106,.18);border:1px solid rgba(216,179,106,.35);border-radius:14px;padding:4px 12px;display:none}
+.call-timer.show{display:inline-block}
+
+.state-message{
+margin:auto;
+text-align:center;
+padding:40px 20px;
+font-size:15px;
+line-height:1.8;
+color:var(--c-e8dcc4);
+max-width:480px;
+}
+
+.state-message .btn{
+display:inline-block;
+margin-top:18px;
+padding:13px 22px;
+border:1px solid rgba(216,179,106,.5);
+color:var(--c-d8b36a);
+text-decoration:none;
+letter-spacing:.1em;
+text-transform:uppercase;
+font-size:11px;
+cursor:pointer;
+background:none;
+}
+
+.stage{
+flex:1;
+display:grid;
+gap:8px;
+padding:12px;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+align-content:center;
+}
+
+.tile{
+position:relative;
+background:#000;
+border-radius:6px;
+overflow:hidden;
+aspect-ratio:16/10;
+}
+
+.tile video{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.tile .tile-name{
+position:absolute;
+left:10px;
+bottom:8px;
+font-size:12px;
+background:rgba(0,0,0,.55);
+padding:4px 9px;
+border-radius:4px;
+letter-spacing:.03em;
+}
+
+.controls{
+padding:18px;
+display:flex;
+justify-content:center;
+gap:14px;
+background:rgba(0,0,0,.3);
+}
+
+.ctrl-btn{
+width:50px;
+height:50px;
+border-radius:50%;
+border:1px solid rgba(216,179,106,.35);
+background:rgba(255,255,255,.06);
+color:var(--c-f4ecdf);
+font-size:18px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.ctrl-btn.off{background:rgba(156,47,47,.65);border-color:rgba(156,47,47,.8)}
+.ctrl-btn.leave{background:#9c2f2f;border-color:#9c2f2f}
+.ctrl-btn.active{background:#2f6b3a;border-color:#3a8a48}
+
+.device-banner{
+background:#fff4e5;
+border-bottom:1px solid #f0b865;
+color:var(--c-7a4d00);
+padding:14px 20px;
+font-size:13px;
+line-height:1.6;
+display:none;
+}
+
+.device-banner.show{display:block}
+.device-banner strong{display:block;margin-bottom:4px;font-size:13px}
+.device-banner button{
+margin-top:10px;
+padding:8px 16px;
+border:1px solid #a67f34;
+background:none;
+color:var(--c-7a4d00);
+cursor:pointer;
+font-size:11px;
+letter-spacing:.08em;
+text-transform:uppercase;
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">IMMONOVA</div>
+  <div class="call-title" id="callTitleLabel"></div>
+  <div class="call-timer" id="callTimer"></div>
+</div>
+
+<div id="deviceBanner" class="device-banner"></div>
+
+<div id="root" class="state-message">Caricamento...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const FUNCTIONS_BASE = "https://bpzzmitmbavcmcasswbu.supabase.co/functions/v1";
+const ANON_KEY = "sb_publishable_YySRrYs6VqiGLmP9958PjA_dUM6MDU8";
+const SUPABASE_URL = "https://bpzzmitmbavcmcasswbu.supabase.co";
+
+const params = new URLSearchParams(window.location.search);
+const inviteToken = params.get("t");
+const callId = params.get("call");
+
+let room = null;
+let micEnabled = true;
+let camEnabled = true;
+
+function setRootMessage(html){
+  // buildStage() rinomina l'elemento id="root" in id="appRoot" quando si entra in
+  // chiamata: dopo quel momento dobbiamo aggiornare "appRoot", non più "root".
+  var el = document.getElementById("root") || document.getElementById("appRoot");
+  if(el) el.innerHTML = html;
+}
+
+function escapeHTML(value){
+  return String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+async function fetchParticipantToken(){
+  var res = await fetch(FUNCTIONS_BASE + "/immonova-video-call-room-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + ANON_KEY, "apikey": ANON_KEY },
+    body: JSON.stringify({ invite_token: inviteToken })
+  });
+  return res.json();
+}
+
+async function fetchAdminToken(){
+  var client = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
+  var sessionRes = await client.auth.getSession();
+  var session = sessionRes && sessionRes.data && sessionRes.data.session;
+  if(!session){
+    window.location.href = "admin/login.html";
+    return { success:false, message:"Sessione scaduta." };
+  }
+  var res = await fetch(FUNCTIONS_BASE + "/immonova-video-call-admin-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": ANON_KEY },
+    body: JSON.stringify({ call_id: callId })
+  });
+  return res.json();
+}
+
+function buildStage(){
+  setRootMessage("");
+  var root = document.getElementById("root");
+  root.className = "";
+  root.id = "appRoot";
+
+  var stage = document.createElement("div");
+  stage.className = "stage";
+  stage.id = "stage";
+
+  var controls = document.createElement("div");
+  controls.className = "controls";
+  controls.innerHTML =
+    '<button type="button" class="ctrl-btn" id="micBtn" title="Microfono">&#127908;</button>' +
+    '<button type="button" class="ctrl-btn" id="camBtn" title="Camera">&#128249;</button>' +
+    '<button type="button" class="ctrl-btn" id="screenBtn" title="Condividi schermo">&#128187;</button>' +
+    '<button type="button" class="ctrl-btn leave" id="leaveBtn" title="Esci">&#10006;</button>' +
+    (callId ? '<button type="button" class="ctrl-btn leave" id="endCallBtn" title="Termina la videochiamata per tutti">&#9209;</button>' : "");
+
+  document.body.insertBefore(stage, document.body.lastElementChild.nextSibling);
+  document.body.appendChild(controls);
+
+  document.getElementById("micBtn").onclick = toggleMic;
+  document.getElementById("camBtn").onclick = toggleCam;
+  document.getElementById("screenBtn").onclick = toggleScreenShare;
+  document.getElementById("leaveBtn").onclick = leaveCall;
+  if(callId){
+    document.getElementById("endCallBtn").onclick = endCallForEveryone;
+  }
+}
+
+function tileIdFor(participant){
+  return "tile_" + participant.identity.replace(/[^a-zA-Z0-9_-]/g,"_");
+}
+
+function ensureTile(participant){
+  var stage = document.getElementById("stage");
+  var id = tileIdFor(participant);
+  var tile = document.getElementById(id);
+  if(!tile){
+    tile = document.createElement("div");
+    tile.className = "tile";
+    tile.id = id;
+    var nameEl = document.createElement("div");
+    nameEl.className = "tile-name";
+    nameEl.textContent = participant.name || participant.identity;
+    tile.appendChild(nameEl);
+    stage.appendChild(tile);
+  }
+  return tile;
+}
+
+function attachTrack(track, participant, isLocal){
+  // Non mostriamo mai a noi stessi la nostra condivisione schermo: se lo schermo condiviso
+  // include anche questa finestra, vedere la propria anteprima crea un effetto a specchi
+  // infiniti. Gli altri partecipanti continuano a vederla normalmente.
+  if(isLocal && track.source === "screen_share") return;
+
+  var tile = ensureTile(participant);
+  var el = track.attach();
+  el.autoplay = true;
+  el.playsInline = true;
+  el.setAttribute("playsinline", "true");
+  if(track.kind === "audio"){
+    el.style.display = "none";
+    el.muted = !!isLocal;
+  }else{
+    if(isLocal) el.muted = true;
+  }
+  tile.insertBefore(el, tile.firstChild);
+}
+
+function detachParticipant(participant){
+  var tile = document.getElementById(tileIdFor(participant));
+  if(tile) tile.remove();
+}
+
+async function toggleMic(){
+  if(!room) return;
+  micEnabled = !micEnabled;
+  await room.localParticipant.setMicrophoneEnabled(micEnabled);
+  document.getElementById("micBtn").classList.toggle("off", !micEnabled);
+}
+
+async function toggleCam(){
+  if(!room) return;
+  camEnabled = !camEnabled;
+  await room.localParticipant.setCameraEnabled(camEnabled);
+  document.getElementById("camBtn").classList.toggle("off", !camEnabled);
+}
+
+function showScreenShareBanner(){
+  var banner = document.getElementById("deviceBanner");
+  if(!banner) return;
+  banner.innerHTML = '<strong>Stai condividendo lo schermo</strong>Gli altri partecipanti la vedono ora. Non vedi nulla di diverso qui di proposito, per evitare l\'effetto specchio. <br><button type="button" id="stopScreenShareBtn">Interrompi condivisione</button>';
+  banner.className = "device-banner show";
+  document.getElementById("stopScreenShareBtn").onclick = toggleScreenShare;
+}
+
+let screenShareEnabled = false;
+async function toggleScreenShare(){
+  if(!room) return;
+  var targetState = !screenShareEnabled;
+  try{
+    await room.localParticipant.setScreenShareEnabled(targetState, { audio: true });
+    screenShareEnabled = targetState;
+    document.getElementById("screenBtn").classList.toggle("active", screenShareEnabled);
+    if(screenShareEnabled){
+      showScreenShareBanner();
+    }else{
+      hideDeviceBanner();
+    }
+  }catch(e){
+    // L'utente ha chiuso il pannello di selezione senza scegliere nulla: non è un errore da segnalare.
+    if(e && (e.name === "NotAllowedError" || e.name === "AbortError")) return;
+    showDeviceBanner("screen", e);
+  }
+}
+
+async function endCallForEveryone(){
+  if(!callId) return;
+  if(!window.confirm("Terminare la videochiamata per tutti i partecipanti? La registrazione (se attiva) verrà elaborata e inviata a tutti via email.")) return;
+  try{
+    var client = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
+    var sessionRes = await client.auth.getSession();
+    var session = sessionRes && sessionRes.data && sessionRes.data.session;
+    if(!session) return;
+    await fetch(FUNCTIONS_BASE + "/immonova-video-call-end", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": ANON_KEY },
+      body: JSON.stringify({ call_id: callId })
+    });
+  }catch(e){ /* usciamo comunque dalla chiamata */ }
+  leaveCall();
+}
+
+let callTimerInterval = null;
+let callStartedAt = null;
+function formatElapsed(ms){
+  var totalSeconds = Math.floor(ms / 1000);
+  var h = Math.floor(totalSeconds / 3600);
+  var m = Math.floor((totalSeconds % 3600) / 60);
+  var s = totalSeconds % 60;
+  var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+  return (h > 0 ? h + ":" + pad(m) : m) + ":" + pad(s);
+}
+function startCallTimer(){
+  var timerEl = document.getElementById("callTimer");
+  if(!timerEl || callTimerInterval) return;
+  callStartedAt = Date.now();
+  timerEl.textContent = "00:00";
+  timerEl.className = "call-timer show";
+  callTimerInterval = setInterval(function(){
+    timerEl.textContent = formatElapsed(Date.now() - callStartedAt);
+  }, 1000);
+}
+function stopCallTimer(){
+  if(callTimerInterval){ clearInterval(callTimerInterval); callTimerInterval = null; }
+  var timerEl = document.getElementById("callTimer");
+  if(timerEl) timerEl.className = "call-timer";
+}
+
+let hasLeft = false;
+async function leaveCall(){
+  if(hasLeft) return;
+  hasLeft = true;
+  stopCallTimer();
+  try{
+    if(room){
+      await room.localParticipant.setMicrophoneEnabled(false);
+      await room.localParticipant.setCameraEnabled(false);
+      room.disconnect();
+    }
+  }catch(e){ /* ignora: stiamo comunque uscendo */ }
+  setRootMessage(
+    '<div style="text-align:center;padding:40px 20px">' +
+      '<div style="font-size:40px;line-height:1">&#10003;</div>' +
+      '<h2 style="margin:16px 0 8px;color:var(--c-f4ecdf)">Grazie per aver partecipato</h2>' +
+      '<p style="color:var(--c-cfc3ac);max-width:420px;margin:0 auto 6px">La videochiamata &egrave; terminata. Non appena la registrazione sar&agrave; pronta, riceverai una email con il link per rivedere la riunione.</p>' +
+      '<p style="color:var(--c-9a8f7a);font-size:13px;margin-top:18px">Puoi chiudere questa pagina.</p>' +
+    '</div>'
+  );
+  var stageEl = document.getElementById("stage");
+  if(stageEl) stageEl.remove();
+  var controlsEl = document.querySelector(".controls");
+  if(controlsEl) controlsEl.remove();
+}
+
+function hideDeviceBanner(){
+  var banner = document.getElementById("deviceBanner");
+  if(banner){ banner.className = "device-banner"; banner.innerHTML = ""; }
+}
+
+function showDeviceBanner(kind, err){
+  var banner = document.getElementById("deviceBanner");
+  if(!banner) return;
+
+  var labels = {
+    camera: { def:"la videocamera", cap:"Videocamera", sysPanel:"Fotocamera" },
+    microphone: { def:"il microfono", cap:"Microfono", sysPanel:"Microfono" },
+    screen: { def:"la condivisione schermo", cap:"Condivisione schermo", sysPanel:"Registrazione schermo" }
+  };
+  var L = labels[kind] || labels.camera;
+
+  var name = (err && err.name) || "";
+  var title, body;
+
+  if(name === "NotAllowedError" || name === "PermissionDeniedError"){
+    title = L.cap + " bloccata dal browser";
+    body = "Clicca sull'icona del lucchetto accanto all'indirizzo del sito, imposta " + L.cap + " su \"Consenti\", poi ricarica questa pagina. Su Mac controlla anche Preferenze di Sistema &rarr; Privacy e Sicurezza &rarr; " + L.sysPanel + " e verifica che il browser sia abilitato (dopo averlo attivato lì, riavvia completamente il browser).";
+  }else if(name === "NotReadableError" || name === "TrackStartError"){
+    title = L.cap + " occupata da un'altra app";
+    body = "Chiudi altre schede o applicazioni che potrebbero usare " + L.def + " (FaceTime, Zoom, Teams, altre schede con videochiamate aperte), poi ricarica questa pagina.";
+  }else if(name === "NotFoundError" || name === "DevicesNotFoundError"){
+    title = "Nessun dispositivo trovato per " + L.def;
+    body = "Il browser non rileva un dispositivo disponibile. Verifica che sia collegato e funzionante, poi ricarica.";
+  }else{
+    title = "Problema con " + L.def;
+    body = "Se usi Chrome, prova anche a disattivare temporaneamente eventuali estensioni (adblocker, strumenti privacy) o ad aprire il link in una finestra in incognito, poi ricarica.";
+  }
+
+  banner.innerHTML = '<strong>' + title + '</strong>' + body + '<br><button type="button" onclick="window.location.reload()">Ricarica la pagina</button>';
+  banner.className = "device-banner show";
+}
+
+async function connectToRoom(data){
+  document.getElementById("callTitleLabel").textContent = data.call_title || "";
+  buildStage();
+
+  var LK = window.LivekitClient;
+  room = new LK.Room({ adaptiveStream: true, dynacast: true });
+
+  room.on(LK.RoomEvent.TrackSubscribed, function(track, publication, participant){
+    attachTrack(track, participant, false);
+  });
+  room.on(LK.RoomEvent.LocalTrackPublished, function(publication, participant){
+    if(publication.track) attachTrack(publication.track, participant, true);
+  });
+  room.on(LK.RoomEvent.LocalTrackUnpublished, function(publication){
+    if(publication.track){
+      try{ publication.track.detach().forEach(function(el){ el.remove(); }); }catch(e){}
+    }
+    // Se la condivisione schermo viene interrotta dal controllo nativo del browser
+    // (es. la barra "Stai condividendo... Interrompi condivisione" di Chrome/Safari)
+    // invece che dal nostro pulsante, LiveKit sblocca comunque il track: allineiamo
+    // qui lo stato dell'interfaccia, altrimenti il pulsante e il banner restano
+    // bloccati sullo stato "in condivisione".
+    if(publication.source === "screen_share" && screenShareEnabled){
+      screenShareEnabled = false;
+      var screenBtnEl = document.getElementById("screenBtn");
+      if(screenBtnEl) screenBtnEl.classList.remove("active");
+      hideDeviceBanner();
+    }
+  });
+  room.on(LK.RoomEvent.ParticipantDisconnected, function(participant){
+    detachParticipant(participant);
+  });
+  room.on(LK.RoomEvent.Disconnected, function(){
+    leaveCall();
+  });
+  room.on(LK.RoomEvent.MediaDevicesError, function(err, kind){
+    showDeviceBanner(kind === "videoinput" ? "camera" : "microphone", err);
+  });
+
+  await room.connect(data.ws_url, data.token);
+  hideDeviceBanner();
+  startCallTimer();
+
+  try{
+    await room.localParticipant.setMicrophoneEnabled(true);
+  }catch(e){
+    showDeviceBanner("microphone", e);
+  }
+
+  try{
+    await room.localParticipant.setCameraEnabled(true);
+  }catch(e){
+    showDeviceBanner("camera", e);
+  }
+}
+
+(async function init(){
+  if(!inviteToken && !callId){
+    setRootMessage("Link non valido: manca il codice di accesso alla videochiamata.");
+    return;
+  }
+
+  try{
+    var data = inviteToken ? await fetchParticipantToken() : await fetchAdminToken();
+
+    if(!data || !data.success){
+      if(data && data.error === "otp_required" && data.otp_id){
+        var redirectUrl = window.location.href;
+        window.location.href = "verifica-otp.html?otp_id=" + encodeURIComponent(data.otp_id) + "&redirect=" + encodeURIComponent(redirectUrl);
+        return;
+      }
+      setRootMessage(escapeHTML((data && data.message) || "Impossibile accedere alla videochiamata."));
+      return;
+    }
+
+    await connectToRoom(data);
+  }catch(e){
+    setRootMessage("Errore di connessione alla videochiamata. Riprova tra qualche istante.");
+  }
+})();
+</script>
+
+</body>
+</html>

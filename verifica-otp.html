@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<link rel="stylesheet" href="css/immonova-text-theme.css">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verifica codice | IMMONOVA</title>
+<style>
+  :root{--gold:#a67f34;--ink:#20180c;--bg:#faf7f0}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+  .box{max-width:420px;width:100%;background:#fff;border:1px solid rgba(166,127,52,.18);border-radius:14px;padding:40px 32px;box-shadow:0 24px 70px rgba(127,100,48,.1)}
+  h1{font-size:22px;font-weight:600;margin:0 0 8px}
+  p{font-size:14px;color:var(--c-3b362e);line-height:1.5;margin:0 0 24px}
+  input[type=text]{width:100%;font-size:26px;letter-spacing:6px;text-align:center;padding:14px;border:1px solid #ddd3bd;border-radius:10px;margin-bottom:16px}
+  button{width:100%;padding:14px;background:var(--gold);color:var(--c-ffffff);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:default}
+  .msg{margin-top:14px;font-size:13px;text-align:center}
+  .msg.err{color:var(--c-622020)}
+  .msg.ok{color:var(--c-1a452b)}
+  .note{margin-top:22px;font-size:11px;color:var(--c-9b9280);line-height:1.5}
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>Verifica la tua identità</h1>
+    <p id="intro">Ti abbiamo inviato un codice di sicurezza. Inseriscilo qui sotto per continuare.</p>
+    <input type="text" id="code" maxlength="6" inputmode="numeric" placeholder="______" autofocus>
+    <button id="submitBtn">Verifica</button>
+    <div class="msg" id="msg"></div>
+    <div class="note">Per tua sicurezza registriamo data, ora, indirizzo IP e informazioni sul dispositivo utilizzato per ricevere e inserire questo codice.</div>
+  </div>
+
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const otpId = params.get('otp_id');
+  const redirect = params.get('redirect') || '';
+  const FN_BASE = 'https://bpzzmitmbavcmcasswbu.supabase.co/functions/v1';
+  // Il gateway Supabase rifiuta ogni chiamata alle Edge Function priva dell'header "apikey",
+  // anche quando la funzione ha verify_jwt:false (il JWT e l'apikey sono due controlli diversi).
+  // Senza questo header la richiesta non arriva nemmeno alla funzione: va sempre inclusa.
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwenptaXRtYmF2Y21jYXNzd2J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDk1ODQsImV4cCI6MjA5NzM4NTU4NH0.SkPicFpfYe69rI0JmASqm-jif-Ov3gQ0Mu20UbrYawY';
+
+  if(!otpId){
+    document.getElementById('intro').textContent = 'Link non valido o incompleto.';
+    document.getElementById('submitBtn').disabled = true;
+  }
+
+  function deviceMeta(){
+    return {
+      platform_hint: navigator.platform || null,
+      screen: screen.width + 'x' + screen.height,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    };
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', async function(){
+    const code = document.getElementById('code').value.trim();
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('submitBtn');
+    if(code.length !== 6){ msg.textContent = 'Inserisci il codice di 6 cifre.'; msg.className='msg err'; return; }
+    btn.disabled = true; btn.textContent = 'Verifica in corso...';
+    try{
+      const res = await fetch(FN_BASE + '/otp-verify', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY},
+        body: JSON.stringify(Object.assign({otp_id: otpId, code: code}, deviceMeta()))
+      });
+      const data = await res.json();
+      if(data.ok){
+        msg.textContent = 'Verifica completata. Reindirizzamento...';
+        msg.className = 'msg ok';
+        setTimeout(function(){
+          // 'redirect' è già stato decodificato una volta da URLSearchParams.get(): l'URL del
+          // dossier (spesso firmato, con parametri come token/signature) può contenere suoi
+          // propri caratteri "%" legittimi. Decodificarlo di nuovo qui generava un errore
+          // JavaScript non gestito ("URI malformed"), che bloccava il redirect in silenzio:
+          // il codice risultava verificato ma l'utente restava sulla pagina.
+          if(redirect){
+            try{ location.href = redirect; }
+            catch(e){ msg.textContent = 'Codice verificato, ma il link del dossier non è valido. Contatta IMMONOVA.'; msg.className = 'msg err'; }
+          }
+        }, 900);
+      } else {
+        const reasons = {
+          wrong_code: 'Codice errato. ' + (data.attempts_left!=null ? data.attempts_left + ' tentativi rimasti.' : ''),
+          expired: 'Codice scaduto, richiedine uno nuovo.',
+          max_attempts: 'Troppi tentativi errati. Richiedi un nuovo codice.',
+          not_found: 'Richiesta non trovata.'
+        };
+        msg.textContent = reasons[data.reason] || 'Errore durante la verifica.';
+        msg.className = 'msg err';
+        btn.disabled = false; btn.textContent = 'Verifica';
+      }
+    }catch(e){
+      msg.textContent = 'Errore di rete, riprova.';
+      msg.className = 'msg err';
+      btn.disabled = false; btn.textContent = 'Verifica';
+    }
+  });
+})();
+</script>
+</body>
+</html>

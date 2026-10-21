@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<link rel="stylesheet" href="css/immonova-text-theme.css">
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IMMONOVA | Test Email</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./js/config.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif;
+  color:var(--c-3c2d15);
+  background:
+    radial-gradient(circle at top,rgba(255,255,255,.72),rgba(244,236,223,.2) 42%,rgba(244,236,223,.95) 100%),
+    repeating-linear-gradient(60deg,transparent 0 86px,rgba(188,149,78,.13) 87px,transparent 88px),
+    #f4ecdf;
+  padding:32px;
+}
+.wrap{max-width:980px;margin:0 auto}
+header{display:flex;justify-content:space-between;gap:18px;margin-bottom:34px}
+.logo{letter-spacing:.22em;color:var(--c-5b461d);font-size:24px;text-transform:uppercase}
+.sublogo{margin-top:6px;font-size:10px;letter-spacing:.32em;color:var(--c-463619);text-transform:uppercase}
+.back{
+  text-decoration:none;border:1px solid rgba(166,127,52,.42);color:var(--c-433314);
+  padding:11px 16px;border-radius:999px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+}
+.panel{
+  background:rgba(255,255,255,.5);
+  border:1px solid rgba(166,127,52,.26);
+  border-radius:28px;
+  box-shadow:0 24px 70px rgba(70,45,12,.12);
+  padding:34px;
+}
+h1{font-size:34px;color:var(--c-5b431b);font-weight:500;margin-bottom:10px}
+.lead{color:var(--c-443b2e);font-size:15px;line-height:1.7;margin-bottom:28px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{display:flex;flex-direction:column;gap:8px}
+.full{grid-column:1/-1}
+label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--c-4c3a19);font-weight:600}
+input,textarea{
+  border:1px solid rgba(166,127,52,.26);
+  background:rgba(255,255,255,.7);
+  border-radius:16px;
+  padding:14px 15px;
+  font:inherit;
+  color:var(--c-3c2d15);
+}
+textarea{min-height:145px;resize:vertical;line-height:1.6}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+button{
+  border:none;cursor:pointer;border-radius:999px;padding:14px 22px;
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+}
+.primary{background:#a67f34;color:var(--c-fffaf0)}
+.secondary{background:rgba(255,255,255,.5);color:var(--c-433314);border:1px solid rgba(166,127,52,.32)}
+.result{
+  margin-top:24px;border-radius:18px;padding:18px;border:1px solid rgba(166,127,52,.22);
+  background:rgba(255,255,255,.5);white-space:pre-wrap;
+  font-family:Menlo,Consolas,monospace;font-size:13px;line-height:1.6;
+}
+.ok{border-color:rgba(66,145,91,.45);color:var(--c-225b36)}
+.err{border-color:rgba(165,61,49,.45);color:var(--c-7a241b)}
+@media(max-width:760px){body{padding:20px}.grid{grid-template-columns:1fr}.panel{padding:24px}}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <div class="logo">IMMONOVA</div>
+    <div class="sublogo">Off Market • Consulting</div>
+  </div>
+  <a class="back" href="./dashboard.html">Dashboard</a>
+</header>
+
+<main class="panel">
+  <h1>Test invio email</h1>
+  <p class="lead">
+    Test reale della Edge Function <b>dossier-request-email</b>. Usa automaticamente <b>./js/config.js</b>.
+  </p>
+
+  <div class="grid">
+    <div class="field">
+      <label>Email destinatario test</label>
+      <input id="email" value="amministrazione@immonova-consulting.it">
+    </div>
+
+    <div class="field">
+      <label>Lingua</label>
+      <input id="preferred_language" value="it">
+    </div>
+
+    <div class="field full">
+      <label>Opportunità</label>
+      <input id="opportunity_title" value="Test email IMMONOVA">
+    </div>
+
+    <div class="field full">
+      <label>Messaggio</label>
+      <textarea id="message">Questa è una richiesta dossier di test generata da IMMONOVA.</textarea>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="sendBtn">Invia test</button>
+    <button class="secondary" id="previewBtn">Anteprima payload</button>
+    <button class="secondary" id="configBtn">Test config.js</button>
+    <button class="secondary" id="clearBtn">Pulisci log</button>
+  </div>
+
+  <div id="result" class="result">Pronto.</div>
+</main>
+</div>
+
+<script>
+const FUNCTION_NAME = "dossier-request-email";
+
+const $ = id => document.getElementById(id);
+const result = $("result");
+
+function log(data,type=""){
+  result.className = "result " + type;
+  result.textContent = typeof data === "string" ? data : JSON.stringify(data,null,2);
+}
+
+function getSupabaseUrl(){
+  if(typeof SUPABASE_URL !== "undefined") return SUPABASE_URL;
+  if(window.SUPABASE_URL) return window.SUPABASE_URL;
+  return "https://bpzzmitmbavcmcasswbu.supabase.co";
+}
+
+function getSupabaseAnonKey(){
+  if(typeof SUPABASE_ANON_KEY !== "undefined") return SUPABASE_ANON_KEY;
+  if(window.SUPABASE_ANON_KEY) return window.SUPABASE_ANON_KEY;
+  return "sb_publishable_YySRrYs6VqiGLmP9958PjA_dUM6MDU8";
+}
+
+function functionUrl(){
+  return getSupabaseUrl().replace(/\/$/,"") + "/functions/v1/" + FUNCTION_NAME;
+}
+
+function cleanError(error){
+  return {
+    name:error?.name || null,
+    message:error?.message || String(error),
+    status:error?.status || error?.statusCode || null,
+    code:error?.code || null
+  };
+}
+
+function buildPayload(){
+  return {
+    request:{
+      email:$("email").value.trim(),
+      full_name:"Test IMMONOVA",
+      first_name:"Test",
+      last_name:"IMMONOVA",
+      phone:"+39 000 000 0000",
+      opportunity_title:$("opportunity_title").value.trim(),
+      preferred_language:$("preferred_language").value.trim() || "it",
+      investor_type:"Test",
+      country:"Italia",
+      budget_range:"Test",
+      company:"IMMONOVA Test",
+      message:$("message").value.trim()
+    }
+  };
+}
+
+function testConfig(){
+  const client = window.supabaseClient || window.client || null;
+
+  log({
+    success:!!client,
+    message:client ? "config.js OK." : "Client Supabase non trovato.",
+    function_name:FUNCTION_NAME,
+    function_url:functionUrl(),
+    supabase_library:typeof window.supabase,
+    supabaseClient:typeof window.supabaseClient
+  }, client ? "ok" : "err");
+}
+
+async function sendTest(){
+  try{
+    $("sendBtn").disabled = true;
+
+    const payload = buildPayload();
+    const url = functionUrl();
+
+    if(!payload.request.email) throw new Error("Email mancante.");
+    if(!payload.request.opportunity_title) throw new Error("Opportunità mancante.");
+
+    log("Invio a " + url + " ...");
+
+    const response = await fetch(url,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "apikey":getSupabaseAnonKey(),
+        "Authorization":"Bearer " + getSupabaseAnonKey()
+      },
+      body:JSON.stringify(payload)
+    });
+
+    const text = await response.text();
+    let data = null;
+
+    try{
+      data = text ? JSON.parse(text) : null;
+    }catch{
+      data = text;
+    }
+
+    if(!response.ok){
+      log({
+        success:false,
+        message:"La Edge Function ha risposto con errore.",
+        url,
+        status:response.status,
+        statusText:response.statusText,
+        response:data
+      },"err");
+      return;
+    }
+
+    log({
+      success:true,
+      message:"Email test inviata.",
+      url,
+      status:response.status,
+      response:data
+    },"ok");
+
+  }catch(error){
+    log({
+      success:false,
+      message:"Richiesta bloccata prima della risposta della funzione.",
+      url:functionUrl(),
+      error:cleanError(error)
+    },"err");
+  }finally{
+    $("sendBtn").disabled = false;
+  }
+}
+
+$("sendBtn").addEventListener("click",sendTest);
+$("previewBtn").addEventListener("click",()=>log(buildPayload()));
+$("configBtn").addEventListener("click",testConfig);
+$("clearBtn").addEventListener("click",()=>log("Log pulito."));
+</script>
+</body>
+</html>

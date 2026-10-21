@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<link rel="stylesheet" href="css/immonova-text-theme.css">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>IMMONOVA Staff</title>
+<link rel="manifest" href="manifest-collab.json">
+<meta name="theme-color" content="#a67f34">
+<link rel="apple-touch-icon" href="apple-touch-icon-v2.png">
+<style>
+  :root{--gold:#a67f34;--ink:#20180c;--bg:#f4ecdf;--card:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:90px}
+  header{padding:22px 20px 16px;background:linear-gradient(135deg,#2a2013,#4a3a1f);color:var(--c-f4ecdf)}
+  header h1{font-size:19px;margin:0 0 4px;font-weight:600}
+  header p{margin:0;font-size:12px;opacity:.75}
+  .wrap{padding:18px}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;overflow-x:auto}
+  .tab{flex:0 0 auto;padding:9px 16px;border-radius:999px;background:#fff;border:1px solid #e6dcc4;font-size:13px;cursor:pointer;white-space:nowrap}
+  .tab.active{background:var(--gold);color:var(--c-ffffff);border-color:var(--gold)}
+  .card{background:var(--card);border:1px solid #ece3cf;border-radius:14px;padding:22px;margin-bottom:16px;box-shadow:0 10px 30px rgba(127,100,48,.06)}
+  .card h2{font-size:15px;margin:0 0 6px}
+  .card p.hint{font-size:12px;color:var(--c-4c4739);margin:0 0 18px}
+  select, input[type=text]{width:100%;padding:10px 12px;border:1px solid #ddd3bd;border-radius:8px;font-size:14px;margin-bottom:12px}
+  .rec-row{display:flex;align-items:center;gap:16px;justify-content:center;padding:18px 0}
+  .mic-btn{width:78px;height:78px;border-radius:50%;background:var(--gold);border:none;color:var(--c-ffffff);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(166,127,52,.35);transition:transform .15s}
+  .mic-btn.recording{background:#c0392b;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(192,57,43,.5)}70%{box-shadow:0 0 0 18px rgba(192,57,43,0)}100%{box-shadow:0 0 0 0 rgba(192,57,43,0)}}
+  .rec-status{text-align:center;font-size:13px;color:var(--c-4c4739);margin-top:4px}
+  .live-transcript{min-height:60px;background:#faf7f0;border:1px dashed #ddd3bd;border-radius:10px;padding:12px;font-size:13px;color:var(--c-4a4330);margin-top:14px;white-space:pre-wrap}
+  table.result{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+  table.result th,table.result td{text-align:left;padding:9px 10px;border-bottom:1px solid #ece3cf}
+  table.result th{background:#faf7f0;font-weight:600;width:42%}
+  table.result input.edit-field{width:100%;border:1px solid transparent;background:transparent;font-size:13px;font-family:inherit;color:var(--ink);padding:4px 6px;border-radius:6px}
+  table.result input.edit-field:focus{border-color:var(--gold);background:#fff;outline:none}
+  .edit-hint{font-size:11px;color:var(--c-4c4739);margin:2px 0 0}
+  .note-actions{display:flex;gap:8px;margin-top:10px}
+  .note-actions button{flex:1}
+  .save-row{display:flex;gap:10px;margin-top:16px}
+  button.primary{flex:1;padding:12px;background:var(--gold);color:var(--c-ffffff);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+  button.secondary{padding:12px 16px;background:#fff;border:1px solid #ddd3bd;border-radius:8px;font-size:14px;cursor:pointer}
+  .list-item{border-bottom:1px solid #ece3cf;padding:12px 0;font-size:13px}
+  .list-item .meta{color:var(--c-4c4739);font-size:11px;margin-bottom:4px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#eee3c7;color:var(--c-433413);font-size:10px;margin-right:6px}
+  nav.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ece3cf;display:flex;justify-content:space-around;padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
+  nav.bottom a{font-size:11px;color:var(--c-4c4739);text-decoration:none;text-align:center}
+  nav.bottom a.active{color:var(--gold);font-weight:600}
+  .msg{font-size:12px;margin-top:10px;text-align:center}
+  .msg.err{color:var(--c-622020)}
+  .msg.ok{color:var(--c-1a452b)}
+  .login-box{max-width:360px;margin:60px auto;padding:30px;background:#fff;border-radius:14px;border:1px solid #ece3cf}
+  .login-box input{margin-bottom:12px}
+  .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:4px 0 20px}
+  .quick-tile{aspect-ratio:1;border:1px solid #ece3cf;background:#fff;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;box-shadow:0 8px 24px rgba(127,100,48,.06)}
+  .quick-tile:active{transform:scale(.97)}
+  .quick-icon{font-size:34px}
+  .quick-label{font-size:13px;font-weight:600;color:var(--c-4a3c1f)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>IMMONOVA Staff</h1>
+  <p>App rapida per i collaboratori — note vocali, visite, clienti</p>
+</header>
+
+<div id="authGate" class="wrap" style="display:none">
+  <div class="login-box">
+    <h2 style="margin:0 0 14px">Accedi</h2>
+    <input type="text" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button class="primary" id="loginBtn" style="width:100%">Entra</button>
+    <div class="msg err" id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="appWrap" class="wrap" style="display:none">
+
+  <section id="tab-home">
+    <div class="quick-grid">
+      <button class="quick-tile" id="qtRec">
+        <span class="quick-icon">&#127908;</span>
+        <span class="quick-label">Nota vocale</span>
+      </button>
+      <button class="quick-tile" id="qtCalendar">
+        <span class="quick-icon">&#128197;</span>
+        <span class="quick-label">Calendario</span>
+      </button>
+      <button class="quick-tile" id="qtOpportunities">
+        <span class="quick-icon">&#127968;</span>
+        <span class="quick-label">Opportunità</span>
+      </button>
+      <button class="quick-tile" id="qtList">
+        <span class="quick-icon">&#128203;</span>
+        <span class="quick-label">Le mie note</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="tabs" id="subTabs" style="display:none">
+    <div class="tab" data-tab="home">&larr; Indietro</div>
+    <div class="tab active" data-tab="rec">Nuova nota vocale</div>
+    <div class="tab" data-tab="list">Le mie note</div>
+  </div>
+
+  <section id="tab-rec" style="display:none">
+    <div class="card">
+      <h2>Registra un vocale</h2>
+      <p class="hint">Parla liberamente: descrivi la visita, il cliente o l'appunto. Il sistema trascrive, individua le parole chiave e organizza tutto in una tabella.</p>
+
+      <select id="category">
+        <option value="visita_immobile">Report visita immobile</option>
+        <option value="nota_cliente">Nota su cliente/lead</option>
+        <option value="generico">Appunto generico</option>
+      </select>
+
+      <div class="rec-row">
+        <button class="mic-btn" id="micBtn">&#127908;</button>
+      </div>
+      <div class="rec-status" id="recStatus">Tocca il microfono per iniziare</div>
+
+      <div class="live-transcript" id="liveTranscript">La trascrizione apparirà qui mentre parli...</div>
+
+      <div id="resultBox" style="display:none">
+        <h2 style="margin-top:20px">Informazioni organizzate</h2>
+        <p class="edit-hint">Tocca un campo per correggerlo prima di salvare (es. range come "150-180 mila €" o "2-3 camere").</p>
+        <table class="result" id="resultTable"></table>
+        <div class="save-row">
+          <button class="secondary" id="discardBtn">Scarta</button>
+          <button class="primary" id="saveBtn">Salva nota</button>
+        </div>
+      </div>
+      <div class="msg" id="saveMsg"></div>
+    </div>
+  </section>
+
+  <section id="tab-list" style="display:none">
+    <div class="card">
+      <h2>Le mie ultime note</h2>
+      <div id="notesList"><p class="hint">Caricamento...</p></div>
+    </div>
+  </section>
+</div>
+
+<nav class="bottom">
+  <a href="#" class="active" data-tab="home">Home</a>
+  <a href="#" data-tab="rec">Vocale</a>
+  <a href="#" data-tab="list">Note</a>
+  <a href="professionista.html">Profilo</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+(function(){
+  const FN_BASE = 'https://bpzzmitmbavcmcasswbu.supabase.co/functions/v1';
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let session = null;
+  let lastExtracted = null;
+  let lastTranscript = '';
+  let lastCategory = null;
+  let lastCollaboratorId = null;
+  let lastCollaboratorName = null;
+
+  // --- Service worker (riusa quello esistente se presente) ---
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').catch(function(){});
+  }
+
+  // --- Auth ---
+  async function initAuth(){
+    const { data } = await client.auth.getSession();
+    session = data.session;
+    if(session){
+      document.getElementById('appWrap').style.display = '';
+      document.getElementById('authGate').style.display = 'none';
+      loadNotes();
+    } else {
+      document.getElementById('appWrap').style.display = 'none';
+      document.getElementById('authGate').style.display = '';
+    }
+  }
+  document.getElementById('loginBtn').addEventListener('click', async function(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const msg = document.getElementById('loginMsg');
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if(error){ msg.textContent = 'Credenziali non valide.'; return; }
+    session = data.session;
+    initAuth();
+  });
+  initAuth();
+
+  // --- Navigazione: home con pulsanti rapidi, oppure le sezioni interne ---
+  function showTab(tab){
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-tab')===tab); });
+    document.querySelectorAll('nav.bottom a[data-tab]').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-tab')===tab); });
+    document.getElementById('tab-home').style.display = tab==='home' ? '' : 'none';
+    document.getElementById('subTabs').style.display = tab==='home' ? 'none' : '';
+    document.getElementById('tab-rec').style.display = tab==='rec' ? '' : 'none';
+    document.getElementById('tab-list').style.display = tab==='list' ? '' : 'none';
+    if(tab==='list') loadNotes();
+  }
+  document.querySelectorAll('.tab, nav.bottom a[data-tab]').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.preventDefault();
+      const tab = el.getAttribute('data-tab');
+      if(!tab) return;
+      showTab(tab);
+    });
+  });
+  document.getElementById('qtRec').addEventListener('click', function(){ showTab('rec'); });
+  document.getElementById('qtList').addEventListener('click', function(){ showTab('list'); });
+  document.getElementById('qtCalendar').addEventListener('click', function(){ window.location.href = 'admin/calendar.html'; });
+  document.getElementById('qtOpportunities').addEventListener('click', function(){ window.location.href = 'admin/opportunities.html'; });
+  showTab('home');
+
+  // --- Registrazione vocale con Web Speech API (gratuita, lato client) ---
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognizer = null;
+  let recording = false;
+  let fullTranscript = '';
+
+  const micBtn = document.getElementById('micBtn');
+  const recStatus = document.getElementById('recStatus');
+  const liveTranscript = document.getElementById('liveTranscript');
+
+  if(!SpeechRecognition){
+    recStatus.textContent = 'Il tuo browser non supporta la trascrizione vocale (usa Chrome su Android/desktop).';
+    micBtn.disabled = true;
+  } else {
+    recognizer = new SpeechRecognition();
+    recognizer.lang = 'it-IT';
+    recognizer.continuous = true;
+    recognizer.interimResults = true;
+
+    recognizer.onresult = function(event){
+      let interim = '';
+      for(let i = event.resultIndex; i < event.results.length; i++){
+        const txt = event.results[i][0].transcript;
+        if(event.results[i].isFinal){ fullTranscript += txt + ' '; }
+        else { interim += txt; }
+      }
+      liveTranscript.textContent = (fullTranscript + interim).trim() || 'La trascrizione apparirà qui mentre parli...';
+    };
+    recognizer.onerror = function(){ stopRecording(); };
+    recognizer.onend = function(){ if(recording){ try{ recognizer.start(); }catch(e){} } };
+  }
+
+  function startRecording(){
+    if(!recognizer) return;
+    fullTranscript = '';
+    liveTranscript.textContent = 'In ascolto...';
+    document.getElementById('resultBox').style.display = 'none';
+    recording = true;
+    micBtn.classList.add('recording');
+    recStatus.textContent = 'Registrazione in corso... tocca per terminare';
+    try{ recognizer.start(); }catch(e){}
+  }
+
+  function stopRecording(){
+    recording = false;
+    micBtn.classList.remove('recording');
+    recStatus.textContent = 'Elaborazione...';
+    if(recognizer){ try{ recognizer.stop(); }catch(e){} }
+    setTimeout(processTranscript, 400);
+  }
+
+  micBtn.addEventListener('click', function(){
+    if(recording) stopRecording(); else startRecording();
+  });
+
+  async function processTranscript(){
+    const transcript = fullTranscript.trim();
+    recStatus.textContent = 'Tocca il microfono per iniziare';
+    if(!transcript){ return; }
+    lastTranscript = transcript;
+    const category = document.getElementById('category').value;
+
+    try{
+      const { data: sessData } = await client.auth.getSession();
+      const token = sessData.session ? sessData.session.access_token : SUPABASE_ANON_KEY;
+      const userEmail = sessData.session ? sessData.session.user.email : null;
+
+      const res = await fetch(FN_BASE + '/voice-note-process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          transcript, category,
+          collaborator_name: userEmail,
+          collaborator_id: sessData.session ? sessData.session.user.id : null
+        })
+      });
+      const result = await res.json();
+      if(result.ok){
+        lastExtracted = result;
+        lastCategory = category;
+        lastCollaboratorId = sessData.session ? sessData.session.user.id : null;
+        lastCollaboratorName = userEmail;
+        renderTable(result.extracted.table || []);
+        document.getElementById('resultBox').style.display = '';
+        document.getElementById('saveMsg').textContent = '';
+        document.getElementById('saveMsg').className = 'msg';
+        // NESSUN salvataggio automatico: la nota esiste solo qui finché non premi "Salva nota".
+        // "Scarta" quindi non deve mai cancellare nulla dal database: non c'è ancora nulla da cancellare.
+      } else {
+        document.getElementById('saveMsg').textContent = 'Errore elaborazione: ' + (result.error || 'sconosciuto');
+        document.getElementById('saveMsg').className = 'msg err';
+      }
+    }catch(e){
+      document.getElementById('saveMsg').textContent = "Errore di rete durante l'elaborazione.";
+      document.getElementById('saveMsg').className = 'msg err';
+    }
+  }
+
+  function escapeAttr(s){
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function escapeHtml(s){ return escapeAttr(s); }
+
+  // Costruisce l'HTML di una tabella risultati con i campi "key" modificabili come input di testo.
+  function renderEditableRows(rows){
+    return rows.map(function(r){
+      if(r.key){
+        var val = (r.valore === '-' || r.valore == null) ? '' : r.valore;
+        return '<tr><th>' + escapeHtml(r.campo) + '</th><td><input type="text" class="edit-field" data-key="' + escapeAttr(r.key) + '" data-campo="' + escapeAttr(r.campo) + '" value="' + escapeAttr(val) + '" placeholder="-"></td></tr>';
+      }
+      return '<tr><th>' + escapeHtml(r.campo) + '</th><td>' + escapeHtml(r.valore) + '</td></tr>';
+    }).join('');
+  }
+
+  // Legge lo stato attuale (eventualmente corretto a mano) di una tabella modificabile nel DOM.
+  function collectEditedRows(tableEl){
+    return Array.from(tableEl.querySelectorAll('tr')).map(function(tr){
+      var th = tr.querySelector('th');
+      var inp = tr.querySelector('input.edit-field');
+      if(inp){
+        return { campo: th.textContent, key: inp.dataset.key, valore: inp.value.trim() || '-' };
+      }
+      var td = tr.querySelector('td');
+      return { campo: th.textContent, key: null, valore: td ? td.textContent : '-' };
+    });
+  }
+
+  // Applica le righe (eventualmente corrette) sia alla tabella di visualizzazione sia ai dati
+  // strutturati/keyword usati altrove (export Notizia/Mandato), cosi' una correzione manuale
+  // non resta "solo visiva" ma aggiorna davvero il dato.
+  function applyEditedRowsToExtracted(baseExtractedObj, editedRows){
+    const updated = JSON.parse(JSON.stringify(baseExtractedObj || {}));
+    updated.structured = updated.structured || {};
+    updated.keywords = updated.keywords || {};
+    editedRows.forEach(function(r){
+      if(!r.key) return;
+      const val = (r.valore === '-' || !r.valore) ? null : r.valore;
+      if(['punti_forza','difetti','esigenze_cliente'].indexOf(r.key) !== -1){
+        updated.keywords[r.key] = val ? val.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+      } else {
+        updated.structured[r.key] = val;
+      }
+    });
+    updated.table = editedRows;
+    return updated;
+  }
+
+  function renderTable(rows){
+    const table = document.getElementById('resultTable');
+    table.innerHTML = renderEditableRows(rows);
+  }
+
+  document.getElementById('discardBtn').addEventListener('click', function(){
+    // Nulla è mai stato scritto nel database: scartare significa solo azzerare lo stato locale.
+    lastTranscript = ''; lastExtracted = null; lastCategory = null;
+    document.getElementById('resultBox').style.display = 'none';
+    liveTranscript.textContent = 'La trascrizione apparirà qui mentre parli...';
+  });
+  document.getElementById('saveBtn').addEventListener('click', async function(){
+    if(!lastExtracted || !lastTranscript){
+      document.getElementById('saveMsg').textContent = 'Nessuna nota da salvare.';
+      document.getElementById('saveMsg').className = 'msg err';
+      return;
+    }
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    try{
+      const editedRows = collectEditedRows(document.getElementById('resultTable'));
+      const finalExtracted = applyEditedRowsToExtracted(lastExtracted.extracted, editedRows);
+      const { error } = await client.from('immonova_voice_notes').insert({
+        collaborator_id: lastCollaboratorId,
+        collaborator_name: lastCollaboratorName || null,
+        category: lastCategory,
+        transcript: lastTranscript,
+        extracted: finalExtracted,
+        status: 'processed'
+      });
+      if(error){
+        document.getElementById('saveMsg').textContent = 'Errore durante il salvataggio: ' + error.message;
+        document.getElementById('saveMsg').className = 'msg err';
+        saveBtn.disabled = false;
+        return;
+      }
+      document.getElementById('saveMsg').textContent = 'Nota salvata.';
+      document.getElementById('saveMsg').className = 'msg ok';
+      document.getElementById('resultBox').style.display = 'none';
+      liveTranscript.textContent = 'La trascrizione apparirà qui mentre parli...';
+      lastTranscript = ''; lastExtracted = null; lastCategory = null;
+      loadNotes();
+    }catch(e){
+      document.getElementById('saveMsg').textContent = "Errore di rete durante il salvataggio.";
+      document.getElementById('saveMsg').className = 'msg err';
+    }finally{
+      saveBtn.disabled = false;
+    }
+  });
+
+  // --- Lista note ---
+  const catLabel = { visita_immobile: 'Visita immobile', nota_cliente: 'Nota cliente', generico: 'Generico' };
+  let notesCache = {}; // id -> nota (per poter ricostruire la tabella in modalità modifica)
+  let editingNoteId = null;
+
+  function renderNoteItem(n){
+    const date = new Date(n.created_at).toLocaleString('it-IT');
+    const rows = (n.extracted && n.extracted.table) ? n.extracted.table : [];
+    const isEditing = editingNoteId === n.id;
+    const tableHtml = isEditing ? renderEditableRows(rows) : rows.map(function(r){ return '<tr><th>' + escapeHtml(r.campo) + '</th><td>' + escapeHtml(r.valore) + '</td></tr>'; }).join('');
+    const actionsHtml = isEditing
+      ? '<div class="note-actions">' +
+          '<button type="button" class="secondary" onclick="window.cancelEditNote()">Annulla</button>' +
+          '<button type="button" class="primary" onclick="window.saveEditedNote(\'' + n.id + '\')">Salva modifiche</button>' +
+        '</div>'
+      : '<div class="note-actions">' +
+          '<button type="button" class="secondary" onclick="window.editNote(\'' + n.id + '\')">Modifica</button>' +
+          '<button type="button" class="secondary" onclick="window.deleteVoiceNote(\'' + n.id + '\')">Elimina</button>' +
+        '</div>';
+    return '<div class="list-item" data-note-id="' + n.id + '"><span class="badge">' + (catLabel[n.category]||n.category) + '</span><div class="meta">' + date + '</div>' +
+      '<div style="margin:6px 0;font-size:12px;color:var(--c-4a4330)">' + escapeHtml(n.transcript.slice(0,160)) + (n.transcript.length>160?'…':'') + '</div>' +
+      (isEditing ? '<p class="edit-hint">Correggi i campi e premi "Salva modifiche".</p>' : '') +
+      '<table class="result">' + tableHtml + '</table>' +
+      actionsHtml +
+      '</div>';
+  }
+
+  async function loadNotes(){
+    const listEl = document.getElementById('notesList');
+    const { data: sessData } = await client.auth.getSession();
+    if(!sessData.session){ return; }
+    const { data, error } = await client
+      .from('immonova_voice_notes')
+      .select('id, category, transcript, extracted, created_at')
+      .eq('collaborator_id', sessData.session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(30);
+    if(error || !data || !data.length){
+      listEl.innerHTML = '<p class="hint">Nessuna nota registrata ancora.</p>';
+      notesCache = {};
+      return;
+    }
+    notesCache = {};
+    data.forEach(function(n){ notesCache[n.id] = n; });
+    editingNoteId = null;
+    listEl.innerHTML = data.map(renderNoteItem).join('');
+  }
+
+  window.editNote = function(id){
+    editingNoteId = id;
+    const listEl = document.getElementById('notesList');
+    listEl.innerHTML = Object.keys(notesCache).map(function(k){ return notesCache[k]; })
+      .sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); })
+      .map(renderNoteItem).join('');
+  };
+
+  window.cancelEditNote = function(){
+    editingNoteId = null;
+    loadNotes();
+  };
+
+  window.saveEditedNote = async function(id){
+    const item = document.querySelector('.list-item[data-note-id="' + id + '"]');
+    if(!item) return;
+    const tableEl = item.querySelector('table.result');
+    const n = notesCache[id];
+    if(!n || !tableEl) return;
+    const editedRows = collectEditedRows(tableEl);
+    const finalExtracted = applyEditedRowsToExtracted(n.extracted, editedRows);
+    const { error } = await client.from('immonova_voice_notes').update({ extracted: finalExtracted }).eq('id', id);
+    if(error){ window.alert('Errore durante il salvataggio delle modifiche: ' + error.message); return; }
+    editingNoteId = null;
+    loadNotes();
+  };
+
+  window.deleteVoiceNote = async function(id){
+    if(!window.confirm('Eliminare definitivamente questa nota e la tabella associata?')) return;
+    var res = await client.from('immonova_voice_notes').delete().eq('id', id);
+    if(res.error){ window.alert("Errore durante l'eliminazione: " + res.error.message); return; }
+    loadNotes();
+  };
+})();
+</script>
+</body>
+</html>

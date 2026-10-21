@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<link rel="stylesheet" href="css/immonova-text-theme.css">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proiezione Ricavi Short Rent | IMMONOVA</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;min-height:100%}
+body{
+  background:#f4ecdf;
+  font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif;
+  color:var(--c-5a4520);
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  background:
+    radial-gradient(circle at center,rgba(255,255,255,.72) 0%,rgba(255,255,255,.34) 38%,rgba(244,236,223,.06) 72%),
+    #f4ecdf;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  background:
+    repeating-linear-gradient(60deg,transparent 0 86px,rgba(188,149,78,.23) 87px,transparent 90px),
+    repeating-linear-gradient(-60deg,transparent 0 86px,rgba(188,149,78,.22) 87px,transparent 90px),
+    repeating-linear-gradient(0deg,transparent 0 148px,rgba(188,149,78,.13) 149px,transparent 152px);
+  background-size:230px 199px;
+  opacity:.30;
+}
+.header{
+  padding:30px 40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid rgba(166,127,52,.12);
+  background:rgba(244,236,223,.72);
+  backdrop-filter:blur(14px);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.logo{ text-decoration:none; color:var(--c-5b461d); }
+.logo-main{ font-size:24px; font-weight:600; letter-spacing:.35em; }
+.logo-sub{ margin-top:6px; font-size:9px; font-weight:700; letter-spacing:.18em; color:var(--c-5b471f); }
+.header-actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.header-actions a,.header-actions button{
+  padding:10px 20px;
+  border:1px solid rgba(166,127,52,.25);
+  background:rgba(255,255,255,.25);
+  cursor:pointer;
+  color:var(--c-5b461d);
+  text-decoration:none;
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  font-family:inherit;
+}
+.header-actions a:hover,.header-actions button:hover{ background:#a67f34; color:var(--c-ffffff); }
+.header-actions .primary{ background:#a67f34; color:var(--c-fffaf0); }
+.header-actions .primary:hover{ background:#8f6a29; }
+.back-link{ display:inline-block; margin:24px 40px 0; font-size:12px; color:var(--c-5b461d); text-decoration:none; letter-spacing:.06em; text-transform:uppercase; }
+
+.controls{ max-width:1200px; margin:20px auto 0; padding:0 40px; }
+.controls-panel{
+  border:1px solid rgba(166,127,52,.18);
+  background:rgba(255,255,255,.32);
+  padding:22px 26px;
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  align-items:flex-end;
+}
+.controls-panel .field{ min-width:160px; }
+.controls-panel label{ display:block; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--c-554321); margin-bottom:6px; }
+.controls-panel input{
+  width:100%; padding:9px 10px; border:1px solid rgba(166,127,52,.3);
+  background:rgba(255,255,255,.6); color:var(--c-5a4520); font-size:13px; font-family:inherit;
+}
+.controls-panel .hint{ font-size:11px; color:var(--c-4f4125); max-width:260px; }
+.status{ margin:14px 40px 0; font-size:13px; }
+.status.error{ color:var(--c-561a1a); }
+.status.success{ color:var(--c-2b4626); }
+
+.container{ max-width:1200px; margin:26px auto 60px; padding:0 40px; }
+.book{
+  background:rgba(255,255,255,.4);
+  border:1px solid rgba(166,127,52,.18);
+  box-shadow:0 24px 70px rgba(127,100,48,.08);
+}
+.report-page{
+  position:relative;
+  width:100%;
+  min-height:720px;
+  background:#fffdf8;
+  border-bottom:1px solid rgba(166,127,52,.12);
+  overflow:hidden;
+  padding:54px;
+}
+.report-page:last-child{ border-bottom:0; }
+.brand{ font-size:26px; letter-spacing:.20em; color:var(--c-5b461d); font-weight:300; }
+.brand-sub{ margin-top:6px; font-size:9px; letter-spacing:.22em; color:var(--c-5b471f); text-transform:uppercase; }
+.doc-meta{ text-align:right; font-size:11px; color:var(--c-4f4125); line-height:1.6; }
+.page-header{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid rgba(166,127,52,.2); padding-bottom:16px; margin-bottom:30px; }
+
+.cover-kicker{ font-size:12px; letter-spacing:.34em; text-transform:uppercase; color:var(--c-5b461d); margin-bottom:22px; }
+.cover-title{ max-width:820px; font-size:44px; line-height:1.1; font-weight:200; letter-spacing:.04em; color:var(--c-5a4520); margin-bottom:10px; }
+.cover-sub{ font-size:16px; color:var(--c-4f4125); margin-bottom:36px; }
+.cover-meta{ font-size:12px; color:var(--c-4f4125); line-height:2; }
+.cover-badge{ display:inline-block; border:1px solid rgba(166,127,52,.4); padding:9px 22px; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--c-5b461d); margin-top:18px; }
+.cover-flex{ height:600px; display:flex; flex-direction:column; justify-content:center; }
+
+.section-kicker{ font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--c-5b471f); margin-bottom:6px; }
+.section-title{ font-size:24px; font-weight:300; letter-spacing:.08em; text-transform:uppercase; color:var(--c-5b461d); margin-bottom:20px; }
+.lux-rule{ height:1px; background:linear-gradient(90deg,#a67f34,rgba(166,127,52,0)); margin:6px 0 24px; }
+
+.info-text{ font-size:13px; line-height:1.7; color:var(--c-5a4520); margin-bottom:16px; }
+.source-row{ font-size:11px; color:var(--c-4f4125); font-style:italic; margin-bottom:18px; }
+
+table.rep-table{ width:100%; border-collapse:collapse; margin-bottom:18px; font-size:12px; }
+table.rep-table th{ text-align:right; padding:9px 8px; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--c-f1e3c0); background:#7f6430; }
+table.rep-table th:first-child,table.rep-table td:first-child{ text-align:left; }
+table.rep-table td{ padding:8px 8px; border-bottom:1px solid rgba(166,127,52,.14); text-align:right; color:var(--c-5a4520); }
+table.rep-table tr:nth-child(even) td{ background:rgba(255,255,255,.4); }
+table.rep-table tr.total td{ border-top:2px solid #a67f34; border-bottom:0; font-weight:700; background:rgba(166,127,52,.14); color:var(--c-5a4520); }
+table.rep-table tr.season td{ background:rgba(166,127,52,.10); }
+
+.metric-grid{ display:flex; gap:16px; margin:22px 0 26px; }
+.metric-card{ flex:1; border:1px solid rgba(166,127,52,.18); background:rgba(255,255,255,.5); padding:18px; text-align:center; }
+.metric-value{ font-size:24px; font-weight:600; color:var(--c-5b461d); }
+.metric-label{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--c-4f4125); margin-top:6px; }
+
+.note-box{ border-left:3px solid #a67f34; background:rgba(255,255,255,.4); padding:14px 18px; font-size:11.5px; line-height:1.6; color:var(--c-5a4520); margin:14px 0 20px; }
+.assumption-box{ border:1px dashed rgba(166,127,52,.45); background:rgba(255,255,255,.28); padding:14px 18px; font-size:11px; line-height:1.6; color:var(--c-3b3321); margin:14px 0 20px; }
+.disclaimer-text{ font-size:10px; line-height:1.65; color:var(--c-4f4125); margin-top:10px; }
+.page-folio{ position:absolute; left:54px; right:54px; bottom:22px; display:flex; justify-content:space-between; font-size:9px; color:var(--c-a89876); border-top:1px solid rgba(166,127,52,.15); padding-top:8px; }
+
+.photo-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:8px; }
+.photo-grid.single{ grid-template-columns:1fr; }
+.photo-grid img{ width:100%; height:220px; object-fit:cover; border:1px solid rgba(166,127,52,.2); display:block; }
+.photo-grid.single img{ height:400px; }
+
+.cover-photo{ width:100%; margin-top:8px; overflow:hidden; border:1px solid rgba(166,127,52,.2); }
+.cover-photo img{ width:100%; height:420px; object-fit:cover; object-position:center; display:block; }
+
+.share-note{ font-size:10px; color:var(--c-4f4125); margin-top:6px; }
+
+.link-row{ display:none; max-width:1200px; margin:0 auto; padding:0 40px; align-items:center; gap:10px; }
+.link-row.visible{ display:flex; margin-top:14px; }
+.link-row input{ flex:1; padding:10px 12px; border:1px solid rgba(166,127,52,.3); background:rgba(255,255,255,.6); color:var(--c-5a4520); font-size:12px; font-family:inherit; }
+.link-row .copy-btn{ padding:10px 18px; border:1px solid rgba(166,127,52,.25); background:#a67f34; color:var(--c-fffaf0); cursor:pointer; font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-family:inherit; }
+.link-row .copy-btn:hover{ background:#8f6a29; }
+.link-row .copy-feedback{ font-size:11px; color:var(--c-2b4626); }
+#generateLinkBtn.btn-busy{ opacity:.6; cursor:wait; }
+#generateLinkBtn.btn-success{ background:#4f7f45!important; color:var(--c-ffffff)!important; border-color:#4f7f45!important; }
+
+@media print{
+  @page{ size:A4 landscape; margin:0; }
+  html,body{ width:297mm; min-height:210mm; background:white!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body::before,body::after,.header,.back-link,.controls,.status{ display:none!important; }
+  .container{ width:297mm; max-width:none; margin:0; padding:0; }
+  .book{ width:297mm; border:0; box-shadow:none; background:white; }
+  .report-page{ width:297mm; height:210mm; min-height:210mm; max-height:210mm; overflow:hidden; page-break-after:always; break-after:page; page-break-inside:avoid; break-inside:avoid; border-bottom:0; padding:18mm; }
+  .report-page:last-child{ page-break-after:auto; break-after:auto; }
+  .cover-flex{ height:170mm; }
+  .cover-title{ font-size:30pt; }
+  .brand{ font-size:19pt; }
+  table.rep-table{ font-size:7.3pt; }
+  table.rep-table th,table.rep-table td{ padding:1.4mm 2mm; }
+  .page-folio{ left:18mm; right:18mm; bottom:9mm; }
+  .photo-grid img{ height:48mm; }
+  .photo-grid.single img{ height:96mm; }
+  .cover-photo img{ height:110mm; }
+  .metric-grid{ margin:10mm 0 8mm; gap:6mm; }
+  .metric-card{ padding:5mm; }
+  .metric-value{ font-size:16pt; }
+  .metric-label{ font-size:7pt; margin-top:1.5mm; }
+  .note-box{ padding:4mm 5mm; font-size:9pt; line-height:1.4; margin:5mm 0 6mm; }
+  .source-row{ font-size:8pt; margin-bottom:6mm; }
+  .info-text{ font-size:9.5pt; line-height:1.4; margin-bottom:6mm; }
+}
+
+/* Stessa identica gabbia usata da @media print, applicata come classe: serve per catturare
+   il PDF pagina per pagina con html2canvas usando esattamente le proporzioni A4 orizzontale
+   verificate in stampa, invece del layout a scorrimento libero della pagina a schermo. Prima
+   il PDF veniva generato affettando un unico screenshot lunghissimo ogni 210mm "a caso": non
+   combaciando con i veri confini delle pagine, tagliava testi/intestazioni a meta' e lasciava
+   un'ultima pagina vuota. Catturando UNA .report-page alla volta, gia' vincolata a queste
+   identiche dimensioni fisse, ogni pagina del documento diventa esattamente una pagina PDF. */
+.book.pdf-capture{ width:297mm; }
+.book.pdf-capture .report-page{ width:297mm; height:210mm; min-height:210mm; max-height:210mm; overflow:hidden; border-bottom:0; padding:18mm; }
+.book.pdf-capture .cover-flex{ height:170mm; }
+.book.pdf-capture .cover-title{ font-size:30pt; }
+.book.pdf-capture .brand{ font-size:19pt; }
+.book.pdf-capture table.rep-table{ font-size:7.3pt; margin-bottom:3mm; }
+.book.pdf-capture table.rep-table th,.book.pdf-capture table.rep-table td{ padding:1.4mm 2mm; }
+.book.pdf-capture .page-folio{ left:18mm; right:18mm; bottom:9mm; }
+.book.pdf-capture .photo-grid img{ height:48mm; }
+.book.pdf-capture .photo-grid.single img{ height:96mm; }
+.book.pdf-capture .cover-photo img{ height:110mm; }
+.book.pdf-capture .metric-grid{ margin:6mm 0 4mm; gap:6mm; }
+.book.pdf-capture .metric-card{ padding:5mm; }
+.book.pdf-capture .metric-value{ font-size:16pt; }
+.book.pdf-capture .metric-label{ font-size:7pt; margin-top:1.5mm; }
+.book.pdf-capture .note-box{ padding:3mm 4mm; font-size:8.5pt; line-height:1.3; margin:2mm 0 3mm; }
+.book.pdf-capture .source-row{ font-size:8pt; margin-bottom:3mm; }
+.book.pdf-capture .info-text{ font-size:9.5pt; line-height:1.4; margin-bottom:6mm; }
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <a href="../index.html" class="logo">
+    <div class="logo-main">IMMONOVA</div>
+    <div class="logo-sub">OFF MARKET &bull; CONSULTING</div>
+  </a>
+  <div class="header-actions">
+    <a href="short-rent.html">&larr; Torna a Short Rent</a>
+    <button id="waBtn" type="button">Condividi su WhatsApp</button>
+    <button id="generateLinkBtn" type="button">Genera link</button>
+    <button class="primary" id="printBtn" type="button">Stampa / PDF</button>
+  </div>
+</header>
+
+<div id="linkRow" class="link-row"></div>
+
+<div class="controls">
+  <div class="controls-panel">
+    <div class="field">
+      <label>Prezzo medio comparabili (&euro;/notte)</label>
+      <input type="number" id="cPrice" min="0" step="1">
+    </div>
+    <div class="field">
+      <label>Riempimento giu&ndash;set (%)</label>
+      <input type="number" id="cOccHigh" min="0" max="100" step="1" value="70">
+    </div>
+    <div class="field">
+      <label>Spese gestione min (%)</label>
+      <input type="number" id="cFeeMin" min="0" max="100" step="1" value="20">
+    </div>
+    <div class="field">
+      <label>Spese gestione max (%)</label>
+      <input type="number" id="cFeeMax" min="0" max="100" step="1" value="30">
+    </div>
+    <div class="field">
+      <label>Cedolare secca (%)</label>
+      <input type="number" id="cCedolare" min="0" max="100" step="1" value="21">
+    </div>
+    <button class="header-actions primary" id="recalcBtn" type="button" style="padding:10px 22px;border:1px solid rgba(166,127,52,.35);background:#a67f34;color:var(--c-fffaf0);text-transform:uppercase;letter-spacing:.1em;font-size:11px;cursor:pointer;font-family:inherit;">Ricalcola</button>
+    <div class="hint">Il prezzo medio si precompila dai comparabili trovati sul web per questa scheda; puoi correggerlo a mano. Il riempimento giu&ndash;set &egrave; l'unico dato di occupazione impostabile: i restanti mesi seguono una curva stagionale stimata (vedi nota nel documento), non un dato ufficiale mensile.</div>
+  </div>
+</div>
+
+<div id="pageStatus" class="status"></div>
+
+<div class="container">
+  <div class="book" id="reportBook"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="../js/config.js"></script>
+<script>
+// Cambia questa stringa ogni volta che questo file viene modificato: serve solo a far
+// riconoscere alla pagina la propria versione (vedi verifyPageIsCurrent piu' sotto).
+const PAGE_BUILD_VERSION = "2026-09-19.04";
+
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function esc(v){
+  return String(v ?? "")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function eur(n){ return "&euro; " + Math.round(n).toLocaleString("it-IT"); }
+function todayIt(){ return new Date().toLocaleDateString("it-IT", { day:"2-digit", month:"long", year:"numeric" }); }
+
+// Timbro di versione: valorizzato SOLO durante "Genera link" (vedi generateReportLink), con
+// data/ora esatta al minuto. Stampato su ogni pagina del PDF cosi' due generazioni diverse
+// dello stesso documento non sono mai visivamente indistinguibili: chi lo guarda vede subito,
+// a occhio, se e' l'ultima versione o una vecchia, senza doversi fidare a scatola chiusa.
+let GENERATION_STAMP = null;
+function generationFolioText(){
+  // Lo stamp di generazione NON va nel pie' di pagina: alcune pagine (es. la tabella
+  // mensile) arrivano gia' al bordo inferiore, e il testo extra andava a capo scontrandosi
+  // col contenuto sopra. Lo stamp resta visibile solo in copertina.
+  return "IMMONOVA S.R.L. &mdash; Documento riservato, uso interno/cliente";
+}
+
+// Curva prezzo mensile richiesta dal cliente (moltiplicatore sul prezzo medio comparabili):
+// gennaio-maggio -10%, giugno e luglio nella media, agosto +20% (settimana di Ferragosto
+// +30%, poi torna a +20%), settembre +10%, ottobre nella media, novembre-dicembre -10%.
+// Agosto e' diviso in due righe per isolare la settimana di Ferragosto (10-17 agosto, 8
+// giorni) dal resto del mese (23 giorni), entrambe con lo stesso riempimento giu-set
+// impostato nel pannello di controllo.
+const MONTHS = [
+  {name:"Gennaio", days:31, occ:0.10, priceMult:0.90},
+  {name:"Febbraio", days:28, occ:0.10, priceMult:0.90},
+  {name:"Marzo", days:31, occ:0.20, priceMult:0.90},
+  {name:"Aprile", days:30, occ:0.35, priceMult:0.90},
+  {name:"Maggio", days:31, occ:0.50, priceMult:0.90},
+  {name:"Giugno", days:30, occ:"HIGH", priceMult:1.00},
+  {name:"Luglio", days:31, occ:"HIGH", priceMult:1.00},
+  {name:"Agosto (esclusa settimana Ferragosto)", days:23, occ:"HIGH", priceMult:1.20},
+  {name:"Settimana di Ferragosto (10–17 ago)", days:8, occ:"HIGH", priceMult:1.30},
+  {name:"Settembre", days:30, occ:"HIGH", priceMult:1.10},
+  {name:"Ottobre", days:31, occ:0.40, priceMult:1.00},
+  {name:"Novembre", days:30, occ:0.15, priceMult:0.90},
+  {name:"Dicembre", days:31, occ:0.15, priceMult:0.90},
+];
+
+let analysis = null;
+
+function getParam(name){
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+function extractTourismRows(tourismData){
+  // Staccata dalla tabella "tourism" generale (mischia fonti diverse, un dato comunale di
+  // un'altra fonte batte sempre il dato provinciale di Cruscotto Italia sullo stesso campo).
+  // Usa SOLO "tourism_cruscotto_only", calcolato dal motore filtrando l'evidenza alla sola
+  // fonte Cruscotto Italia PRIMA di scegliere il valore.
+  const t = (tourismData && tourismData.tourism_cruscotto_only) || {};
+  // SOLO Cruscotto Italia (AgID): richiesto esplicitamente dal cliente -- niente dati
+  // dell'altra fonte verificata (open data provinciale xlsx, provider_name "Brindisi").
+  // Cruscotto Italia pubblica arrivi/presenze/permanenza media SOLO a livello provinciale
+  // (il comune non ha una serie propria su Cruscotto), quindi li mostriamo comunque ma
+  // etichettati esplicitamente "(provincia)" per non farli passare per dati del comune.
+  const CRUSCOTTO_PROVIDER = "Cruscotto Italia (AgID) - ISTAT/MEF";
+  const labels = {
+    arrivals: "Arrivi (provincia)",
+    overnight_stays: "Presenze/pernottamenti (provincia)",
+    average_stay: "Permanenza media (provincia)",
+    italian_arrivals: "Arrivi italiani (provincia)",
+    foreign_arrivals: "Arrivi stranieri (provincia)",
+    italian_overnight_stays: "Presenze italiane (provincia)",
+    foreign_overnight_stays: "Presenze straniere (provincia)",
+    accommodation_structures: "Strutture ricettive (comune)",
+    accommodation_beds: "Posti letto (comune)",
+    tourism_index_per_100_residents: "Indice di turisticit&agrave; per 100 residenti (comune)",
+  };
+  const rows = [];
+  Object.keys(labels).forEach(key => {
+    const entry = t[key];
+    if(!entry || entry.value == null) return;
+    if(!entry.source || entry.source.provider_name !== CRUSCOTTO_PROVIDER) return;
+    let valueStr = entry.value;
+    if(key === "average_stay") valueStr = entry.value + " notti";
+    else if(typeof entry.value === "number" && key !== "tourism_index_per_100_residents") valueStr = Math.round(entry.value).toLocaleString("it-IT");
+    const yearStr = entry.observation_year ? " (" + entry.observation_year + ")" : "";
+    rows.push({ label: labels[key], value: valueStr + yearStr, key, raw: entry.value, year: entry.observation_year });
+  });
+  const seenProviders = new Set();
+  const sources = [];
+  Object.values(t).forEach(entry => {
+    const src = entry && entry.source;
+    if(!src || !src.provider_name || src.provider_name !== CRUSCOTTO_PROVIDER) return;
+    const key = src.provider_name + "|" + (src.source_url || "");
+    if(seenProviders.has(key)) return;
+    seenProviders.add(key);
+    sources.push(src);
+  });
+  // arrivals/averageStay per il calcolo quota di mercato: presi dai dati Cruscotto Italia
+  // (provinciali, non c'e' una serie comunale su Cruscotto per Ostuni).
+  const arrivalsEntry = t.arrivals && t.arrivals.source && t.arrivals.source.provider_name === CRUSCOTTO_PROVIDER ? t.arrivals : null;
+  const avgStayEntry = t.average_stay && t.average_stay.source && t.average_stay.source.provider_name === CRUSCOTTO_PROVIDER ? t.average_stay : null;
+  return { rows, arrivals: arrivalsEntry ? arrivalsEntry.value : null, averageStay: avgStayEntry ? avgStayEntry.value : null, source: sources[0] || null, sources };
+}
+
+function computeAvgPrice(comparables){
+  const prices = (Array.isArray(comparables) ? comparables : [])
+    .map(c => Number(c.price_per_night))
+    .filter(n => Number.isFinite(n) && n > 0);
+  if(!prices.length) return null;
+  return prices.reduce((a,b)=>a+b,0) / prices.length;
+}
+
+function buildProjection(price, occHighPct, feeMinPct, feeMaxPct, cedolarePct){
+  const occHigh = occHighPct / 100;
+  const feeMin = feeMinPct / 100;
+  const feeMax = feeMaxPct / 100;
+  const ced = cedolarePct / 100;
+  const rows = MONTHS.map(m => {
+    const occ = m.occ === "HIGH" ? occHigh : m.occ;
+    const nights = Math.round(m.days * occ);
+    const monthPrice = price * (m.priceMult ?? 1);
+    const gross = nights * monthPrice;
+    const feeMinEur = gross * feeMin;
+    const feeMaxEur = gross * feeMax;
+    const cedEur = gross * ced;
+    const netMin = gross - feeMaxEur - cedEur; // gestione max -> netto minore
+    const netMax = gross - feeMinEur - cedEur; // gestione min -> netto maggiore
+    return { name:m.name, isHigh:m.occ==="HIGH", occPct: Math.round(occ*100), nights, price:monthPrice, priceMult:m.priceMult ?? 1, gross, feeMinEur, feeMaxEur, cedEur, netMin, netMax };
+  });
+  const totals = rows.reduce((acc,r) => {
+    acc.nights += r.nights; acc.gross += r.gross; acc.feeMinEur += r.feeMinEur;
+    acc.feeMaxEur += r.feeMaxEur; acc.cedEur += r.cedEur; acc.netMin += r.netMin; acc.netMax += r.netMax;
+    return acc;
+  }, {nights:0,gross:0,feeMinEur:0,feeMaxEur:0,cedEur:0,netMin:0,netMax:0});
+  return { rows, totals };
+}
+
+function renderReport(a, price, occHighPct, feeMinPct, feeMaxPct, cedolarePct){
+  const proj = buildProjection(price, occHighPct, feeMinPct, feeMaxPct, cedolarePct);
+  const { rows, totals } = proj;
+  const location = [a.municipality, a.province].filter(Boolean).join(" (") + (a.province ? ")" : "");
+  const features = a.features || {};
+  const featuresLine = [
+    features.bedrooms ? features.bedrooms + " camere" : null,
+    features.bathrooms ? features.bathrooms + " bagni" : null,
+    features.max_guests ? "fino a " + features.max_guests + " ospiti" : null,
+  ].filter(Boolean).join(" &middot; ");
+  const amenitiesLine = Array.isArray(features.amenities) ? features.amenities.join(", ") : "";
+
+  const comparables = Array.isArray(a.comparables) ? a.comparables : [];
+  const compRows = comparables.map(c =>
+    '<tr><td>'+esc(c.title||"-")+'</td><td>'+esc(c.rooms_or_guests||"-")+'</td><td>'+eur(c.price_per_night||0)+'</td></tr>'
+  ).join("");
+
+  const monthRows = rows.map(r =>
+    '<tr'+(r.isHigh ? ' class="season"' : '')+'>'
+    + '<td>'+(r.isHigh?'<strong>':'')+esc(r.name)+(r.isHigh?'</strong>':'')+'</td>'
+    + '<td>'+r.occPct+'%'+(r.isHigh?'*':'')+'</td>'
+    + '<td>'+r.nights+'</td>'
+    + '<td>'+eur(r.price)+(r.priceMult!==1?' ('+(r.priceMult>1?'+':'')+Math.round((r.priceMult-1)*100)+'%)':'')+'</td>'
+    + '<td>'+eur(r.gross)+'</td>'
+    + '<td>'+eur(r.feeMinEur)+'</td>'
+    + '<td>'+eur(r.feeMaxEur)+'</td>'
+    + '<td>'+eur(r.cedEur)+'</td>'
+    + '<td>'+eur(r.netMax)+'</td>'
+    + '<td>'+eur(r.netMin)+'</td>'
+    + '</tr>'
+  ).join("");
+
+  const avgOcc = Math.round((totals.nights/365)*100);
+
+  const tourism = extractTourismRows(a.tourism_data);
+  const tourismRowsHtml = tourism.rows.map(r => '<tr><td>'+esc(r.label)+'</td><td>'+r.value+'</td></tr>').join("");
+
+  // Quota di mercato turistico necessaria: quante "prenotazioni" (arrivi) servono per
+  // raggiungere l'obiettivo di notti occupate impostato, e che percentuale rappresentano
+  // sugli arrivi turistici totali annui del comune (dato reale, fonte verificata).
+  let marketShareHtml = "";
+  if(tourism.arrivals && tourism.averageStay){
+    const bookingsNeeded = totals.nights / tourism.averageStay;
+    const sharePct = (bookingsNeeded / tourism.arrivals) * 100;
+    const sharePctStr = sharePct < 0.01 ? sharePct.toFixed(4) : (sharePct < 1 ? sharePct.toFixed(3) : sharePct.toFixed(2));
+    marketShareHtml = `
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-value">${Math.round(bookingsNeeded)}</div><div class="metric-label">Prenotazioni/anno necessarie</div></div>
+      <div class="metric-card"><div class="metric-value">${sharePctStr}%</div><div class="metric-label">Quota su arrivi totali comune</div></div>
+      <div class="metric-card"><div class="metric-value">${totals.nights}</div><div class="metric-label">Notti occupate obiettivo</div></div>
+    </div>
+    <div class="note-box">
+      Per raggiungere le <strong>${totals.nights} notti occupate/anno</strong> previste da questa proiezione (permanenza media ${tourism.averageStay} notti, dato provinciale Cruscotto Italia), servono circa <strong>${Math.round(bookingsNeeded)} prenotazioni/anno</strong> &mdash; pari a solo lo <strong>${sharePctStr}%</strong> degli arrivi turistici totali registrati nella provincia (${Math.round(tourism.arrivals).toLocaleString("it-IT")} arrivi${tourism.rows[0]&&tourism.rows[0].year?" nel "+tourism.rows[0].year:""}). Un indicatore di fattibilit&agrave; commerciale: quota molto bassa rispetto al bacino turistico reale della zona (dato provinciale, non comunale: il comune non ha una serie propria su Cruscotto Italia).
+    </div>`;
+  }else{
+    marketShareHtml = `<div class="note-box">Dati turistici non disponibili per questa scheda: premi "Recupera dati turistici" nella scheda Short Rent prima di generare il report, per calcolare anche la quota di mercato necessaria.</div>`;
+  }
+
+  const photos = Array.isArray(a.photos) ? a.photos : [];
+  // Solo la foto di copertina (la prima), grande e con proporzioni fisse (object-fit:cover
+  // ritaglia, non deforma mai): niente piu' griglia 2x2 con foto piccole e sproporzionate.
+  const photosHtml = photos.length
+    ? `<div class="cover-photo"><img src="${esc(photos[0])}" alt="Foto immobile"></div>`
+    : `<div class="note-box">Nessuna foto caricata su questa scheda.</div>`;
+
+  const html = `
+  <article class="report-page">
+    <div class="cover-flex">
+      <div class="brand">IMMONOVA</div>
+      <div class="brand-sub">OFF MARKET &bull; CONSULTING</div>
+      <div class="cover-kicker" style="margin-top:44px">Short Rent &mdash; Proiezione Ricavi</div>
+      <h1 class="cover-title">${esc(a.title||"Analisi Short Rent")}</h1>
+      <div class="cover-sub">${esc(location||"")}</div>
+      <div class="cover-meta">
+        ${featuresLine ? esc(featuresLine)+"<br>" : ""}
+        ${amenitiesLine ? esc(amenitiesLine)+"<br><br>" : "<br>"}
+        Documento ${GENERATION_STAMP ? esc(GENERATION_STAMP) : "generato il " + todayIt()}<br>
+        Metodologia: comparabili reali di mercato + stagionalit&agrave; turistica stimata
+      </div>
+      <div class="cover-badge">Prezzo medio: ${eur(price)} / notte</div>
+    </div>
+    <div class="page-folio"><span>${generationFolioText()}</span><span>Pagina 1</span></div>
+  </article>
+
+  <article class="report-page">
+    <div class="page-header">
+      <div><div class="brand" style="font-size:18px">IMMONOVA</div><div class="brand-sub">OFF MARKET &bull; CONSULTING</div></div>
+      <div class="doc-meta">Proiezione Ricavi Short Rent<br>${esc(a.title||"")}</div>
+    </div>
+    <div class="section-kicker">01</div>
+    <div class="section-title">L'immobile</div>
+    <div class="lux-rule"></div>
+    ${photosHtml}
+    <div class="page-folio"><span>${generationFolioText()}</span><span>Pagina 2</span></div>
+  </article>
+
+  <article class="report-page">
+    <div class="page-header">
+      <div><div class="brand" style="font-size:18px">IMMONOVA</div><div class="brand-sub">OFF MARKET &bull; CONSULTING</div></div>
+      <div class="doc-meta">Proiezione Ricavi Short Rent<br>${esc(a.title||"")}</div>
+    </div>
+    <div class="section-kicker">02</div>
+    <div class="section-title">Dati turistici reali e quota di mercato</div>
+    <div class="lux-rule"></div>
+    ${tourismRowsHtml ? `<table class="rep-table"><tr><th>Indicatore</th><th>Valore</th></tr>${tourismRowsHtml}</table>` : `<div class="note-box">Nessun dato turistico salvato su questa scheda.</div>`}
+    ${(tourism.sources && tourism.sources.length) ? tourism.sources.map(s => `<div class="source-row">Fonte: ${esc(s.provider_name)}${s.source_url ? ' &mdash; '+esc(s.source_url) : ''}</div>`).join("") : ''}
+    ${marketShareHtml}
+    <div class="page-folio"><span>${generationFolioText()}</span><span>Pagina 3</span></div>
+  </article>
+
+  <article class="report-page">
+    <div class="page-header">
+      <div><div class="brand" style="font-size:18px">IMMONOVA</div><div class="brand-sub">OFF MARKET &bull; CONSULTING</div></div>
+      <div class="doc-meta">Proiezione Ricavi Short Rent<br>${esc(a.title||"")}</div>
+    </div>
+    <div class="section-kicker">03</div>
+    <div class="section-title">Metodologia e comparabili di mercato</div>
+    <div class="lux-rule"></div>
+    <p class="info-text">La proiezione si basa sul prezzo medio a notte calcolato sui comparabili reali individuati sul mercato per immobili dello stesso segmento, e su un tasso di riempimento stagionale.</p>
+    ${compRows ? `
+    <table class="rep-table">
+      <tr><th>Annuncio</th><th>Tipologia</th><th>Prezzo/notte</th></tr>
+      ${compRows}
+      <tr class="total"><td>Media comparabili</td><td></td><td>${eur(price)} / notte</td></tr>
+    </table>
+    <div class="source-row">Fonte: comparabili reali raccolti dal motore Short Rent IMMONOVA${a.comparables_searched_at ? " il "+esc(new Date(a.comparables_searched_at).toLocaleDateString("it-IT")) : ""}.</div>
+    ` : `<div class="note-box">Nessun comparabile salvato su questa scheda: il prezzo medio &egrave; stato inserito manualmente nel pannello di controllo qui sopra.</div>`}
+
+    <div class="assumption-box">
+      <strong>Nota metodologica sulla stagionalit&agrave;.</strong> Il riempimento del ${occHighPct}% per giugno&ndash;settembre &egrave; il valore impostato nel pannello di controllo. Per i restanti mesi non esiste, ad oggi, un dato ufficiale con dettaglio mensile per singolo comune: la curva riportata &egrave; una stima prudenziale standard per il mercato costiero, segnalata come tale e non spacciata per dato verificato.
+      <br><br>
+      <strong>Curva prezzo mensile applicata</strong> (moltiplicatore sul prezzo medio comparabili di ${eur(price)}/notte): gennaio&ndash;maggio &minus;10%, giugno e luglio nella media, agosto +20% (settimana di Ferragosto, 10&ndash;17 agosto, +30%), settembre +10%, ottobre nella media, novembre e dicembre &minus;10%. Curva commerciale impostata su indicazione del cliente, non un dato di mercato verificato.
+    </div>
+    <div class="page-folio"><span>${generationFolioText()}</span><span>Pagina 4</span></div>
+  </article>
+
+  <article class="report-page">
+    <div class="page-header">
+      <div><div class="brand" style="font-size:18px">IMMONOVA</div><div class="brand-sub">OFF MARKET &bull; CONSULTING</div></div>
+      <div class="doc-meta">Proiezione Ricavi Short Rent<br>${esc(a.title||"")}</div>
+    </div>
+    <div class="section-kicker">04</div>
+    <div class="section-title">Proiezione mensile: dal lordo al netto</div>
+    <div class="lux-rule"></div>
+    <p class="info-text" style="margin-bottom:12px">Prezzo applicato: <strong>${eur(price)}/notte</strong>. La cedolare secca (${cedolarePct}%) si calcola sul canone <strong>lordo</strong>: le spese di gestione non sono deducibili in questo regime.</p>
+    <table class="rep-table">
+      <tr><th>Mese</th><th>Riemp.</th><th>Notti</th><th>Prezzo/notte</th><th>Lordo</th><th>Gest. ${feeMinPct}%</th><th>Gest. ${feeMaxPct}%</th><th>Cedolare ${cedolarePct}%</th><th>Netto (gest.${feeMinPct}%)</th><th>Netto (gest.${feeMaxPct}%)</th></tr>
+      ${monthRows}
+      <tr class="total"><td>TOTALE ANNO</td><td>${avgOcc}%</td><td>${totals.nights}</td><td>&mdash;</td><td>${eur(totals.gross)}</td><td>${eur(totals.feeMinEur)}</td><td>${eur(totals.feeMaxEur)}</td><td>${eur(totals.cedEur)}</td><td>${eur(totals.netMax)}</td><td>${eur(totals.netMin)}</td></tr>
+    </table>
+    <div class="source-row">* Riempimento giu&ndash;set impostato manualmente. Restanti mesi: stima stagionale (vedi pag. 4). Prezzo/notte variabile per mese secondo la stagionalit&agrave; commerciale impostata (vedi pag. 4).</div>
+    <div class="page-folio"><span>${generationFolioText()}</span><span>Pagina 5</span></div>
+  </article>
+
+  <article class="report-page">
+    <div class="page-header">
+      <div><div class="brand" style="font-size:18px">IMMONOVA</div><div class="brand-sub">OFF MARKET &bull; CONSULTING</div></div>
+      <div class="doc-meta">Proiezione Ricavi Short Rent<br>${esc(a.title||"")}</div>
+    </div>
+    <div class="section-kicker">05</div>
+    <div class="section-title">Sintesi annuale</div>
+    <div class="lux-rule"></div>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-value">${eur(totals.gross)}</div><div class="metric-label">Fatturato lordo annuo</div></div>
+      <div class="metric-card"><div class="metric-value">${eur(totals.cedEur)}</div><div class="metric-label">Cedolare secca (${cedolarePct}%)</div></div>
+      <div class="metric-card"><div class="metric-value">${totals.nights}</div><div class="metric-label">Notti occupate / anno</div></div>
+    </div>
+    <table class="rep-table">
+      <tr><th>Voce</th><th>Gestione ${feeMinPct}%</th><th>Gestione ${feeMaxPct}%</th></tr>
+      <tr><td>Fatturato lordo</td><td>${eur(totals.gross)}</td><td>${eur(totals.gross)}</td></tr>
+      <tr><td>Spese di gestione</td><td>&minus; ${eur(totals.feeMinEur)}</td><td>&minus; ${eur(totals.feeMaxEur)}</td></tr>
+      <tr><td>Cedolare secca ${cedolarePct}% (su lordo)</td><td>&minus; ${eur(totals.cedEur)}</td><td>&minus; ${eur(totals.cedEur)}</td></tr>
+      <tr class="total"><td>NETTO ANNUO PROPRIETARIO</td><td>${eur(totals.netMax)}</td><td>${eur(totals.netMin)}</td></tr>
+    </table>
+    <div class="note-box">
+      Il netto annuo stimato si colloca in un intervallo tra ${eur(totals.netMin)} (gestione al ${feeMaxPct}%) ed ${eur(totals.netMax)} (gestione al ${feeMinPct}%), a parit&agrave; di prezzo comparabili e stagionalit&agrave; stimata.
+    </div>
+    <div class="disclaimer-text">
+      Documento a fini di proiezione indicativa, non previsione garantita di ricavo. Prezzo comparabili e dato turistico derivano da fonti verificate al momento della raccolta; la distribuzione mensile fuori da giugno&ndash;settembre &egrave; una stima, non un dato ufficiale. L'aliquota di cedolare secca indicata si applica di norma alla prima unit&agrave; locata nell'anno solare dallo stesso proprietario; dalla seconda unit&agrave; in poi la normativa italiana prevede il 26% &mdash; verificare con un commercialista prima di ogni decisione fiscale. Occupazione, prezzi e normativa possono variare nel tempo.
+    </div>
+    <div class="page-folio"><span>${generationFolioText()}</span><span>Pagina 6</span></div>
+  </article>
+  `;
+  document.getElementById("reportBook").innerHTML = html;
+}
+
+function recalcAndRender(){
+  if(!analysis) return;
+  const price = Number(document.getElementById("cPrice").value) || 0;
+  const occHigh = Number(document.getElementById("cOccHigh").value) || 0;
+  const feeMin = Number(document.getElementById("cFeeMin").value) || 0;
+  const feeMax = Number(document.getElementById("cFeeMax").value) || 0;
+  const ced = Number(document.getElementById("cCedolare").value) || 0;
+  if(price <= 0){
+    document.getElementById("pageStatus").className = "status error";
+    document.getElementById("pageStatus").textContent = "Inserisci un prezzo medio a notte maggiore di zero (nessun comparabile trovato su questa scheda).";
+    document.getElementById("reportBook").innerHTML = "";
+    return;
+  }
+  document.getElementById("pageStatus").textContent = "";
+  renderReport(analysis, price, occHigh, feeMin, feeMax, ced);
+}
+
+document.getElementById("recalcBtn").addEventListener("click", () => {
+  // Cambiando i valori il documento non corrisponde piu' all'ultimo PDF generato: lo stamp
+  // di versione va tolto, altrimenti resterebbe visibile un orario di generazione riferito
+  // a numeri ormai superati.
+  GENERATION_STAMP = null;
+  recalcAndRender();
+});
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+document.getElementById("waBtn").addEventListener("click", () => {
+  const title = analysis ? (analysis.title || "Analisi Short Rent") : "Analisi Short Rent";
+  const shareUrl = (analysis && analysis.report_share_url) || window.location.href;
+  const text = "Proiezione ricavi Short Rent IMMONOVA — " + title + ": " + shareUrl;
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+});
+
+function slugify(s){
+  return String(s||"analisi").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,60) || "analisi";
+}
+
+/* Estrae il path interno dello Storage bucket "dossier-pdfs" da un URL pubblico, per poter
+   cancellare il PDF precedente prima di caricare quello nuovo (senza questo, ogni "Genera
+   link" lascerebbe il vecchio file abbandonato nel bucket, occupando spazio inutilmente). */
+function extractDossierPdfsStoragePath(publicUrl){
+  const marker = "/dossier-pdfs/";
+  const idx = String(publicUrl||"").indexOf(marker);
+  if(idx === -1) return null;
+  let path = publicUrl.slice(idx + marker.length).split("?")[0];
+  try{ path = decodeURIComponent(path); }catch(e){}
+  return path || null;
+}
+
+function waitForImagesToLoad(root, timeoutMs){
+  timeoutMs = timeoutMs || 8000;
+  const imgs = Array.prototype.slice.call((root||document).querySelectorAll("img"));
+  return Promise.all(imgs.map(img => {
+    if(img.complete) return Promise.resolve();
+    return new Promise(resolve => {
+      let done = false;
+      function finish(){ if(!done){ done = true; resolve(); } }
+      img.addEventListener("load", finish);
+      img.addEventListener("error", finish);
+      setTimeout(finish, timeoutMs);
+    });
+  }));
+}
+
+async function generateReportPdfBlob(){
+  const book = document.getElementById("reportBook");
+  if(!book) throw new Error("Documento non trovato da esportare.");
+  const pageEls = Array.prototype.slice.call(book.querySelectorAll(".report-page"));
+  if(!pageEls.length) throw new Error("Nessuna pagina da esportare.");
+  await waitForImagesToLoad(book, 8000);
+  // Cattura UNA .report-page alla volta, vincolata dalla classe "pdf-capture" alle stesse
+  // identiche proporzioni A4 orizzontale gia' verificate in stampa (vedi CSS .pdf-capture):
+  // cosi' ogni pagina del documento diventa esattamente una pagina PDF, senza affettare un
+  // unico screenshot lunghissimo a intervalli fissi che non combaciano con i veri confini
+  // di pagina (causa di testi tagliati a meta' e di un'ultima pagina vuota).
+  book.classList.add("pdf-capture");
+  await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
+  const pdf = new window.jspdf.jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+  try{
+    for(let i=0;i<pageEls.length;i++){
+      const canvas = await html2canvas(pageEls[i], {scale:2, useCORS:true, backgroundColor:"#ffffff"});
+      const imgData = canvas.toDataURL("image/jpeg", 0.94);
+      if(i>0) pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, 0, 297, 210);
+    }
+  }finally{
+    book.classList.remove("pdf-capture");
+  }
+  return pdf.output("blob");
+}
+
+function renderLinkRow(url, generatedAt){
+  const linkRow = document.getElementById("linkRow");
+  if(!url){ linkRow.className = "link-row"; linkRow.innerHTML = ""; return; }
+  linkRow.className = "link-row visible";
+  // Data/ora di generazione mostrata accanto al link: cosi' prima di copiarlo e mandarlo a
+  // un cliente si vede subito, senza doversi fidare, quando quel PDF e' stato prodotto —
+  // se sono passate settimane dall'ultima modifica dei prezzi, salta all'occhio che va
+  // rigenerato.
+  let dateLabel = "";
+  if(generatedAt){
+    try{ dateLabel = new Date(generatedAt).toLocaleString("it-IT",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}); }catch(e){}
+  }
+  linkRow.innerHTML =
+    '<span>Link condivisibile'+(dateLabel ? ' (generato il '+esc(dateLabel)+')' : '')+':</span>'+
+    '<input type="text" id="shareLinkInput" readonly value="'+esc(url)+'" onclick="this.select()">'+
+    '<button type="button" class="copy-btn" id="copyGeneratedLinkBtn">Copia link</button>'+
+    '<span class="copy-feedback" id="copyFeedback"></span>';
+  document.getElementById("copyGeneratedLinkBtn").addEventListener("click", async () => {
+    const fb = document.getElementById("copyFeedback");
+    try{ await navigator.clipboard.writeText(url); fb.textContent = "Copiato ✓"; }
+    catch(e){ window.prompt("Copia manualmente il link:", url); }
+    setTimeout(() => { if(fb) fb.textContent = ""; }, 2500);
+  });
+}
+
+// Prima di generare qualunque link, controlla che QUESTA pagina (quella gia' caricata nel
+// browser, magari in una tab aperta da prima dell'ultimo aggiornamento) sia davvero la
+// versione piu' recente del file, ri-scaricandolo con cache disattivata e confrontando
+// PAGE_BUILD_VERSION. Se non combaciano (tab vecchia rimasta aperta, o cache non ancora
+// aggiornata), NON genera nulla: costringe a ricaricare, invece di produrre in silenzio un
+// PDF con codice superato.
+async function verifyPageIsCurrent(){
+  try{
+    const resp = await fetch(window.location.pathname + "?_v=" + Date.now(), { cache: "no-store" });
+    if(!resp.ok) return { ok:false, reason:"network" };
+    const text = await resp.text();
+    const m = text.match(/PAGE_BUILD_VERSION\s*=\s*"([^"]+)"/);
+    if(!m) return { ok:false, reason:"network" };
+    return { ok: m[1] === PAGE_BUILD_VERSION, reason: m[1] === PAGE_BUILD_VERSION ? null : "stale" };
+  }catch(e){
+    return { ok:false, reason:"network" };
+  }
+}
+
+async function generateReportLink(){
+  const btn = document.getElementById("generateLinkBtn");
+  const originalLabel = btn.textContent;
+  const status = document.getElementById("pageStatus");
+
+  status.className = "status";
+  status.textContent = "Verifica che la pagina sia aggiornata...";
+  const check = await verifyPageIsCurrent();
+  if(!check.ok){
+    status.className = "status error";
+    status.textContent = check.reason === "stale"
+      ? "Questa scheda non e' aggiornata all'ultima versione (probabilmente e' rimasta aperta in una tab da prima di un aggiornamento). Ricarica la pagina (F5) e riprova: nessun link e' stato generato."
+      : "Impossibile verificare se la pagina e' aggiornata (problema di rete). Ricarica la pagina e riprova: nessun link e' stato generato, per sicurezza.";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.classList.add("btn-busy");
+  btn.classList.remove("btn-success");
+  btn.textContent = "Generazione in corso...";
+  try{
+    status.className = "status";
+    status.textContent = "Generazione PDF in corso...";
+    const previousPdfUrl = (analysis && analysis.report_pdf_url) || null;
+    // Timbro visibile con data/ora esatta al minuto, stampato su ogni pagina del PDF (footer
+    // + copertina): serve a NON avere mai due generazioni indistinguibili a occhio. Va
+    // impresso nel documento PRIMA di catturarlo, quindi si ri-renderizza la pagina con lo
+    // stamp attivo e si aspetta un frame prima di passare a html2canvas.
+    GENERATION_STAMP = "Generato il " + new Date().toLocaleString("it-IT", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    recalcAndRender();
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const pdfBlob = await generateReportPdfBlob();
+    // Il nome del file scaricato e' l'ultimo pezzo del path pubblico: il timestamp di
+    // versione va nella CARTELLA, non incollato al nome del file, altrimenti chi scarica
+    // il PDF dal link pubblico si ritrova un nome tipo "1789769385763_short_rent_report_...
+    // .pdf" invece di un nome leggibile.
+    const filename = "Valutazione_IMMONOVA_"+slugify(analysis && analysis.title)+".pdf";
+    const path = "short-rent/analysis-"+(analysis.id||"na")+"/"+Date.now()+"/"+filename;
+    const upload = await client.storage.from("dossier-pdfs").upload(path, pdfBlob, {contentType:"application/pdf", upsert:true});
+    if(upload.error) throw upload.error;
+    const pub = client.storage.from("dossier-pdfs").getPublicUrl(path);
+    const pdfUrl = pub.data.publicUrl;
+
+    if(previousPdfUrl && previousPdfUrl !== pdfUrl){
+      const previousPath = extractDossierPdfsStoragePath(previousPdfUrl);
+      if(previousPath){
+        try{
+          const removeRes = await client.storage.from("dossier-pdfs").remove([previousPath]);
+          if(removeRes.error) console.warn("Cancellazione PDF precedente fallita:", removeRes.error);
+        }catch(removeErr){ console.warn("Cancellazione PDF precedente fallita:", removeErr); }
+      }
+    }
+
+    renderLinkRow(null);
+    btn.classList.remove("btn-busy");
+    btn.classList.add("btn-success");
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    setTimeout(() => { btn.classList.remove("btn-success"); }, 3000);
+    status.textContent = "PDF pronto. Pubblicazione del link con anteprima in corso...";
+
+    await publishAndFinalizeReportLink(pdfUrl);
+  }catch(e){
+    console.error(e);
+    status.className = "status error";
+    status.textContent = "Errore nella generazione: "+(e.message||e);
+    btn.classList.remove("btn-busy");
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+async function publishAndFinalizeReportLink(pdfUrl){
+  const status = document.getElementById("pageStatus");
+  let shareUrl = null;
+  const location = [analysis.municipality, analysis.province].filter(Boolean).join(" (") + (analysis.province ? ")" : "");
+  const coverUrl = (Array.isArray(analysis.photos) && analysis.photos.length) ? analysis.photos[0] : "";
+  try{
+    const publishResp = await fetch(String(SUPABASE_URL||"").replace(/\/+$/,"")+"/functions/v1/publish-shortrent-report-page",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+SUPABASE_ANON_KEY},
+      body:JSON.stringify({
+        analysisId: analysis.id,
+        title: analysis.title || "Analisi Short Rent",
+        location: location,
+        coverUrl: coverUrl,
+        pdfUrl: pdfUrl
+      })
+    });
+    const publishData = await publishResp.json();
+    if(publishResp.ok && publishData && publishData.url){ shareUrl = publishData.url; }
+    else console.warn("Pubblicazione pagina su GitHub fallita:", publishData);
+  }catch(publishErr){
+    console.warn("Pubblicazione pagina su GitHub fallita:", publishErr);
+  }
+
+  const versionedShareUrl = shareUrl ? (shareUrl + (shareUrl.indexOf("?")===-1 ? "?" : "&") + "v=" + Date.now()) : null;
+
+  if(!shareUrl){
+    status.className = "status error";
+    status.textContent = "PDF generato, ma la pubblicazione del link con anteprima non e' riuscita: nessun link disponibile. Controlla la console e riprova.";
+    return;
+  }
+
+  const attempts_max = 60;
+  let attempts = 0, confirmed = false;
+  const cacheBustUrl = shareUrl + (shareUrl.indexOf("?")===-1 ? "?" : "&") + "_cb=" + Date.now();
+  while(attempts < attempts_max){
+    attempts++;
+    try{
+      const check = await fetch(cacheBustUrl, {method:"GET", cache:"no-store"});
+      if(check.ok){
+        const checkText = await check.text();
+        if(checkText.indexOf(pdfUrl) !== -1){ confirmed = true; break; }
+      }
+    }catch(e){}
+    await new Promise(r => setTimeout(r, 3000));
+  }
+
+  if(confirmed){
+    const generatedAt = new Date().toISOString();
+    try{
+      await client.from("short_rent_analyses").update({
+        report_pdf_url: pdfUrl,
+        report_share_url: versionedShareUrl,
+        report_link_generated_at: generatedAt
+      }).eq("id", analysis.id);
+      analysis.report_pdf_url = pdfUrl;
+      analysis.report_share_url = versionedShareUrl;
+      analysis.report_link_generated_at = generatedAt;
+    }catch(saveErr){ console.warn("Salvataggio link fallito:", saveErr); }
+    renderLinkRow(versionedShareUrl, generatedAt);
+    status.className = "status success";
+    status.textContent = "Link generato, con anteprima.";
+  }else{
+    renderLinkRow(null);
+    status.className = "status error";
+    status.textContent = "PDF pubblicato, ma non e' stato possibile confermare che l'anteprima sia gia' aggiornata sulla CDN: riprova tra qualche minuto prima di copiare il link.";
+  }
+}
+
+document.getElementById("generateLinkBtn").addEventListener("click", generateReportLink);
+
+async function init(){
+  const { data:{ session } } = await client.auth.getSession();
+  if(!session){ window.location.href = "login.html"; return; }
+  const { data: profile } = await client.from("profiles").select("role").eq("id", session.user.id).single();
+  if(!profile || profile.role !== "admin"){
+    document.getElementById("pageStatus").className = "status error";
+    document.getElementById("pageStatus").textContent = "Accesso riservato agli admin.";
+    return;
+  }
+
+  const id = getParam("id");
+  if(!id){
+    document.getElementById("pageStatus").className = "status error";
+    document.getElementById("pageStatus").textContent = "ID scheda mancante nell'URL.";
+    return;
+  }
+  const { data, error } = await client.from("short_rent_analyses").select("*").eq("id", id).single();
+  if(error || !data){
+    document.getElementById("pageStatus").className = "status error";
+    document.getElementById("pageStatus").textContent = "Scheda non trovata: " + (error ? error.message : "");
+    return;
+  }
+  analysis = data;
+  const avgPrice = computeAvgPrice(data.comparables);
+  document.getElementById("cPrice").value = avgPrice ? Math.round(avgPrice) : "";
+  recalcAndRender();
+  if(data.report_share_url) renderLinkRow(data.report_share_url, data.report_link_generated_at);
+}
+init();
+</script>
+
+</body>
+</html>
