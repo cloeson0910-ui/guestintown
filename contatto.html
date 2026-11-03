@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guest in Town — Richiesta Disponibilità</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<style>
+  :root{
+    --gold-1:#d9b05c;
+    --gold-2:#f3d98b;
+    --gold-3:#a9771f;
+    --black:#000000;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{
+    width:100%;
+    background:var(--black);
+    font-family:"Georgia","Times New Roman",serif;
+    color:var(--gold-1);
+  }
+  body{
+    min-height:100vh;
+    position:relative;
+    padding:min(8vh,70px) 6vw 100px;
+    overflow-x:hidden;
+  }
+  ::selection{ background:var(--gold-1); color:#000; }
+
+  .vignette{
+    position:fixed; inset:0;
+    pointer-events:none;
+    background:radial-gradient(circle at 50% 0%, rgba(217,176,92,.08) 0%, rgba(0,0,0,0) 55%);
+  }
+
+  a.back{
+    position:relative; z-index:1;
+    display:inline-block; font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--gold-3); text-decoration:none; margin-bottom:28px;
+    border-bottom:1px solid transparent; padding-bottom:3px;
+    transition:color .3s ease, border-color .3s ease;
+  }
+  a.back:hover{ color:var(--gold-1); border-color:var(--gold-1); }
+
+  header.hd{ position:relative; z-index:1; text-align:center; margin-bottom:46px; }
+  header.hd .eyebrow{
+    font-size:10px; letter-spacing:.35em; text-transform:uppercase; color:var(--gold-3); margin-bottom:14px;
+  }
+  header.hd h1{
+    font-weight:400; letter-spacing:.04em;
+    font-size:clamp(26px, 4vw, 44px); color:var(--gold-2);
+  }
+  header.hd .rule{
+    width:70px; height:1px; margin:22px auto 0;
+    background:linear-gradient(90deg, transparent, var(--gold-1), transparent);
+  }
+  header.hd p.sub{
+    margin-top:20px; font-size:13px; color:#c9ac6c; max-width:560px; margin-left:auto; margin-right:auto;
+    line-height:1.7; opacity:.85;
+  }
+
+  form{
+    position:relative; z-index:1;
+    max-width:760px; margin:0 auto;
+    border:1px solid rgba(217,176,92,.3);
+    padding:clamp(26px, 4vw, 54px);
+    background:linear-gradient(180deg, rgba(217,176,92,.03), rgba(0,0,0,0));
+  }
+
+  .field{ margin-bottom:26px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media (max-width:620px){ .row2{ grid-template-columns:1fr; } }
+
+  label{
+    display:block; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--gold-1); margin-bottom:10px;
+  }
+  label .req{ color:var(--gold-3); }
+
+  input[type="text"], input[type="number"], input[type="email"], input[type="tel"], select{
+    width:100%;
+    background:rgba(255,255,255,.02);
+    border:1px solid rgba(217,176,92,.35);
+    color:var(--gold-2);
+    font-family:inherit;
+    font-size:14px;
+    padding:12px 14px;
+    outline:none;
+    transition:border-color .3s ease, background .3s ease;
+  }
+  input::placeholder{ color:#8a6f33; opacity:.7; }
+  input:focus, select:focus{ border-color:var(--gold-1); background:rgba(217,176,92,.06); }
+
+  select{ appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23d9b05c'/></svg>");
+    background-repeat:no-repeat; background-position:right 14px center;
+  }
+  select option{ background:#111; color:var(--gold-2); }
+
+  fieldset{ border:1px solid rgba(217,176,92,.25); padding:20px 18px; margin-bottom:26px; }
+  legend{
+    font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold-1);
+    padding:0 10px;
+  }
+  legend small{ display:block; font-size:9.5px; color:#8a6f33; letter-spacing:.1em; margin-top:4px; text-transform:none; }
+
+  .checks{ display:grid; grid-template-columns:1fr 1fr; gap:10px 20px; margin-top:6px; }
+  @media (max-width:560px){ .checks{ grid-template-columns:1fr; } }
+
+  .chk{ position:relative; display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .chk input{ position:absolute; opacity:0; width:18px; height:18px; cursor:pointer; }
+  .chk .box{
+    width:16px; height:16px; flex:none;
+    border:1px solid var(--gold-1); position:relative;
+    transition:background .25s ease;
+  }
+  .chk input:checked + .box{ background:var(--gold-1); }
+  .chk input:checked + .box::after{
+    content:""; position:absolute; left:4px; top:1px; width:4px; height:8px;
+    border:solid #000; border-width:0 2px 2px 0; transform:rotate(45deg);
+  }
+  .chk span.lbl{ font-size:13px; color:#e9d9ab; }
+
+  /* flatpickr theming */
+  .flatpickr-calendar{ background:#0b0b0b; border:1px solid rgba(217,176,92,.4); box-shadow:0 10px 40px rgba(0,0,0,.6); }
+  .flatpickr-months, .flatpickr-weekdays{ background:#0b0b0b; }
+  .flatpickr-month, .flatpickr-weekday{ color:var(--gold-1) !important; fill:var(--gold-1); }
+  .flatpickr-day{ color:#e9d9ab; }
+  .flatpickr-day.flatpickr-disabled{ color:#4a3c1e; }
+  .flatpickr-day:hover{ background:rgba(217,176,92,.2); border-color:transparent; }
+  .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange{
+    background:var(--gold-1) !important; border-color:var(--gold-1) !important; color:#000 !important;
+  }
+  .flatpickr-day.inRange{ background:rgba(217,176,92,.22); box-shadow:none; border-color:transparent; }
+  .flatpickr-current-month input.cur-year{ color:var(--gold-1); }
+  .flatpickr-prev-month svg, .flatpickr-next-month svg{ fill:var(--gold-1); }
+
+  .submit-btn{
+    position:relative; display:block; width:100%; margin-top:10px;
+    background:transparent; border:1px solid var(--gold-1); color:var(--gold-1);
+    font-family:inherit; letter-spacing:.3em; text-transform:uppercase; font-size:13px;
+    padding:16px; cursor:pointer; overflow:hidden; text-align:center;
+  }
+  .submit-btn span{ position:relative; z-index:1; transition:color .35s ease; }
+  .submit-btn::before{
+    content:""; position:absolute; inset:0; background:var(--gold-1);
+    transform:scaleX(0); transform-origin:left; transition:transform .4s cubic-bezier(.65,0,.35,1);
+  }
+  .submit-btn:hover::before{ transform:scaleX(1); }
+  .submit-btn:hover span{ color:#000; }
+
+  .note{
+    margin-top:16px; font-size:11px; color:#8a6f33; text-align:center; line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+
+<a class="back" href="destinazioni.html">&larr; Torna alle destinazioni</a>
+
+<header class="hd">
+  <div class="eyebrow">Guest in Town &middot; Off Market</div>
+  <h1>Richiesta di Disponibilità</h1>
+  <div class="rule"></div>
+  <p class="sub">Compili il modulo con le preferenze del Suo soggiorno: Le invieremo entro breve una selezione di ville disponibili e i servizi di concierge richiesti.</p>
+</header>
+
+<form id="requestForm">
+
+  <div class="field">
+    <label for="nome">Nome e Cognome <span class="req">*</span></label>
+    <input type="text" id="nome" name="nome" required placeholder="Il Suo nome">
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label for="email">Email <span class="req">*</span></label>
+      <input type="email" id="email" name="email" required placeholder="nome@esempio.com">
+    </div>
+    <div class="field">
+      <label for="telefono">Telefono</label>
+      <input type="tel" id="telefono" name="telefono" placeholder="+39 ...">
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="paese">In quale paese desidera la villa? <span class="req">*</span></label>
+    <select id="paese" name="paese" required>
+      <option value="">Selezioni una destinazione</option>
+      <option value="Alto Salento">Alto Salento</option>
+      <option value="Salento">Salento</option>
+      <option value="Costa Ionica">Costa Ionica</option>
+      <option value="Altra destinazione">Altra destinazione (specificare nel messaggio)</option>
+    </select>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label for="ospiti">Numero ospiti <span class="req">*</span></label>
+      <input type="number" id="ospiti" name="ospiti" min="1" max="40" required placeholder="Es. 8">
+    </div>
+    <div class="field">
+      <label for="periodo">Periodo del soggiorno <span class="req">*</span></label>
+      <input type="text" id="periodo" name="periodo" required placeholder="Seleziona le date" readonly>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label for="camere">Numero camere</label>
+      <input type="number" id="camere" name="camere" min="1" max="20" placeholder="Es. 5">
+    </div>
+    <div class="field">
+      <label for="bagni">Numero bagni</label>
+      <input type="number" id="bagni" name="bagni" min="1" max="20" placeholder="Es. 4">
+    </div>
+  </div>
+
+  <fieldset>
+    <legend>Servizi dell'immobile<small>Da richiedere in anticipo in fase di prenotazione</small></legend>
+    <div class="checks" id="servizi-immobile">
+      <label class="chk"><input type="checkbox" value="Piscina privata"><span class="box"></span><span class="lbl">Piscina privata</span></label>
+      <label class="chk"><input type="checkbox" value="Giardino / Parco"><span class="box"></span><span class="lbl">Giardino / Parco</span></label>
+      <label class="chk"><input type="checkbox" value="Aria condizionata"><span class="box"></span><span class="lbl">Aria condizionata</span></label>
+      <label class="chk"><input type="checkbox" value="Wi-Fi ad alta velocità"><span class="box"></span><span class="lbl">Wi-Fi ad alta velocità</span></label>
+      <label class="chk"><input type="checkbox" value="Parcheggio privato"><span class="box"></span><span class="lbl">Parcheggio privato</span></label>
+      <label class="chk"><input type="checkbox" value="Area BBQ / Outdoor kitchen"><span class="box"></span><span class="lbl">Area BBQ / Outdoor kitchen</span></label>
+      <label class="chk"><input type="checkbox" value="Palestra privata"><span class="box"></span><span class="lbl">Palestra privata</span></label>
+      <label class="chk"><input type="checkbox" value="Accesso diretto al mare"><span class="box"></span><span class="lbl">Accesso diretto al mare</span></label>
+      <label class="chk"><input type="checkbox" value="Culla / arredi per bambini"><span class="box"></span><span class="lbl">Culla / arredi per bambini</span></label>
+      <label class="chk"><input type="checkbox" value="Animali domestici ammessi"><span class="box"></span><span class="lbl">Animali domestici ammessi</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Servizi di concierge<small>Da richiedere in anticipo in fase di prenotazione</small></legend>
+    <div class="checks" id="servizi-concierge">
+      <label class="chk"><input type="checkbox" value="Chef privato"><span class="box"></span><span class="lbl">Chef privato</span></label>
+      <label class="chk"><input type="checkbox" value="Maggiordomo / Governante"><span class="box"></span><span class="lbl">Maggiordomo / Governante</span></label>
+      <label class="chk"><input type="checkbox" value="Transfer aeroportuale"><span class="box"></span><span class="lbl">Transfer aeroportuale</span></label>
+      <label class="chk"><input type="checkbox" value="Noleggio auto con autista"><span class="box"></span><span class="lbl">Noleggio auto con autista</span></label>
+      <label class="chk"><input type="checkbox" value="Spesa di benvenuto"><span class="box"></span><span class="lbl">Spesa di benvenuto</span></label>
+      <label class="chk"><input type="checkbox" value="Baby sitter"><span class="box"></span><span class="lbl">Baby sitter</span></label>
+      <label class="chk"><input type="checkbox" value="Massaggi / Trattamenti SPA a domicilio"><span class="box"></span><span class="lbl">Massaggi / Trattamenti SPA a domicilio</span></label>
+      <label class="chk"><input type="checkbox" value="Organizzazione eventi privati"><span class="box"></span><span class="lbl">Organizzazione eventi privati</span></label>
+      <label class="chk"><input type="checkbox" value="Escursioni / Barca privata"><span class="box"></span><span class="lbl">Escursioni / Barca privata</span></label>
+      <label class="chk"><input type="checkbox" value="Pulizie giornaliere"><span class="box"></span><span class="lbl">Pulizie giornaliere</span></label>
+      <label class="chk"><input type="checkbox" value="Security / Guardiania"><span class="box"></span><span class="lbl">Security / Guardiania</span></label>
+      <label class="chk"><input type="checkbox" value="Sommelier / Degustazioni"><span class="box"></span><span class="lbl">Sommelier / Degustazioni</span></label>
+    </div>
+  </fieldset>
+
+  <div class="field">
+    <label for="note">Note aggiuntive</label>
+    <input type="text" id="note" name="note" placeholder="Eventuali richieste particolari">
+  </div>
+
+  <button type="submit" class="submit-btn"><span>Invia Richiesta</span></button>
+  <p class="note">La richiesta verrà inviata via email a info@guestintown.com. Si aprirà il Suo client di posta con il messaggio precompilato.</p>
+</form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/it.js"></script>
+<script>
+  flatpickr.localize(flatpickr.l10ns.it);
+  flatpickr("#periodo", {
+    mode: "range",
+    minDate: "today",
+    dateFormat: "d/m/Y",
+    showMonths: 2,
+    locale: "it"
+  });
+
+  // preselect "paese" from query string
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    const paese = params.get("paese");
+    if(paese){
+      const sel = document.getElementById("paese");
+      for(const opt of sel.options){
+        if(opt.value === paese){ opt.selected = true; break; }
+      }
+    }
+  })();
+
+  document.getElementById("requestForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const nome = document.getElementById("nome").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const telefono = document.getElementById("telefono").value.trim();
+    const paese = document.getElementById("paese").value;
+    const ospiti = document.getElementById("ospiti").value;
+    const periodo = document.getElementById("periodo").value;
+    const camere = document.getElementById("camere").value;
+    const bagni = document.getElementById("bagni").value;
+    const note = document.getElementById("note").value.trim();
+
+    const serviziImmobile = Array.from(document.querySelectorAll('#servizi-immobile input:checked')).map(i => i.value);
+    const serviziConcierge = Array.from(document.querySelectorAll('#servizi-concierge input:checked')).map(i => i.value);
+
+    const lines = [
+      `Nome e Cognome: ${nome}`,
+      `Email: ${email}`,
+      telefono ? `Telefono: ${telefono}` : null,
+      ``,
+      `Paese desiderato: ${paese}`,
+      `Numero ospiti: ${ospiti}`,
+      `Periodo: ${periodo}`,
+      camere ? `Numero camere: ${camere}` : null,
+      bagni ? `Numero bagni: ${bagni}` : null,
+      ``,
+      `Servizi dell'immobile richiesti:`,
+      serviziImmobile.length ? serviziImmobile.map(s => `- ${s}`).join("\n") : "- Nessuno selezionato",
+      ``,
+      `Servizi di concierge richiesti:`,
+      serviziConcierge.length ? serviziConcierge.map(s => `- ${s}`).join("\n") : "- Nessuno selezionato",
+      note ? `\nNote: ${note}` : null
+    ].filter(l => l !== null).join("\n");
+
+    const subject = `Richiesta disponibilità Villa — ${paese || "Guest in Town"}`;
+    const mailto = `mailto:info@guestintown.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines)}`;
+    window.location.href = mailto;
+  });
+</script>
+</body>
+</html>
