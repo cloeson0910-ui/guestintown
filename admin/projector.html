@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proiettore diapositive</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1200px;margin:auto;}
+.menu{display:flex;gap:15px;align-items:center;margin-bottom:30px;flex-wrap:wrap;}
+.menu a,.menu button{background:#222;color:white;padding:10px 15px;text-decoration:none;border:0;border-radius:6px;cursor:pointer;}
+.menu a.active{background:#c9a96e;color:#000;font-weight:bold;}
+.menu .logout{margin-left:auto;background:#c0392b;}
+h1{margin-bottom:8px;}
+.sub{color:#aaa;font-size:14px;margin:0 0 25px;}
+.form{background:#1b1b1b;padding:20px;border-radius:10px;margin-bottom:25px;}
+.drop{border:2px dashed #c9a96e;border-radius:10px;padding:34px 20px;text-align:center;cursor:pointer;color:#ddd;transition:background .2s;}
+.drop.over{background:#2a2418;}
+.drop strong{color:#c9a96e;}
+.status{margin-top:12px;font-size:14px;color:#c9a96e;min-height:18px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px;}
+.card{background:#1b1b1b;border-radius:10px;overflow:hidden;border:1px solid #2a2a2a;}
+.card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#222;}
+.card .bar{display:flex;align-items:center;gap:6px;padding:10px;}
+.card .num{font-weight:bold;color:#c9a96e;margin-right:auto;}
+.card button{background:#222;color:#fff;border:0;border-radius:6px;padding:7px 10px;cursor:pointer;font-size:14px;}
+.card button:disabled{opacity:.3;cursor:default;}
+.card button.del{background:#c0392b;}
+.empty{background:#1b1b1b;padding:30px;border-radius:10px;text-align:center;color:#aaa;}
+.preview-link{display:inline-block;margin-bottom:22px;color:#c9a96e;}
+</style>
+</head>
+<body>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="villas.html">Ville</a>
+<a href="villa-form.html">Nuova Villa</a>
+<a href="destinations.html">Destinazioni</a>
+<a href="towns.html">Paesi</a>
+<a href="projector.html" class="active">Proiettore</a>
+<button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<h1>Proiettore diapositive</h1>
+<p class="sub">Le foto caricate qui scorrono nel proiettore della pagina Destinazioni, una ogni 2 secondi, nell'ordine che vedi sotto.</p>
+<a class="preview-link" href="../destinazioni.html" target="_blank">Apri la pagina Destinazioni ↗</a>
+
+<div class="form">
+<label class="drop" id="drop">
+<input id="files" type="file" accept="image/*" multiple hidden>
+<strong>Clicca qui</strong> oppure trascina le foto (anche più di una insieme)
+</label>
+<div class="status" id="status"></div>
+</div>
+
+<div id="list"><div class="empty">Caricamento...</div></div>
+
+<script>
+const BUCKET='location-images';
+let photos=[];
+
+checkAuth();
+async function checkAuth(){
+  const {data}=await supabaseClient.auth.getUser();
+  if(!data.user){location.href='login.html';return;}
+  loadPhotos();
+}
+
+async function logout(){await supabaseClient.auth.signOut();location.href='login.html';}
+
+const st=t=>document.getElementById('status').textContent=t;
+
+async function loadPhotos(){
+  const {data,error}=await supabaseClient.from('projector_photos').select('*').order('sort_order').order('created_at');
+  if(error){document.getElementById('list').innerHTML='<div class="empty">Errore: '+error.message+'</div>';return;}
+  photos=data||[];render();
+}
+
+function render(){
+  const el=document.getElementById('list');
+  if(!photos.length){el.innerHTML='<div class="empty">Nessuna foto caricata. Il proiettore resta nascosto finché non ne carichi almeno una.</div>';return;}
+  el.innerHTML='<div class="grid">'+photos.map((p,i)=>`
+    <div class="card">
+      <img src="${p.image_url}" alt="">
+      <div class="bar">
+        <span class="num">${i+1}</span>
+        <button title="Sposta prima" onclick="move(${i},-1)" ${i===0?'disabled':''}>◀</button>
+        <button title="Sposta dopo" onclick="move(${i},1)" ${i===photos.length-1?'disabled':''}>▶</button>
+        <button class="del" title="Elimina" onclick="removePhoto(${i})">✕</button>
+      </div>
+    </div>`).join('')+'</div>';
+}
+
+function cleanName(n){return n.toLowerCase().replaceAll(' ','-').replace(/[^a-z0-9.\-_]/g,'');}
+
+async function upload(files){
+  files=[...files].filter(f=>f.type.startsWith('image/'));
+  if(!files.length)return;
+  let next=photos.length?Math.max(...photos.map(p=>p.sort_order||0))+1:1;
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    st(`Caricamento ${i+1} di ${files.length}...`);
+    const path=`projector/${Date.now()}-${cleanName(f.name)}`;
+    const up=await supabaseClient.storage.from(BUCKET).upload(path,f,{cacheControl:'31536000',upsert:false});
+    if(up.error){alert(f.name+': '+up.error.message);continue;}
+    const url=supabaseClient.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    const {error}=await supabaseClient.from('projector_photos').insert({image_url:url,storage_path:path,sort_order:next++});
+    if(error)alert(error.message);
+  }
+  st('Fatto ✓');setTimeout(()=>st(''),2500);
+  document.getElementById('files').value='';
+  loadPhotos();
+}
+
+async function move(i,d){
+  const j=i+d;if(j<0||j>=photos.length)return;
+  [photos[i],photos[j]]=[photos[j],photos[i]];
+  render();
+  const updates=photos.map((p,k)=>supabaseClient.from('projector_photos').update({sort_order:k+1}).eq('id',p.id));
+  const res=await Promise.all(updates);
+  const err=res.find(r=>r.error);if(err)alert(err.error.message);
+  photos.forEach((p,k)=>p.sort_order=k+1);
+}
+
+async function removePhoto(i){
+  const p=photos[i];
+  if(!confirm('Eliminare questa foto dal proiettore?'))return;
+  const {error}=await supabaseClient.from('projector_photos').delete().eq('id',p.id);
+  if(error){alert(error.message);return;}
+  if(p.storage_path)await supabaseClient.storage.from(BUCKET).remove([p.storage_path]);
+  loadPhotos();
+}
+
+const drop=document.getElementById('drop');
+document.getElementById('files').addEventListener('change',e=>upload(e.target.files));
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>upload(e.dataTransfer.files));
+</script>
+</body>
+</html>
