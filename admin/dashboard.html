@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – Guest in Town</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#111;color:white;padding:30px;max-width:1200px;margin:auto;}
+header{display:flex;align-items:center;gap:15px;margin-bottom:30px;flex-wrap:wrap;}
+header h1{margin:0;font-size:26px;}
+header .who{color:#aaa;font-size:13px;}
+header button{margin-left:auto;background:#c0392b;color:#fff;border:0;border-radius:6px;padding:10px 15px;cursor:pointer;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+a.tile{display:block;background:#1b1b1b;border:1px solid #2a2a2a;border-radius:10px;padding:20px;color:#fff;text-decoration:none;transition:border-color .2s,transform .2s;}
+a.tile:hover{border-color:#c9a96e;transform:translateY(-2px);}
+a.tile b{display:block;font-size:17px;margin-bottom:6px;color:#c9a96e;}
+a.tile span{font-size:13px;color:#aaa;line-height:1.4;}
+a.tile.hl{border-color:#c9a96e;}
+</style>
+</head>
+<body>
+<header>
+<h1>Guest in Town</h1>
+<span class="who" id="who"></span>
+<button onclick="logout()">Logout</button>
+</header>
+
+<div class="grid">
+<a class="tile hl" href="projector.html"><b>Proiettore</b><span>Foto del proiettore nella pagina Destinazioni</span></a>
+<a class="tile" href="villas.html"><b>Ville</b><span>Elenco e modifica ville</span></a>
+<a class="tile" href="villa-form.html"><b>Nuova villa</b><span>Aggiungi una villa</span></a>
+<a class="tile" href="bookings.html"><b>Prenotazioni</b><span>Gestione prenotazioni</span></a>
+<a class="tile" href="calendar.html"><b>Calendario</b><span>Disponibilità delle ville</span></a>
+<a class="tile" href="calendar-blocks.html"><b>Blocchi calendario</b><span>Date bloccate manualmente</span></a>
+<a class="tile" href="destinations.html"><b>Destinazioni</b><span>Zone / province</span></a>
+<a class="tile" href="towns.html"><b>Paesi</b><span>Paesi per destinazione</span></a>
+<a class="tile" href="services-admin.html"><b>Servizi</b><span>Servizi concierge e fornitori</span></a>
+<a class="tile" href="service-requests.html"><b>Richieste servizi</b><span>Richieste dei clienti</span></a>
+<a class="tile" href="operations.html"><b>Operatività</b><span>Pulizie, check-in, staff</span></a>
+<a class="tile" href="reports.html"><b>Report</b><span>Numeri e statistiche</span></a>
+<a class="tile" href="admin-users.html"><b>Utenti</b><span>Amministratori e staff</span></a>
+<a class="tile" href="company-settings.html"><b>Impostazioni</b><span>Dati aziendali</span></a>
+</div>
+
+<script>
+(async()=>{
+  const {data}=await supabaseClient.auth.getUser();
+  if(!data.user){location.href='login.html';return;}
+  document.getElementById('who').textContent=data.user.email;
+})();
+async function logout(){await supabaseClient.auth.signOut();location.href='login.html';}
+</script>
+</body>
+</html>
