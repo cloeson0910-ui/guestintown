@@ -173,14 +173,20 @@
   }
 
   /* ===== Proiettore diapositive (vista dall'alto, di fronte al telo) ===== */
-  .projector{position:relative;z-index:1;max-width:1000px;margin:0 auto min(9vh,80px);opacity:0;animation:fadeUp 1.2s ease-out .9s forwards;}
+  .projector{position:relative;z-index:1;max-width:620px;margin:0 auto min(9vh,80px);opacity:0;animation:fadeUp 1.2s ease-out .9s forwards;}
   .projector[hidden]{display:none}
   .pj-stage{position:relative;width:100%;aspect-ratio:16/15;}
   .pj-screen{position:absolute;left:10%;top:0;width:80%;height:45%;background:#0b0905;z-index:2;
     border:1px solid rgba(217,176,92,.25);box-shadow:0 0 70px rgba(243,217,139,.12),inset 0 0 40px rgba(0,0,0,.8);overflow:hidden;}
   .pj-screen img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;
-    filter:sepia(.18) saturate(.95) brightness(1.05);transition:opacity .35s ease;}
-  .pj-screen img.on{opacity:1;animation:pjFlicker 4s infinite steps(1);}
+    filter:sepia(.78) saturate(.55) contrast(1.12) brightness(.92) blur(.4px);transition:opacity .35s ease;}
+  .pj-screen img.on{opacity:1;animation:pjFlicker 1.6s infinite steps(1),pjJitter .9s infinite steps(1);}
+  .pj-grain{position:absolute;inset:-50%;pointer-events:none;opacity:.32;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:pjGrain .5s infinite steps(4);}
+  .pj-scratch{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,248,225,.55);pointer-events:none;opacity:0;animation:pjScratch 3.3s infinite steps(1);}
+  .pj-scratch.b{width:2px;background:rgba(30,20,8,.45);animation-duration:4.7s;animation-delay:-1.2s;}
+  .pj-old{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 70px 18px rgba(25,15,4,.85);background:radial-gradient(ellipse,rgba(120,80,30,0) 50%,rgba(60,35,10,.35) 100%);}
   .pj-screen .pj-hot{position:absolute;inset:0;pointer-events:none;
     background:radial-gradient(ellipse at 50% 85%,rgba(255,240,200,.2),rgba(0,0,0,0) 60%),radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.55) 100%);}
   .pj-screen.blank .pj-hot{background:radial-gradient(ellipse at 50% 70%,rgba(255,244,214,.55),rgba(255,244,214,.12) 60%,rgba(0,0,0,.4) 100%);}
@@ -195,7 +201,6 @@
   .pj-body{position:absolute;inset:6% 0 0 0;border-radius:12px;
     background:linear-gradient(135deg,#3b2f18 0%,#22190c 55%,#120d06 100%);
     border:1px solid #a9771f;box-shadow:inset 0 1px 0 rgba(243,217,139,.3),0 18px 40px rgba(0,0,0,.95);}
-  .pj-body::after{content:"GUEST IN TOWN";position:absolute;left:0;right:0;bottom:4%;text-align:center;font-size:clamp(5px,.8vw,9px);letter-spacing:.3em;color:#a9771f;}
   .pj-lens{position:absolute;left:50%;top:0;width:20%;height:12%;margin-left:-10%;border-radius:4px 4px 2px 2px;
     background:linear-gradient(90deg,#120d06,#6b5527 30%,#a9771f 50%,#6b5527 70%,#120d06);border:1px solid #a9771f;}
   .pj-lens::before{content:"";position:absolute;left:12%;right:12%;top:-22%;height:34%;border-radius:50%;
@@ -214,7 +219,10 @@
     box-shadow:0 0 14px rgba(255,240,200,.8);z-index:3;pointer-events:none;}
   @keyframes pjBeam{0%,100%{opacity:.8}45%{opacity:.66}50%{opacity:.86}55%{opacity:.7}}
   @keyframes pjLens{0%,100%{opacity:1}50%{opacity:.75}}
-  @keyframes pjFlicker{0%{filter:sepia(.18) brightness(1.05)}31%{filter:sepia(.18) brightness(.97)}33%{filter:sepia(.18) brightness(1.08)}71%{filter:sepia(.18) brightness(1.0)}}
+  @keyframes pjFlicker{0%{opacity:1}22%{opacity:.88}24%{opacity:1}61%{opacity:.93}63%{opacity:1}}
+  @keyframes pjJitter{0%{transform:translate(0,0)}30%{transform:translate(.6px,-.5px)}60%{transform:translate(-.5px,.6px)}}
+  @keyframes pjGrain{0%{transform:translate(0,0)}25%{transform:translate(-5%,4%)}50%{transform:translate(4%,-6%)}75%{transform:translate(-3%,-3%)}}
+  @keyframes pjScratch{0%{opacity:0;left:18%}8%{opacity:1;left:23%}14%{opacity:0}46%{opacity:.8;left:71%}52%{opacity:0}78%{opacity:.6;left:40%}82%{opacity:0}}
   @keyframes pjDust{from{transform:translate(0,0)}to{transform:translate(var(--dx),var(--dy))}}
   @media (max-width:700px){ .pj-stage{aspect-ratio:16/19} .pj-screen{left:0;width:100%;height:36%} .pj-machine{width:38%} }
 </style>
@@ -238,7 +246,7 @@
     <div class="pj-stage">
       <div class="pj-beam" id="pjBeam"></div>
       <div class="pj-dust" id="pjDust"></div>
-      <div class="pj-screen blank" id="pjScreen"><div class="pj-hot"></div></div>
+      <div class="pj-screen blank" id="pjScreen"><div class="pj-old"></div><div class="pj-grain"></div><div class="pj-scratch"></div><div class="pj-scratch b"></div><div class="pj-hot"></div></div>
       <div class="pj-machine">
         <div class="pj-body"></div>
         <div class="pj-lens"></div>
@@ -286,7 +294,7 @@
 <script src="js/supabase.js"></script>
 <script>
 (async function(){
-  const DELAY=2000;
+  const DELAY=4000;
   const box=document.getElementById('projector');
   const screen=document.getElementById('pjScreen');
   const tray=document.getElementById('pjTray');
